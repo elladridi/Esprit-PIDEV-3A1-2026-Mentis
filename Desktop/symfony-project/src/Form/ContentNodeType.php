@@ -1,0 +1,73 @@
+<?php
+
+namespace App\Form;
+
+use App\Entity\ContentNode;
+use App\Entity\User;
+use App\Repository\UserRepository;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+
+class ContentNodeType extends AbstractType
+{
+    public function buildForm(FormBuilderInterface $builder, array $options): void
+    {
+        $builder
+            ->add('title', TextType::class, [
+                'label' => 'Title',
+                'attr' => [
+                    'class' => 'form-control',
+                    'placeholder' => 'Example: Cognitive Behavioral Therapy module',
+                ],
+                'constraints' => [
+                    new \Symfony\Component\Validator\Constraints\NotBlank(['message' => 'Title is required']),
+                    new \Symfony\Component\Validator\Constraints\Length(['max' => 255]),
+                ],
+            ])
+            ->add('description', TextareaType::class, [
+                'label' => 'Description',
+                'required' => false,
+                'attr' => [
+                    'class' => 'form-control',
+                    'rows' => 4,
+                    'placeholder' => 'Describe the content purpose and takeaway',
+                ],
+            ])
+            ->add('pdfPath', TextType::class, [
+                'label' => 'PDF Path',
+                'required' => false,
+                'attr' => [
+                    'class' => 'form-control',
+                    'placeholder' => '/uploads/guides/worksheet.pdf',
+                ],
+            ])
+            ->add('parentNode', EntityType::class, [
+                'class' => ContentNode::class,
+                'required' => false,
+                'choice_label' => 'title',
+                'placeholder' => 'No parent',
+            ])
+            ->add('assignedUsers', EntityType::class, [
+                'class' => User::class,
+                'query_builder' => fn (UserRepository $ur) => $ur->createQueryBuilder('u')->where('u.type = :patient')->setParameter('patient', 'Patient'),
+                'choice_label' => fn (User $user) => sprintf('%s %s (%s)', $user->getFirstname(), $user->getLastname(), $user->getEmail()),
+                'multiple' => true,
+                'expanded' => true,
+                'required' => false,
+                'mapped' => false,
+                'attr' => ['class' => 'form-check'],
+                'choice_attr' => ['class' => 'form-check-input'],
+            ]);
+    }
+
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults([
+            'data_class' => ContentNode::class,
+        ]);
+    }
+}

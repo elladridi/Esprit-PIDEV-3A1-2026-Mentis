@@ -1,0 +1,22 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Home - Mentis{% endblock %}
+
+{% block body %}
+<div class="home-container">
+    <h1>Welcome to Mentis</h1>
+    <p>Mental Health & Wellness Platform</p>
+    
+    {% if app.user %}
+        <p>Hello, {{ app.user.firstname }} {{ app.user.lastname }}!</p>
+        <div class="home-buttons">
+            <a href="{{ path('app_logout') }}" class="btn btn-light">Logout</a>
+        </div>
+    {% else %}
+        <div class="home-buttons">
+            <a href="{{ path('app_login') }}" class="btn btn-light">Login</a>
+            <a href="{{ path('app_register') }}" class="btn btn-light">Register</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

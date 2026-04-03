@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="csrf-token" content="{{ csrf_token('') }}">
+        <title>{% block title %}Mentis - Mental Health App{% endblock %}</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+        <style>
+            :root {
+                --primary-color: #50C878;
+                --secondary-color: #ffffff;
+                --black-strong: #102a43;
+                --typography: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                --gutter: 1.25rem;
+            }
+
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                min-height: 100vh;
+                font-family: var(--typography);
+                background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.55), transparent 45%),
+                            radial-gradient(circle at 80% 80%, rgba(86, 227, 150, 0.18), transparent 45%),
+                            linear-gradient(135deg, #ecfdf5 0%, #e2f6ea 40%, #b4e4c6 75%, #50c878 100%);
+                color: #102a43;
+            }
+
+            .main-nav {
+                background: rgba(255, 255, 255, 0.92);
+                backdrop-filter: blur(12px);
+                box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+                position: sticky;
+                top: 0;
+                z-index: 100;
+            }
+
+            .container-lg {
+                max-width: 1300px;
+            }
+
+            .app-hero {
+                border-radius: 1.25rem;
+                background: linear-gradient(140deg, rgba(80, 200, 120, 0.08), rgba(255, 255, 255, 0.6));
+                border: 1px solid rgba(255, 255, 255, 0.6);
+                box-shadow: 0 16px 30px rgba(0, 0, 0, 0.15);
+                padding: 2.5rem;
+                margin: 1rem 0;
+            }
+
+            .info-card {
+                border-radius: 1rem;
+                box-shadow: 0 8px 25px rgba(24, 62, 44, 0.12);
+                border: 1px solid rgba(225, 245, 234, 0.35);
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+            }
+
+            .info-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 12px 27px rgba(24, 62, 44, 0.2);
+            }
+
+            .btn-modern {
+                background: linear-gradient(135deg, #1f9788, #1d6f5b);
+                border: none;
+                color: white;
+                border-radius: 0.7rem;
+                font-weight: 600;
+                padding: 0.8rem 1.15rem;
+            }
+
+            .btn-modern:hover {
+                background: linear-gradient(135deg, #1d6f5b, #1f9788);
+                transform: translateY(-1px);
+            }
+
+            .glass-panel {
+                background: rgba(255,255,255,0.7);
+                border-radius: 1rem;
+                backdrop-filter: blur(8px);
+                border: 1px solid rgba(255,255,255,0.45);
+            }
+
+            .table-modern thead tr {
+                background: rgba(27, 128, 91, 0.13);
+            }
+
+            .table-modern tbody tr:hover {
+                background: rgba(219, 246, 233, 0.8);
+            }
+
+            .sidebar-toggle {
+                position: fixed;
+                z-index: 110;
+                top: 16px;
+                left: 16px;
+                border-radius: 0.8rem;
+                border: none;
+                padding: 0.65rem 0.9rem;
+                background: linear-gradient(135deg, #1f9788, #1d6f5b);
+                color: #fff;
+                box-shadow: 0 6px 12px rgba(0,0,0,0.22);
+            }
+
+            .offcanvas-body a {
+                margin-bottom: 0.45rem;
+            }
+
+            .sidebar-link {
+                display: flex;
+                align-items: center;
+                width: 100%;
+                color: #1f623e;
+                padding: 0.52rem 0.8rem;
+                border-radius: 0.65rem;
+                text-decoration: none;
+                font-weight: 600;
+            }
+
+            .sidebar-link:hover,
+            .sidebar-link.active {
+                background: rgba(80, 200, 120, 0.18);
+                color: #105034;
+            }
+
+            .badge-grade {
+                padding: 0.45em 0.7em;
+                border-radius: 999px;
+                font-size: 0.72em;
+                font-weight: 700;
+            }
+
+            .badge-success { background: #daf5e8; color: #056d48; }
+            .badge-warning { background: #fff6db; color: #735b0f; }
+            .badge-danger { background: #ffe3e3; color: #a61717; }
+
+            .content-index-hero {
+                background: url('https://images.unsplash.com/photo-1559757175-5703a73f57c4?auto=format&fit=crop&w=1600&q=80') no-repeat center/cover;
+                border-radius: 1.25rem;
+                min-height: 160px;
+                position: relative;
+                color: white;
+                margin: 1rem 0;
+            }
+
+            .content-index-hero::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(145deg, rgba(14, 96, 63, 0.7), rgba(28, 123, 90, 0.35));
+                border-radius: 1.25rem;
+            }
+
+            .content-index-hero .hero-inner {
+                position: relative;
+                padding: 2rem;
+            }
+
+            .chart-stat {
+                border-radius: 0.9rem;
+                background: rgba(255, 255, 255, 0.8);
+                box-shadow: 0 6px 14px rgba(5, 98, 62, 0.12);
+                padding: 1rem;
+                text-align: center;
+            }
+
+            .chart-stat strong { font-size: 1.8rem; }
+
+            .dash-welcome {
+                color: #1a433c;
+            }
+
+            .form-error {
+                color: var(--danger-color);
+                font-size: 12px;
+                margin-top: 5px;
+                display: block;
+            }
+
+            .home-container {
+                color: white;
+                text-align: center;
+                padding: 100px 20px;
+            }
+
+            .home-container h1 {
+                font-size: 48px;
+                margin-bottom: 20px;
+            }
+
+            .home-container p {
+                font-size: 20px;
+                margin-bottom: 30px;
+            }
+
+            .home-buttons a {
+                margin: 10px;
+            }
+
+            .auth-container {
+                max-width: 520px;
+                margin: 5rem auto 4rem;
+                background: rgba(255,255,255,0.94);
+                border-radius: 1rem;
+                box-shadow: 0 18px 45px rgba(0,0,0,0.18);
+                border: 1px solid rgba(52, 113, 84, 0.16);
+                padding: 2.2rem;
+                backdrop-filter: blur(12px);
+            }
+
+            .auth-header h1 {
+                font-size: 2.2rem;
+                color: #1c6f56;
+                letter-spacing: 0.02em;
+                margin-bottom: 0.35rem;
+            }
+
+            .auth-header p {
+                margin-bottom: 1.25rem;
+                color: #436a5a;
+                font-weight: 500;
+            }
+
+            .auth-link {
+                margin-top: 1.2rem;
+                font-size: 0.95rem;
+                text-align: center;
+            }
+
+            .auth-link a {
+                color: #157f67;
+                font-weight: 600;
+            }
+
+            .auth-container .form-group {
+                margin-bottom: 0.95rem;
+            }
+
+            .auth-container .btn-primary {
+                width: 100%;
+                border-radius: 0.7rem;
+                background: linear-gradient(132deg, #1e986e, #1a7f5d);
+                border: none;
+                padding: 0.72rem 1.15rem;
+            }
+
+            .auth-container .btn-primary:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 7px 18px rgba(0,0,0,0.14);
+                background: linear-gradient(132deg, #1a7f5d, #1e986e);
+            }
+
+            .form-error {
+                color: #e04444;
+                font-size: 0.85rem;
+                margin-top: 0.35rem;
+                display: block;
+            }
+        </style>
+        {% block stylesheets %}
+        {% endblock %}
+
+        {% set frankenphpHotReload = app.request.server.get('FRANKENPHP_HOT_RELOAD') %}
+        {% if frankenphpHotReload %}
+        <meta name="frankenphp-hot-reload:url" content="{{ frankenphpHotReload }}">
+        <script src="https://cdn.jsdelivr.net/npm/idiomorph"></script>
+        <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
+        {% endif %}
+    </head>
+    <body>
+        <button class="sidebar-toggle btn-modern" type="button" data-bs-toggle="offcanvas" data-bs-target="#appSidebar" aria-controls="appSidebar">
+            <i class="bi bi-list"></i>
+        </button>
+
+        <div class="offcanvas offcanvas-start" tabindex="-1" id="appSidebar" aria-labelledby="appSidebarLabel">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title" id="appSidebarLabel">Mentis Menu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <nav class="nav flex-column">
+                    <a class="sidebar-link" href="{{ path('app_dashboard') }}"><i class="bi bi-house-door-fill me-2"></i> Home</a>
+
+                    {% if is_granted('ROLE_USER') %}
+                        <a class="sidebar-link" href="{{ path('app_dashboard_patient') }}"><i class="bi bi-person-fill me-2"></i> Patient Dashboard</a>
+                        <a class="sidebar-link" href="{{ path('content_index') }}"><i class="bi bi-journal-text me-2"></i> My Content</a>
+                    {% endif %}
+
+                    {% if is_granted('ROLE_PSYCHOLOGIST') %}
+                        <a class="sidebar-link" href="{{ path('app_dashboard_psychologist') }}"><i class="bi bi-clipboard-data me-2"></i> Psychologist Dashboard</a>
+                        <a class="sidebar-link" href="{{ path('content_index') }}"><i class="bi bi-journal-text me-2"></i> Manage Content</a>
+                    {% endif %}
+
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <a class="sidebar-link" href="{{ path('app_dashboard_admin') }}"><i class="bi bi-speedometer2 me-2"></i> Admin Dashboard</a>
+                        <a class="sidebar-link" href="{{ path('content_index') }}"><i class="bi bi-journal-text me-2"></i> Content Library</a>
+                        <a class="sidebar-link" href="{{ path('content_logs') }}"><i class="bi bi-file-earmark-text me-2"></i> Access Logs</a>
+                        <a class="sidebar-link" href="{{ path('content_index') }}"><i class="bi bi-diagram-3 me-2"></i> Content Paths</a>
+                        <a class="sidebar-link" href="{{ path('app_dashboard') }}"><i class="bi bi-people-fill me-2"></i> User Management</a>
+                    {% endif %}
+
+                    <a class="sidebar-link" href="{{ path('app_chatbot') }}"><i class="bi bi-chat-dots me-2"></i> AI Chatbot</a>
+                    <a class="sidebar-link" href="{{ path('app_logout') }}"><i class="bi bi-box-arrow-right me-2"></i> Logout</a>
+                </nav>
+            </div>
+        </div>
+
+        {% block body %}{% endblock %}
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        {% block javascripts %}{% endblock %}
+    </body>
+</html>
