@@ -41,24 +41,24 @@ class DashboardController extends AbstractController
 
     // ==================== PATIENT DASHBOARD ====================
     
-    #[Route('/patient', name: 'app_dashboard_patient')]
-    public function patientDashboard(ContentNodeRepository $contentNodeRepository): Response
-    {
-        /** @var User $user */
-        $user = $this->getUser();
-        
-        if (!$user || !in_array('ROLE_USER', $user->getRoles())) {
-            return $this->redirectToRoute('app_home');
-        }
-
-        // Récupérer tous les contenus (ou ceux assignés si la relation existe)
-        $assignedContent = $contentNodeRepository->findAll();
-
-        return $this->render('dashboard/patient.html.twig', [
-            'user' => $user,
-            'assignedContent' => $assignedContent,
-        ]);
+   #[Route('/patient', name: 'app_dashboard_patient')]
+public function patientDashboard(ContentNodeRepository $contentNodeRepository): Response
+{
+    /** @var User $user */
+    $user = $this->getUser();
+    
+    if (!$user || !in_array('ROLE_USER', $user->getRoles())) {
+        return $this->redirectToRoute('app_home');
     }
+
+    // Récupérer uniquement les contenus assignés à ce patient
+    $assignedContent = $contentNodeRepository->findAssignedToUserPhp($user->getId());
+
+    return $this->render('dashboard/patient.html.twig', [
+        'user' => $user,
+        'assignedContent' => $assignedContent,
+    ]);
+}
 
     // ==================== PSYCHOLOGIST DASHBOARD ====================
     

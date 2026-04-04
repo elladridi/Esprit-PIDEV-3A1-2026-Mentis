@@ -6,10 +6,10 @@ use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -32,8 +32,8 @@ class RegistrationFormType extends AbstractType
                 'attr' => ['class' => 'form-control', 'placeholder' => '+1234567890'],
             ])
             ->add('dateofbirth', TextType::class, [
-                'label' => 'Date of Birth (YYYY-MM-DD)',
-                'attr' => ['class' => 'form-control', 'placeholder' => '1990-01-01', 'type' => 'date'],
+                'label' => 'Date of Birth',
+                'attr' => ['class' => 'form-control', 'type' => 'date'],
             ])
             ->add('gender', ChoiceType::class, [
                 'label' => 'Gender',
@@ -42,7 +42,7 @@ class RegistrationFormType extends AbstractType
                     'Female' => 'female',
                     'Other' => 'other',
                 ],
-                'attr' => ['class' => 'form-control'],
+                'attr' => ['class' => 'form-select'],
                 'required' => true,
             ])
             ->add('email', EmailType::class, [
@@ -56,7 +56,20 @@ class RegistrationFormType extends AbstractType
                     'Psychologist' => 'Psychologist',
                     'Admin' => 'Admin',
                 ],
-                'attr' => ['class' => 'form-control'],
+                'attr' => ['class' => 'form-select'],
+            ])
+            ->add('cvFile', FileType::class, [
+                'label' => 'CV (PDF) - For Psychologists',
+                'mapped' => false,
+                'required' => false,
+                'attr' => ['accept' => 'application/pdf'],
+                'constraints' => [
+                    new Assert\File([
+                        'maxSize' => '5M',
+                        'mimeTypes' => ['application/pdf'],
+                        'mimeTypesMessage' => 'Please upload a valid PDF document',
+                    ])
+                ]
             ])
             ->add('plainPassword', RepeatedType::class, [
                 'type' => PasswordType::class,
@@ -71,7 +84,7 @@ class RegistrationFormType extends AbstractType
                 ],
                 'constraints' => [
                     new Assert\NotBlank(['message' => 'Password is required']),
-                    new Assert\Length(['min' => 6, 'minMessage' => 'Password must be at least {{ limit }} characters']),
+                    new Assert\Length(['min' => 6]),
                 ],
             ])
         ;

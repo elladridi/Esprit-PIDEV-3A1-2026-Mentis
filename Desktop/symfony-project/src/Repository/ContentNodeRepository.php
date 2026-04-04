@@ -6,9 +6,6 @@ use App\Entity\ContentNode;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
-/**
- * @extends ServiceEntityRepository<ContentNode>
- */
 class ContentNodeRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -16,75 +13,61 @@ class ContentNodeRepository extends ServiceEntityRepository
         parent::__construct($registry, ContentNode::class);
     }
 
-    public function findByCreatorOrAll($user, bool $isAdmin = false)
+    // Méthode pour récupérer les contenus assignés à un utilisateur (filtrage PHP)
+    public function findAssignedToUserPhp(int $userId): array
     {
-        if ($isAdmin) {
-            return $this->findBy([], ['createdAt' => 'DESC']);
+        $allContent = $this->findAll();
+        $assigned = [];
+        
+        foreach ($allContent as $content) {
+            $assignedUsers = $content->getAssignedUsers();
+            
+            // Si assignedUsers est un tableau
+            if (is_array($assignedUsers) && in_array($userId, $assignedUsers)) {
+                $assigned[] = $content;
+            }
+            // Si assignedUsers est un string JSON
+            elseif (is_string($assignedUsers)) {
+                $users = json_decode($assignedUsers, true);
+                if (is_array($users) && in_array($userId, $users)) {
+                    $assigned[] = $content;
+                }
+            }
         }
-
-        return $this->createQueryBuilder('c')
-            ->andWhere('c.createdBy = :user')
-            ->setParameter('user', $user)
-            ->orderBy('c.createdAt', 'DESC')
-            ->getQuery()
-            ->getResult();
+        
+        return $assigned;
     }
 
-    public function findAssignedToUser(int $userId)
+    // Pour Admin
+    public function findForAdmin(string $search = '', string $sort = 'desc'): array
     {
-        $value = '"' . $userId . '"';
-
-        return $this->createQueryBuilder('c')
-            ->andWhere('c.assignedUsers LIKE :value')
-            ->setParameter('value', '%'. $value . '%')
-            ->orderBy('c.createdAt', 'DESC')
-            ->getQuery()
-            ->getResult();
-    }
-
-    public function findForAdmin(string $search = null, string $sortOrder = 'DESC')
-    {
-        $qb = $this->createQueryBuilder('c')
-            ->orderBy('c.createdAt', strtoupper($sortOrder));
-
+        $qb = $this->createQueryBuilder('c');
+        
         if ($search) {
             $qb->andWhere('c.title LIKE :search OR c.description LIKE :search')
-                ->setParameter('search', '%' . $search . '%');
+               ->setParameter('search', '%' . $search . '%');
         }
-
+        
+        $qb->orderBy('c.createdAt', $sort === 'asc' ? 'ASC' : 'DESC');
+        
         return $qb->getQuery()->getResult();
     }
 
-    public function findForPsychologist($user, string $search = null, string $sortOrder = 'DESC')
+    // Pour Psychologue - AJOUTEZ CETTE MÉTHODE
+    public function findForPsychologist($psychologist, string $search = '', string $sort = 'desc'): array
     {
-        $qb = $this->createQueryBuilder('c')
-            ->andWhere('c.createdBy = :user')
-            ->setParameter('user', $user)
-            ->orderBy('c.createdAt', strtoupper($sortOrder));
-
+        $qb = $this->createQueryBuilder('c');
+        
+        $qb->where('c.createdBy = :psychologist')
+           ->setParameter('psychologist', $psychologist);
+        
         if ($search) {
             $qb->andWhere('c.title LIKE :search OR c.description LIKE :search')
-                ->setParameter('search', '%' . $search . '%');
+               ->setParameter('search', '%' . $search . '%');
         }
-
-        return $qb->getQuery()->getResult();
-    }
-
-    public function findAssignedToUserWithSearch(int $userId, string $search = null, string $sortOrder = 'DESC')
-    {
-        $value = '"' . $userId . '"';
-
-        $qb = $this->createQueryBuilder('c')
-            ->andWhere('c.assignedUsers LIKE :value')
-            ->setParameter('value', '%'. $value . '%')
-            ->orderBy('c.createdAt', strtoupper($sortOrder));
-
-        if ($search) {
-            $qb->andWhere('c.title LIKE :search OR c.description LIKE :search')
-                ->setParameter('search', '%' . $search . '%');
-        }
-
+        
+        $qb->orderBy('c.createdAt', $sort === 'asc' ? 'ASC' : 'DESC');
+        
         return $qb->getQuery()->getResult();
     }
 }
-

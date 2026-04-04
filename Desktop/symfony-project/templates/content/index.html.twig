@@ -22,7 +22,11 @@
             <small class="text-muted">Typing updates results instantly, no submit needed.</small>
 
             <div class="d-flex flex-wrap gap-2">
-                <a class="btn btn-outline-light btn-lg" href="{{ path('content_new') }}"><i class="bi bi-plus-lg me-1"></i> New Content</a>
+                 {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_PSYCHOLOGIST') %}
+        <a class="btn btn-outline-light btn-lg" href="{{ path('content_new') }}" style="color: #50C878;">
+            <i class="bi bi-plus-lg me-1"></i> New Content
+        </a>
+    {% endif %}
                 {% if is_granted('ROLE_ADMIN') %}
                     <a class="btn btn-outline-info btn-lg" href="{{ path('content_logs') }}"><i class="bi bi-bar-chart-line me-1"></i> Usage Logs</a>
                 {% endif %}
@@ -60,7 +64,7 @@
                                 <div class="d-flex gap-2">
                                     <a class="btn btn-sm btn-light w-100" href="{{ path('content_show', {id: node.id}) }}"><i class="bi bi-eye"></i> View</a>
                                     {% if is_granted('ROLE_ADMIN') or node.createdBy.id == app.user.id %}
-                                        <a class="btn btn-sm btn-outline-light w-100" href="{{ path('content_edit', {id: node.id}) }}"><i class="bi bi-pencil"></i> Edit</a>
+                                        <a class="btn btn-sm btn-light w-100" href="{{ path('content_edit', {id: node.id}) }}"><i class="bi bi-pencil"></i> Edit</a>
                                     {% endif %}
                                 </div>
                             </div>

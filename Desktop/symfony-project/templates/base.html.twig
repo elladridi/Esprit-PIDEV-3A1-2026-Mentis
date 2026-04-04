@@ -381,9 +381,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav mx-auto">
                     {# Only Home in main navigation #}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_home') }}">Home</a>
-                    </li>
+                    
                     
                     {# Dashboard - visible for all authenticated users #}
                     {% if app.user %}
@@ -396,7 +394,7 @@
                     {% endif %}
                     
 {# Content Logs - visible for Admin and Psychologist #}
-{% if is_granted('ROLE_ADMIN') or is_granted('ROLE_PSYCHOLOGIST') %}
+{% if is_granted('ROLE_ADMIN') %}
     <li class="nav-item">
         <a class="nav-link" href="{{ path('content_logs') }}">📊 Content Logs</a>
     </li>
