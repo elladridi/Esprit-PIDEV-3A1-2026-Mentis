@@ -46,11 +46,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'datetime', options: ['default' => 'CURRENT_TIMESTAMP'])]
     private \DateTimeInterface $createdAt;
 
+    #[ORM\Column(length: 10, nullable: true)]
+    private ?string $gender = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTime();
     }
 
+    // Getters and Setters with null checks
     public function getId(): ?int
     {
         return $this->id;
@@ -61,9 +65,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->firstname;
     }
 
-    public function setFirstname(string $firstname): self
+    public function setFirstname(?string $firstname): self
     {
-        $this->firstname = $firstname;
+        $this->firstname = $firstname ?? '';
         return $this;
     }
 
@@ -72,9 +76,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->lastname;
     }
 
-    public function setLastname(string $lastname): self
+    public function setLastname(?string $lastname): self
     {
-        $this->lastname = $lastname;
+        $this->lastname = $lastname ?? '';
         return $this;
     }
 
@@ -83,9 +87,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->phone;
     }
 
-    public function setPhone(string $phone): self
+    public function setPhone(?string $phone): self
     {
-        $this->phone = $phone;
+        $this->phone = $phone ?? '';
         return $this;
     }
 
@@ -94,9 +98,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->dateofbirth;
     }
 
-    public function setDateofbirth(string $dateofbirth): self
+    public function setDateofbirth(?string $dateofbirth): self
     {
-        $this->dateofbirth = $dateofbirth;
+        $this->dateofbirth = $dateofbirth ?? '';
         return $this;
     }
 
@@ -116,9 +120,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->email;
     }
 
-    public function setEmail(string $email): self
+    public function setEmail(?string $email): self
     {
-        $this->email = $email;
+        $this->email = $email ?? '';
         return $this;
     }
 
@@ -166,19 +170,37 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
-     */
+    public function getGender(): ?string
+    {
+        return $this->gender;
+    }
+
+    public function setGender(?string $gender): self
+    {
+        $this->gender = $gender;
+        return $this;
+    }
+
+    public function getAge(): ?int
+    {
+        if (!$this->dateofbirth) {
+            return null;
+        }
+        
+        try {
+            $birthDate = new \DateTime($this->dateofbirth);
+            $today = new \DateTime();
+            return $today->diff($birthDate)->y;
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
     public function getUserIdentifier(): string
     {
         return (string) $this->email;
     }
 
-    /**
-     * @see UserInterface
-     */
     public function getRoles(): array
     {
         $roles = ['ROLE_USER'];
@@ -193,11 +215,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return array_unique($roles);
     }
 
-    /**
-     * @see UserInterface
-     */
     public function eraseCredentials(): void
     {
-        // If you store any temporary, sensitive data on the user, clear it here
     }
 }

@@ -223,80 +223,90 @@ class ContentNodeController extends AbstractController
         return $this->redirectToRoute('content_index');
     }
 
-    #[Route('/logs', name: 'content_logs', methods: ['GET'])]
-    public function logs(Request $request,
-        ContentNodeRepository $contentNodeRepository,
-        ContentPathRepository $contentPathRepository,
-        UserRepository $userRepository
-    ): Response {
-        $user = $this->getUser();
-        if (!$user || !in_array('ROLE_ADMIN', $user->getRoles())) {
-            return $this->redirectToRoute('app_login');
-        }
+   #[Route('/logs', name: 'content_logs', methods: ['GET'])]
+public function logs(Request $request,
+    ContentNodeRepository $contentNodeRepository,
+    ContentPathRepository $contentPathRepository,
+    UserRepository $userRepository
+): Response {
+    $user = $this->getUser();
+    
+    // CHANGEMENT ICI : Autoriser aussi les psychologues
+    if (!$user || (!in_array('ROLE_ADMIN', $user->getRoles()) && !in_array('ROLE_PSYCHOLOGIST', $user->getRoles()))) {
+        $this->addFlash('warning', 'Access denied. You need psychologist or admin privileges.');
+        return $this->redirectToRoute('app_home');
+    }
 
-        $search = trim($request->query->get('q', ''));
+    $search = trim($request->query->get('q', ''));
+    
+    // Pour les psychologues, ne montrer que les contenus qu'ils ont créés
+    if (in_array('ROLE_PSYCHOLOGIST', $user->getRoles()) && !in_array('ROLE_ADMIN', $user->getRoles())) {
+        $nodes = $search ? $contentNodeRepository->findForPsychologist($user, $search) : $contentNodeRepository->findForPsychologist($user);
+    } else {
         $nodes = $search ? $contentNodeRepository->findForAdmin($search) : $contentNodeRepository->findForAdmin();
-        $logs = [];
+    }
+    
+    $logs = [];
 
-        $totalContent = 0;
-        $totalAssignedGlobal = 0;
-        $totalOpenedGlobal = 0;
+    $totalContent = 0;
+    $totalAssignedGlobal = 0;
+    $totalOpenedGlobal = 0;
 
-        foreach ($nodes as $node) {
-            $totalContent++;
-            $paths = $contentPathRepository->findByContentNode($node);
-            $openedUserIds = array_unique(array_map(fn($p) => $p->getUser()->getId(), $paths));
-            $assignedUserIds = $node->getAssignedUsers();
+    foreach ($nodes as $node) {
+        $totalContent++;
+        $paths = $contentPathRepository->findByContentNode($node);
+        $openedUserIds = array_unique(array_map(fn($p) => $p->getUser()->getId(), $paths));
+        $assignedUserIds = $node->getAssignedUsers();
 
-            $notOpenedUsers = [];
-            foreach ($assignedUserIds as $uid) {
-                if (!in_array($uid, $openedUserIds, true)) {
-                    $patient = $userRepository->find($uid);
-                    if ($patient) {
-                        $notOpenedUsers[] = $patient;
-                    }
+        $notOpenedUsers = [];
+        foreach ($assignedUserIds as $uid) {
+            if (!in_array($uid, $openedUserIds, true)) {
+                $patient = $userRepository->find($uid);
+                if ($patient) {
+                    $notOpenedUsers[] = $patient;
                 }
             }
-
-            $totalAssigned = count($assignedUserIds);
-            $totalOpened = count(array_intersect($assignedUserIds, $openedUserIds));
-            $completionRate = $totalAssigned > 0 ? round(($totalOpened / $totalAssigned) * 100, 1) : 0;
-
-            $totalAssignedGlobal += $totalAssigned;
-            $totalOpenedGlobal += $totalOpened;
-
-            $logs[] = [
-                'node' => $node,
-                'paths' => $paths,
-                'notOpened' => $notOpenedUsers,
-                'totalAssigned' => $totalAssigned,
-                'totalOpened' => $totalOpened,
-                'completionRate' => $completionRate,
-            ];
         }
 
-        $globalCompletion = ($totalAssignedGlobal > 0) ? round(($totalOpenedGlobal / $totalAssignedGlobal) * 100, 1) : 0;
+        $totalAssigned = count($assignedUserIds);
+        $totalOpened = count(array_intersect($assignedUserIds, $openedUserIds));
+        $completionRate = $totalAssigned > 0 ? round(($totalOpened / $totalAssigned) * 100, 1) : 0;
 
-        usort($logs, fn($a, $b) => $b['completionRate'] <=> $a['completionRate']);
+        $totalAssignedGlobal += $totalAssigned;
+        $totalOpenedGlobal += $totalOpened;
 
-        $topContent = array_slice($logs, 0, 3);
-        $bottomContent = array_slice($logs, -3, 3, true);
-
-        $averageCompletion = count($logs) ? round(array_sum(array_column($logs, 'completionRate')) / count($logs), 1) : 0;
-
-        return $this->render('content/logs.html.twig', [
-            'logs' => $logs,
-            'searchTerm' => $search,
-            'kpis' => [
-                'totalContent' => $totalContent,
-                'totalAssigned' => $totalAssignedGlobal,
-                'totalOpened' => $totalOpenedGlobal,
-                'overallCompletionRate' => $globalCompletion,
-                'totalNotOpened' => $totalAssignedGlobal - $totalOpenedGlobal,
-                'averageCompletion' => $averageCompletion,
-            ],
-            'topContent' => $topContent,
-            'bottomContent' => $bottomContent,
-        ]);
+        $logs[] = [
+            'node' => $node,
+            'paths' => $paths,
+            'notOpened' => $notOpenedUsers,
+            'totalAssigned' => $totalAssigned,
+            'totalOpened' => $totalOpened,
+            'completionRate' => $completionRate,
+        ];
     }
+
+    $globalCompletion = ($totalAssignedGlobal > 0) ? round(($totalOpenedGlobal / $totalAssignedGlobal) * 100, 1) : 0;
+
+    usort($logs, fn($a, $b) => $b['completionRate'] <=> $a['completionRate']);
+
+    $topContent = array_slice($logs, 0, 3);
+    $bottomContent = array_slice($logs, -3, 3, true);
+
+    $averageCompletion = count($logs) ? round(array_sum(array_column($logs, 'completionRate')) / count($logs), 1) : 0;
+
+    return $this->render('content/logs.html.twig', [
+        'logs' => $logs,
+        'searchTerm' => $search,
+        'kpis' => [
+            'totalContent' => $totalContent,
+            'totalAssigned' => $totalAssignedGlobal,
+            'totalOpened' => $totalOpenedGlobal,
+            'overallCompletionRate' => $globalCompletion,
+            'totalNotOpened' => $totalAssignedGlobal - $totalOpenedGlobal,
+            'averageCompletion' => $averageCompletion,
+        ],
+        'topContent' => $topContent,
+        'bottomContent' => $bottomContent,
+    ]);
+}
 }
