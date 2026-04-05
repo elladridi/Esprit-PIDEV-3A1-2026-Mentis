@@ -4,8 +4,18 @@ namespace App\Service;
 
 class GroqService
 {
-    private string $apiKey = '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';
+    private string $apiKey;
     private string $apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
+
+    public function __construct()
+    {
+        // Get API key from environment variable in constructor
+        $this->apiKey = $_ENV['GROQ_API_KEY'] ?? getenv('GROQ_API_KEY');
+        
+        if (empty($this->apiKey)) {
+            throw new \RuntimeException('GROQ_API_KEY environment variable is not set');
+        }
+    }
 
     public function generateContent(string $prompt): string
     {
@@ -37,7 +47,7 @@ class GroqService
 
         $content = $decoded['choices'][0]['message']['content'];
 
-        // Add default SCALE lines if missing (same as Java version)
+        // Add default SCALE lines if missing
         if (!str_contains($content, 'SCALE:')) {
             $lines     = explode("\n", $content);
             $formatted = '';
@@ -105,7 +115,7 @@ class GroqService
         return $this->generateContent($prompt);
     }
 
-    // ── Core cURL call — same approach as the working test file ──────
+    // ── Core cURL call ──────────────────────────────────────────────
     private function callApi(string $jsonPayload): ?string
     {
         $ch = curl_init($this->apiUrl);
@@ -117,8 +127,8 @@ class GroqService
             'Content-Type: application/json',
             'Authorization: Bearer ' . $this->apiKey,
         ]);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);  // Should be true in production
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);     // Should be 2 in production
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
 
         $result = curl_exec($ch);
