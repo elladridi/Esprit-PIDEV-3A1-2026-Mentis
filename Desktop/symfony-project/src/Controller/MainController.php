@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Repository\AssessmentRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -9,9 +10,14 @@ use Symfony\Component\Routing\Attribute\Route;
 class MainController extends AbstractController
 {
     #[Route('/', name: 'app_home')]
-    public function home(): Response
+    public function home(AssessmentRepository $assessmentRepo): Response
     {
-        return $this->render('main/home.html.twig');
+        // Get active assessments for patients to display in horizontal scroll
+        $assessments = $assessmentRepo->findAllActive();
+        
+        return $this->render('main/home.html.twig', [
+            'assessments' => $assessments,
+        ]);
     }
 
     #[Route('/about', name: 'app_about')]

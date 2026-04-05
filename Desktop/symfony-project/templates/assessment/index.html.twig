@@ -1,0 +1,155 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Manage Assessments - Mentis{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    {# Header #}
+    <div class="d-flex justify-content-between align-items-center mb-5" data-aos="fade-up">
+        <div>
+            <h1 class="display-5 fw-bold mb-1" style="color: #2E7D32;">
+                <i class="fas fa-list me-2"></i>Manage Assessments
+            </h1>
+            <p class="text-muted mb-0">{{ assessments|length }} total assessments</p>
+        </div>
+        <a href="{{ path('assessment_new') }}" class="btn btn-primary-custom rounded-pill px-5 py-2">
+            <i class="fas fa-plus me-2"></i>Add New Assessment
+        </a>
+    </div>
+
+    {# Flash Messages #}
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show rounded-pill mb-4 d-flex align-items-center" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    {% if assessments is empty %}
+        <div class="text-center py-5" data-aos="fade-up">
+            <div class="card shadow-sm border-0 p-5 rounded-4" style="max-width: 500px; margin: 0 auto; background: linear-gradient(135deg, #F8F9FA, #E9ECEF);">
+                <i class="fas fa-folder-open fa-4x mb-3 text-muted"></i>
+                <h3 class="text-muted mb-3">No Assessments Yet</h3>
+                <p class="text-muted mb-4">Get started by creating your first assessment</p>
+                <a href="{{ path('assessment_new') }}" class="btn btn-primary-custom rounded-pill px-5 py-2">
+                    <i class="fas fa-plus me-2"></i>Create First Assessment
+                </a>
+            </div>
+        </div>
+    {% else %}
+        <div class="card shadow-sm border-0 overflow-hidden" data-aos="fade-up">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="border-0 py-4 px-4 fw-bold" style="color: #2E7D32; font-size: 15px;">Title</th>
+                            <th class="border-0 py-4 px-3 fw-bold" style="color: #2E7D32; font-size: 15px;">Type</th>
+                            <th class="border-0 py-4 px-3 fw-bold" style="color: #2E7D32; font-size: 15px;">Status</th>
+                            <th class="border-0 py-4 px-3 fw-bold" style="color: #2E7D32; font-size: 15px;">Description</th>
+                            <th class="border-0 py-4 px-4 fw-bold text-end" style="color: #2E7D32; font-size: 15px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for assessment in assessments %}
+                        <tr class="align-middle">
+                            <td class="py-4 px-4 fw-semibold" style="color: #1a3c34;">
+                                {{ assessment.title }}
+                            </td>
+                            <td class="py-4 px-3">
+                                <span class="badge rounded-pill px-3 py-2 fw-semibold" 
+                                      style="background: 
+                                          {% if assessment.type == 'Depression' %}linear-gradient(135deg, #9b59b6, #8e44ad);
+                                          {% elseif assessment.type == 'Anxiety' %}linear-gradient(135deg, #e74c3c, #c0392b);
+                                          {% elseif assessment.type == 'Stress' %}linear-gradient(135deg, #f39c12, #e67e22);
+                                          {% elseif assessment.type == 'Wellness' %}linear-gradient(135deg, #27ae60, #2ecc71);
+                                          {% else %}linear-gradient(135deg, #3498db, #2980b9);{% endif %}
+                                          color: white; font-size: 13px;">
+                                    {{ assessment.type }}
+                                </span>
+                            </td>
+                            <td class="py-4 px-3">
+                                <span class="badge rounded-pill px-3 py-2 fw-semibold 
+                                    {% if assessment.status == 'Active' %}bg-success
+                                    {% elseif assessment.status == 'Inactive' %}bg-danger
+                                    {% else %}bg-warning text-dark{% endif %}">
+                                    {{ assessment.status }}
+                                </span>
+                            </td>
+                            <td class="py-4 px-3" style="color: #6c757d; font-size: 14px; max-width: 200px;">
+                                {{ assessment.description ? assessment.description|slice(0, 60) ~ (assessment.description|length > 60 ? '...' : '') : '<em>No description</em>'|raw }}
+                            </td>
+                            <td class="py-4 px-4 text-end">
+                                <div class="btn-group" role="group">
+                                    {% if assessment.status == 'Active' %}
+                                        <a href="{{ path('take_assessment_start', {id: assessment.assessmentId}) }}" 
+                                           class="btn btn-success btn-sm rounded-pill px-3 me-1">
+                                            <i class="fas fa-play"></i>
+                                        </a>
+                                    {% endif %}
+                                    <a href="{{ path('assessment_show', {id: assessment.assessmentId}) }}" 
+                                       class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                        <i class="fas fa-cog"></i>
+                                    </a>
+                                    <a href="{{ path('assessment_edit', {id: assessment.assessmentId}) }}" 
+                                       class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {# Summary - ✅ FIXED: No selectattr filter #}
+        <div class="text-center mt-4 pt-4 border-top" data-aos="fade-up">
+            <small class="text-muted fw-semibold">
+                {{ assessments|length }} assessment{{ assessments|length|default(0) != 1 ? 's' : '' }} found
+                <span class="ms-3">
+                    {% set activeCount = 0 %}
+                    {% for assessment in assessments %}
+                        {% if assessment.status == 'Active' %}
+                            {% set activeCount = activeCount + 1 %}
+                        {% endif %}
+                    {% endfor %}
+                    <i class="fas fa-circle text-success me-1"></i>{{ activeCount }} active
+                </span>
+            </small>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<style>
+.btn-primary-custom {
+    background: linear-gradient(135deg, #50C878 0%, #3A9B5E 100%);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+.btn-primary-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(80, 200, 120, 0.4);
+    color: white !important;
+}
+.table-hover tbody tr:hover {
+    background-color: rgba(80, 200, 120, 0.08);
+}
+.card {
+    border-radius: 24px;
+}
+.badge {
+    font-size: 12px;
+}
+</style>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>AOS.init({ duration: 800 });</script>
+{% endblock %}

@@ -368,7 +368,7 @@
         </div>
     </div>
 
-    {# Navigation - Simplified #}
+    {# Navigation #}
     <nav class="navbar navbar-expand-lg">
         <div class="container">
             <a class="navbar-brand" href="{{ path('app_home') }}">
@@ -380,8 +380,10 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav mx-auto">
-                    {# Only Home in main navigation #}
-                    
+                    {# Home - visible for all #}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_home') }}">Home</a>
+                    </li>
                     
                     {# Dashboard - visible for all authenticated users #}
                     {% if app.user %}
@@ -393,23 +395,77 @@
                         </li>
                     {% endif %}
                     
-{# Content Logs - visible for Admin and Psychologist #}
-{% if is_granted('ROLE_ADMIN') %}
-    <li class="nav-item">
-        <a class="nav-link" href="{{ path('content_logs') }}">📊 Content Logs</a>
-    </li>
-{% endif %}
-
-{# Content Library - visible for Admin and Psychologist #}
-{% if is_granted('ROLE_ADMIN') or is_granted('ROLE_PSYCHOLOGIST') %}
-    <li class="nav-item">
-        <a class="nav-link" href="{{ path('content_index') }}">📚 Content Library</a>
-    </li>
-{% endif %}
+                    {# Content Library - visible for Admin and Psychologist #}
+                    {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_PSYCHOLOGIST') %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('content_index') }}">📚 Content Library</a>
+                        </li>
+                    {% endif %}
                     
-                    {# Admin Only - User Management #}
-                   
-
+                    {# Content Logs - visible for Admin only #}
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('content_logs') }}">📊 Content Logs</a>
+                        </li>
+                    {% endif %}
+                    
+                    {# ASSESSMENTS DROPDOWN - Next to Content Library (Contains All Assessment Management + Results) #}
+                    {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_PSYCHOLOGIST') or (app.user and app.user.type == 'Patient') %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                📋 Assessments
+                            </a>
+                            <ul class="dropdown-menu">
+                                {# For Patients - View their own results #}
+                                {% if app.user and app.user.type == 'Patient' %}
+                                    <li><a class="dropdown-item" href="{{ path('take_assessment_index') }}">
+                                        <i class="fas fa-play-circle me-2"></i>Take Assessment
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{{ path('result_index') }}">
+                                        <i class="fas fa-chart-line me-2"></i>My Results
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{{ path('result_stats', {userId: app.user.id}) }}">
+                                        <i class="fas fa-chart-simple me-2"></i>My Progress
+                                    </a></li>
+                                {% endif %}
+                                
+                                {# For Psychologists - View patient results #}
+                                {% if is_granted('ROLE_PSYCHOLOGIST') %}
+                                    <li><a class="dropdown-item" href="{{ path('result_index') }}">
+                                        <i class="fas fa-users me-2"></i>Patient Results
+                                    </a></li>
+                                {% endif %}
+                                
+                                {# For Admin - Full assessment management #}
+                                {% if is_granted('ROLE_ADMIN') %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header fw-bold text-success">Assessment Management</h6></li>
+                                    <li><a class="dropdown-item" href="{{ path('assessment_index') }}">
+                                        <i class="fas fa-list me-2"></i>All Assessments
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{{ path('assessment_active') }}">
+                                        <i class="fas fa-play-circle me-2"></i>Active Assessments
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{{ path('assessment_new') }}">
+                                        <i class="fas fa-plus me-2"></i>Add Assessment
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header fw-bold text-success">Question Management</h6></li>
+                                    <li><a class="dropdown-item" href="{{ path('question_index') }}">
+                                        <i class="fas fa-question-circle me-2"></i>All Questions
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{{ path('question_new') }}">
+                                        <i class="fas fa-plus me-2"></i>Add Question
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header fw-bold text-success">Results</h6></li>
+                                    <li><a class="dropdown-item" href="{{ path('result_index') }}">
+                                        <i class="fas fa-chart-line me-2"></i>All Results
+                                    </a></li>
+                                {% endif %}
+                            </ul>
+                        </li>
+                    {% endif %}
                 </ul>
                 
                 <div class="d-flex">
@@ -452,7 +508,7 @@
         {% block body %}{% endblock %}
     </main>
 
-    {# Footer - Now contains About, Services, Contact links #}
+    {# Footer #}
     <footer>
         <div class="container">
             <div class="row">

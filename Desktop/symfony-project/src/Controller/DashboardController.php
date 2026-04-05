@@ -7,6 +7,7 @@ use App\Entity\ContentNode;
 use App\Form\UserType;
 use App\Repository\UserRepository;
 use App\Repository\ContentNodeRepository;
+use App\Repository\AssessmentResultRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -41,30 +42,38 @@ class DashboardController extends AbstractController
 
     // ==================== PATIENT DASHBOARD ====================
     
-   #[Route('/patient', name: 'app_dashboard_patient')]
-public function patientDashboard(ContentNodeRepository $contentNodeRepository): Response
-{
-    /** @var User $user */
-    $user = $this->getUser();
-    
-    if (!$user || !in_array('ROLE_USER', $user->getRoles())) {
-        return $this->redirectToRoute('app_home');
+    #[Route('/patient', name: 'app_dashboard_patient')]
+    public function patientDashboard(
+        ContentNodeRepository $contentNodeRepository,
+        AssessmentResultRepository $resultRepository
+    ): Response {
+        /** @var User $user */
+        $user = $this->getUser();
+        
+        if (!$user || !in_array('ROLE_USER', $user->getRoles())) {
+            return $this->redirectToRoute('app_home');
+        }
+
+        // Get assigned content
+        $assignedContent = $contentNodeRepository->findAssignedToUserPhp($user->getId());
+        
+        // Get recent results
+        $recentResults = $resultRepository->findBy(['user' => $user], ['takenAt' => 'DESC'], 5);
+
+        return $this->render('dashboard/patient.html.twig', [
+            'user' => $user,
+            'assignedContent' => $assignedContent,
+            'recentResults' => $recentResults,
+        ]);
     }
-
-    // Récupérer uniquement les contenus assignés à ce patient
-    $assignedContent = $contentNodeRepository->findAssignedToUserPhp($user->getId());
-
-    return $this->render('dashboard/patient.html.twig', [
-        'user' => $user,
-        'assignedContent' => $assignedContent,
-    ]);
-}
 
     // ==================== PSYCHOLOGIST DASHBOARD ====================
     
     #[Route('/psychologist', name: 'app_dashboard_psychologist')]
-    public function psychologistDashboard(UserRepository $userRepository): Response
-    {
+    public function psychologistDashboard(
+        UserRepository $userRepository,
+        AssessmentResultRepository $resultRepository
+    ): Response {
         /** @var User $user */
         $user = $this->getUser();
         
@@ -73,11 +82,14 @@ public function patientDashboard(ContentNodeRepository $contentNodeRepository): 
         }
 
         $patients = $userRepository->findBy(['type' => 'Patient']);
+        $results = $resultRepository->findAllOrderedByDate();
+        
         $stats = $this->calculateStats($patients);
         
         return $this->render('dashboard/psychologist.html.twig', [
             'user' => $user,
             'patients' => $patients,
+            'results' => $results,
             'stats' => $stats,
         ]);
     }

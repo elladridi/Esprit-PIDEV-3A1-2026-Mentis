@@ -1,6 +1,6 @@
 # config/routes.yaml
 controllers:
-    resource: '../src/Controller/'
+    resource: '../../src/Controller/'
     type: attribute
 
 app_forgot_password:

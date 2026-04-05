@@ -10,6 +10,7 @@
         "doctrine/doctrine-bundle": "^2.18",
         "doctrine/doctrine-migrations-bundle": "^3.7",
         "doctrine/orm": "^3.6",
+        "dompdf/dompdf": "^3.1",
         "smalot/pdfparser": "^2.12",
         "symfony/asset": "7.4.*",
         "symfony/console": "7.4.*",
@@ -77,5 +78,8 @@
             "allow-contrib": false,
             "require": "7.4.*"
         }
+    },
+    "require-dev": {
+        "symfony/maker-bundle": "^1.67"
     }
 }

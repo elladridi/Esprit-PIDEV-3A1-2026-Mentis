@@ -1,0 +1,166 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit {{ assessment.title }} - Mentis{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    {# Back Button #}
+    <div class="mb-4">
+        <a href="{{ path('assessment_show', {id: assessment.assessmentId}) }}" 
+           class="text-decoration-none d-inline-flex align-items-center" style="color: #50C878;">
+            <i class="fas fa-arrow-left me-2"></i> Back to Assessment
+        </a>
+    </div>
+
+    {# Header #}
+    <div class="text-center mb-5" data-aos="fade-up">
+        <h1 class="display-5 fw-bold mb-3" style="color: #2E7D32;">
+            <i class="fas fa-edit me-2"></i>Edit Assessment
+        </h1>
+        <p class="lead text-muted">Update assessment details and settings</p>
+    </div>
+
+    {# Flash Messages #}
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show rounded-pill d-flex align-items-center mb-4" role="alert" data-aos="fade-up">
+            <i class="fas fa-check-circle me-2 text-success"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger alert-dismissible fade show rounded-pill d-flex align-items-center mb-4" role="alert" data-aos="fade-up">
+            <i class="fas fa-exclamation-circle me-2 text-danger"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    {# Form #}
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0" data-aos="fade-up" data-aos-delay="100">
+                <div class="card-body p-5">
+                    <form method="post" enctype="multipart/form-data">
+                        {# Title #}
+                        <div class="mb-4">
+                            <label class="form-label fw-bold mb-2" style="color: #2E7D32;">Assessment Title <span class="text-danger">*</span></label>
+                            <input type="text" name="title" required value="{{ assessment.title }}" 
+                                   class="form-control form-control-lg rounded-pill ps-5" 
+                                   style="border: 2px solid #50C878; padding: 14px 20px; font-size: 16px;">
+                        </div>
+
+                        {# Type #}
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold mb-2" style="color: #2E7D32;">Type</label>
+                                <select name="type" class="form-select form-select-lg rounded-pill">
+                                    {% set types = ['Depression', 'Anxiety', 'Stress', 'Wellness', 'Sleep', 'General', 'Custom'] %}
+                                    {% for type in types %}
+                                        <option value="{{ type }}" {{ assessment.type == type ? 'selected' : '' }}>
+                                            {{ type }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold mb-2" style="color: #2E7D32;">Status</label>
+                                <select name="status" class="form-select form-select-lg rounded-pill">
+                                    {% set statuses = ['Active', 'Inactive', 'Draft'] %}
+                                    {% for status in statuses %}
+                                        <option value="{{ status }}" {{ assessment.status == status ? 'selected' : '' }}>
+                                            {{ status }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        {# Description #}
+                        <div class="mb-4">
+                            <label class="form-label fw-bold mb-2" style="color: #2E7D32;">Description</label>
+                            <textarea name="description" rows="4" class="form-control rounded-3" 
+                                      style="border: 2px solid #e0e0e0; padding: 15px; font-size: 15px; resize: vertical;">{{ assessment.description }}</textarea>
+                        </div>
+
+                        {# Image Upload #}
+                        <div class="mb-5">
+                            <label class="form-label fw-bold mb-3 d-block" style="color: #2E7D32;">Assessment Image</label>
+                            
+                            {% if assessment.imagePath %}
+                                <div class="mb-4 text-center">
+                                    <img src="{{ asset(assessment.imagePath) }}" 
+                                         class="rounded-4 shadow-sm mb-3 d-block mx-auto" 
+                                         alt="{{ assessment.title }}"
+                                         style="width: 300px; height: 200px; object-fit: cover; border: 3px solid #50C878;">
+                                    <small class="text-muted d-block">Current image. Upload new to replace.</small>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-5 rounded-4 border-dashed border-3 border-secondary-subtle mb-4" 
+                                     style="background: #f8f9fa;">
+                                    <i class="fas fa-image fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted mb-0">No image set</p>
+                                </div>
+                            {% endif %}
+
+                            <div class="input-group">
+                                <input type="file" name="image" accept="image/*" class="form-control rounded-pill" 
+                                       style="border: 2px solid #50C878;">
+                                <span class="input-group-text rounded-pill bg-success text-white" style="border: 2px solid #50C878;">
+                                    <i class="fas fa-upload"></i>
+                                </span>
+                            </div>
+                            <small class="text-muted d-block mt-2">
+                                Max 5MB. Formats: JPG, PNG, GIF, WebP (Recommended: 800x500px)
+                            </small>
+                        </div>
+
+                        {# Buttons #}
+                        <div class="d-flex gap-3 justify-content-end">
+                            <a href="{{ path('assessment_show', {id: assessment.assessmentId}) }}" 
+                               class="btn btn-outline-secondary rounded-pill px-5 py-2">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary-custom rounded-pill px-5 py-2">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<style>
+.btn-primary-custom {
+    background: linear-gradient(135deg, #50C878 0%, #3A9B5E 100%);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    font-size: 15px;
+}
+.btn-primary-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(80, 200, 120, 0.4);
+    color: white !important;
+}
+.form-control:focus, .form-select:focus {
+    border-color: #50C878;
+    box-shadow: 0 0 0 0.25rem rgba(80, 200, 120, 0.25);
+}
+.card {
+    border-radius: 24px;
+}
+.border-dashed {
+    border-style: dashed !important;
+}
+</style>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>AOS.init({ duration: 800 });</script>
+{% endblock %}

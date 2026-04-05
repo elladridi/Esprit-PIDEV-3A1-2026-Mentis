@@ -1,0 +1,223 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Create Assessment - Mentis{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    {# Back Button #}
+    <div class="mb-4">
+        <a href="{{ path('assessment_index') }}" 
+           class="text-decoration-none d-inline-flex align-items-center" style="color: #50C878;">
+            <i class="fas fa-arrow-left me-2"></i> Back to Assessments
+        </a>
+    </div>
+
+    {# Header #}
+    <div class="text-center mb-5" data-aos="fade-up">
+        <h1 class="display-5 fw-bold mb-3" style="color: #2E7D32;">
+            <i class="fas fa-plus-circle me-2"></i>Create New Assessment
+        </h1>
+        <p class="lead text-muted">Build a new mental health assessment</p>
+    </div>
+
+    {# Flash Messages #}
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show rounded-pill mb-4 d-flex align-items-center" role="alert" data-aos="fade-up">
+            <i class="fas fa-check-circle me-2 text-success"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger alert-dismissible fade show rounded-pill mb-4 d-flex align-items-center" role="alert" data-aos="fade-up">
+            <i class="fas fa-exclamation-circle me-2 text-danger"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    {# Form #}
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden" data-aos="fade-up" data-aos-delay="100">
+                <div class="card-header bg-primary-custom text-white py-4 text-center">
+                    <h3 class="mb-0 fw-bold">
+                        <i class="fas fa-clipboard-list me-2"></i>New Assessment Details
+                    </h3>
+                </div>
+                <div class="card-body p-5">
+                    <form method="post" enctype="multipart/form-data">
+                        {# Title #}
+                        <div class="mb-4">
+                            <label class="form-label fw-bold mb-3 d-block" style="color: #2E7D32; font-size: 16px;">
+                                <i class="fas fa-heading me-1"></i>Assessment Title <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text rounded-pill-start bg-light border-end-0" style="border: 2px solid #50C878 !important;">
+                                    <i class="fas fa-edit text-success"></i>
+                                </span>
+                                <input type="text" name="title" required 
+                                       class="form-control form-control-lg rounded-pill-end ps-0" 
+                                       placeholder="Enter assessment title (e.g. 'GAD-7 Anxiety Assessment')"
+                                       style="border-left: none; border: 2px solid #50C878; padding: 14px 20px; font-size: 16px;">
+                            </div>
+                        </div>
+
+                        {# Type & Status #}
+                        <div class="row g-4 mb-5">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold mb-3 d-block" style="color: #2E7D32; font-size: 16px;">
+                                    <i class="fas fa-tag me-1"></i>Assessment Type
+                                </label>
+                                <select name="type" class="form-select form-select-lg rounded-pill">
+                                    <option value="">Select type</option>
+                                    {% set types = ['Depression', 'Anxiety', 'Stress', 'Wellness', 'Sleep', 'PTSD', 'ADHD', 'General', 'Custom'] %}
+                                    {% for type in types %}
+                                        <option value="{{ type }}">{{ type }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold mb-3 d-block" style="color: #2E7D32; font-size: 16px;">
+                                    <i class="fas fa-toggle-on me-1"></i>Status
+                                </label>
+                                <select name="status" class="form-select form-select-lg rounded-pill">
+                                    <option value="Draft">Draft</option>
+                                    <option value="Active">Active</option>
+                                    <option value="Inactive">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {# Description #}
+                        <div class="mb-5">
+                            <label class="form-label fw-bold mb-3 d-block" style="color: #2E7D32; font-size: 16px;">
+                                <i class="fas fa-align-left me-1"></i>Description
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text rounded-pill-start bg-light border-end-0" style="border: 2px solid #e0e0e0 !important;">
+                                    <i class="fas fa-paragraph text-muted"></i>
+                                </span>
+                                <textarea name="description" rows="5" 
+                                          class="form-control rounded-pill-end" 
+                                          placeholder="Brief description of what this assessment measures (optional)"
+                                          style="border-left: none; border: 2px solid #e0e0e0; padding: 18px 20px; font-size: 15px; resize: vertical;"></textarea>
+                            </div>
+                            <small class="text-muted mt-2 d-block">Help users understand the purpose of this assessment</small>
+                        </div>
+
+                        {# Image Upload #}
+                        <div class="mb-5">
+                            <label class="form-label fw-bold mb-4 d-block" style="color: #2E7D32; font-size: 16px;">
+                                <i class="fas fa-image me-1"></i>Featured Image (Optional)
+                            </label>
+                            <div class="drop-zone rounded-4 p-5 text-center border-3 border-dashed border-secondary-subtle mb-4 position-relative overflow-hidden"
+                                 style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); transition: all 0.3s ease; cursor: pointer; min-height: 200px; display: flex; align-items: center; justify-content: center;">
+                                <input type="file" name="image" accept="image/*" class="position-absolute w-100 h-100 opacity-0 cursor-pointer">
+                                <div>
+                                    <i class="fas fa-cloud-upload-alt fa-4x mb-3 text-muted"></i>
+                                    <h5 class="text-muted mb-2">Drop image here or click to browse</h5>
+                                    <small class="text-muted">Recommended: 800x500px, Max 5MB (JPG, PNG, WebP)</small>
+                                </div>
+                            </div>
+                            <small class="text-success"><i class="fas fa-check-circle me-1"></i>Images make assessments more engaging!</small>
+                        </div>
+
+                        {# Action Buttons #}
+                        <div class="d-flex gap-3 justify-content-end pt-4 border-top">
+                            <a href="{{ path('assessment_index') }}" class="btn btn-outline-secondary rounded-pill px-5 py-3">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary-custom rounded-pill px-5 py-3">
+                                <i class="fas fa-save me-2"></i>Create Assessment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {# Quick Tips #}
+            <div class="card border-0 mt-4 bg-light rounded-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-3 text-center">
+                            <i class="fas fa-lightbulb fa-3x text-warning mb-3"></i>
+                        </div>
+                        <div class="col-md-9">
+                            <h6 class="fw-bold mb-2" style="color: #2E7D32;">Quick Tips</h6>
+                            <ul class="mb-0 text-muted small">
+                                <li>Choose a specific type for better categorization</li>
+                                <li>Set to "Draft" until questions are added</li>
+                                <li>Use high-quality images (800x500px recommended)</li>
+                                <li>Add 10-20 questions for best results</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<style>
+.btn-primary-custom {
+    background: linear-gradient(135deg, #50C878 0%, #3A9B5E 100%);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    font-size: 15px;
+}
+.btn-primary-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(80, 200, 120, 0.4);
+    color: white !important;
+}
+.form-control:focus, .form-select:focus {
+    border-color: #50C878 !important;
+    box-shadow: 0 0 0 0.25rem rgba(80, 200, 120, 0.25) !important;
+}
+.drop-zone {
+    transition: all 0.3s ease;
+    border-radius: 20px !important;
+}
+.drop-zone:hover, .drop-zone:focus-within {
+    border-color: #50C878 !important;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e3f2fd 100%) !important;
+    transform: scale(1.02);
+}
+.drop-zone input[type=file]:hover + div i {
+    color: #50C878 !important;
+}
+.card {
+    border-radius: 24px;
+}
+</style>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+AOS.init({ duration: 1000, once: true });
+
+// Drag & drop image upload
+const dropZone = document.querySelector('.drop-zone');
+const fileInput = dropZone?.querySelector('input[type=file]');
+
+dropZone?.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.style.borderColor = '#50C878';
+});
+
+dropZone?.addEventListener('dragleave', () => {
+    dropZone.style.borderColor = '';
+});
+
+dropZone?.addEventListener('drop', (e) => {
+    e.preventDefault();
+    fileInput.files = e.dataTransfer.files;
+    dropZone.style.borderColor = '#50C878';
+});
+</script>
+{% endblock %}

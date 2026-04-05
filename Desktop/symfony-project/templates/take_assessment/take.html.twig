@@ -1,0 +1,361 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ assessment.title }} - Mentis{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+    {# Back Button #}
+    <div class="mb-4" data-aos="fade-right">
+        <a href="{{ path('take_assessment_index') }}" class="text-decoration-none" style="color: #50C878;">
+            <i class="fas fa-arrow-left me-2"></i> Back to Assessments
+        </a>
+    </div>
+
+    {# Progress Bar #}
+    <div class="mb-4" data-aos="fade-up">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-muted">
+                <i class="fas fa-question-circle me-1"></i> 
+                Question <span id="currentQuestionNum">1</span> of <span id="totalQuestions">{{ total }}</span>
+            </span>
+            <span class="text-muted">
+                <i class="fas fa-clock me-1"></i> Take your time
+            </span>
+        </div>
+        <div class="progress" style="height: 8px; border-radius: 10px;">
+            <div id="progressBar" class="progress-bar" style="width: 0%; background: linear-gradient(90deg, #50C878, #2E7D32); border-radius: 10px;"></div>
+        </div>
+    </div>
+
+    {# Assessment Info Card #}
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0" data-aos="fade-up" data-aos-delay="100">
+                {# Assessment Image #}
+                {% if assessment.imagePath %}
+                    <img src="{{ asset(assessment.imagePath) }}" 
+                         class="card-img-top" 
+                         alt="{{ assessment.title }}"
+                         style="height: 200px; object-fit: cover;">
+                {% else %}
+                    <div class="card-img-top d-flex align-items-center justify-content-center"
+                         style="height: 200px; background: linear-gradient(135deg, 
+                             {% if assessment.type == 'Depression' %}#7f6bc4, #9b59b6
+                             {% elseif assessment.type == 'Anxiety' %}#e39595, #c0392b
+                             {% elseif assessment.type == 'Stress' %}#e3cea3, #e67e22
+                             {% elseif assessment.type == 'Wellness' %}#50C878, #2E7D32
+                             {% else %}#74b9ff, #3498db{% endif %});">
+                        <i class="fas fa-brain fa-5x text-white"></i>
+                    </div>
+                {% endif %}
+
+                <div class="card-body p-4">
+                    {# Question Container #}
+                    <div id="questionContainer" class="text-center">
+                        <h4 id="questionText" class="mb-4" style="color: #2E7D32; min-height: 100px;">
+                            Loading...
+                        </h4>
+                        
+                        {# Answer Options #}
+                        <div class="mb-4">
+                            <select id="answerSelect" class="form-select form-select-lg rounded-pill" 
+                                    style="border: 2px solid #50C878; padding: 12px 20px; font-size: 16px;">
+                                <option value="">Select your answer...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {# Navigation Buttons #}
+                    <div class="d-flex justify-content-center gap-3 mt-4">
+                        <button id="prevBtn" onclick="prevQuestion()" 
+                                class="btn btn-outline-secondary rounded-pill px-4" disabled>
+                            <i class="fas fa-arrow-left me-2"></i>Previous
+                        </button>
+                        <button id="nextBtn" onclick="nextQuestion()" 
+                                class="btn btn-primary-custom rounded-pill px-4">
+                            Next <i class="fas fa-arrow-right ms-2"></i>
+                        </button>
+                        <button id="submitBtn" onclick="submitAssessment()" 
+                                class="btn btn-success rounded-pill px-4" style="display: none; background: #2E7D32;">
+                            <i class="fas fa-check-circle me-2"></i>Submit
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {# Tips Card #}
+            <div class="card mt-4 bg-light border-0" data-aos="fade-up" data-aos-delay="200">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-lightbulb fa-2x me-3" style="color: #50C878;"></i>
+                        <div>
+                            <h6 class="mb-0 fw-bold">Tip</h6>
+                            <small class="text-muted">Answer honestly for the most accurate results. There are no right or wrong answers.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Hidden Form for Submission #}
+<form id="submitForm" method="post" action="{{ path('result_submit') }}" style="display: none;">
+    <input type="hidden" name="user_id" value="{{ app.user.id }}">
+    <input type="hidden" name="assessment_id" value="{{ assessment.assessmentId }}">
+    <div id="hiddenAnswers"></div>
+</form>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────
+// COMPLETE ADAPTIVE GROQ FUNCTIONALITY + YOUR NEW UI
+// ─────────────────────────────────────────────────────────────────────
+
+// Question Data from PHP
+const questions = {{ questions|json_encode|raw }};
+
+// ── State (FULL ADAPTIVE TRACKING) ───────────────────────────────────
+let currentIndex = 0;
+let answers = {};
+let categoryScores = { anxiety: 0, depression: 0, sleep: 0, social: 0, general: 0 };
+let questionCounts = { anxiety: 0, depression: 0, sleep: 0, social: 0, general: 0 };
+
+// ── Show Question ────────────────────────────────────────────────────
+function showQuestion(index) {
+    if (index < 0 || index >= questions.length) return;
+
+    const q = questions[index];
+    
+    document.getElementById('currentQuestionNum').textContent = index + 1;
+    document.getElementById('totalQuestions').textContent = questions.length;
+    document.getElementById('questionText').textContent = q.text;
+    
+    // Update progress bar
+    const progress = ((index + 1) / questions.length) * 100;
+    document.getElementById('progressBar').style.width = progress + '%';
+    
+    // Populate answer dropdown
+    const select = document.getElementById('answerSelect');
+    select.innerHTML = '<option value="">Select your answer...</option>';
+    
+    if (q.options && q.options.length > 0) {
+        q.options.forEach(function(option) {
+            const opt = document.createElement('option');
+            opt.value = option;
+            opt.textContent = option;
+            if (answers[q.id] === option) opt.selected = true;
+            select.appendChild(opt);
+        });
+    }
+
+    // Button states
+    document.getElementById('prevBtn').disabled = (index === 0);
+    
+    if (index === questions.length - 1) {
+        document.getElementById('nextBtn').style.display = 'none';
+        document.getElementById('submitBtn').style.display = 'inline-block';
+    } else {
+        document.getElementById('nextBtn').style.display = 'inline-block';
+        document.getElementById('submitBtn').style.display = 'none';
+    }
+}
+
+// ── Save Current Answer + Update Scores ──────────────────────────────
+function saveAnswer() {
+    const q = questions[currentIndex];
+    const select = document.getElementById('answerSelect');
+    const val = select.value;
+    
+    if (val && q) {
+        answers[q.id] = val;
+        updateCategoryScore(q.text, val);
+    }
+}
+
+// ── ADAPTIVE: Category Score Tracking ────────────────────────────────
+function updateCategoryScore(questionText, answer) {
+    const text = questionText.toLowerCase();
+    const score = parseAnswerScore(answer);
+
+    if (text.includes('anxious') || text.includes('worry') || text.includes('nervous')) {
+        categoryScores.anxiety += score;
+        questionCounts.anxiety++;
+    } else if (text.includes('depress') || text.includes('sad') || text.includes('hopeless')) {
+        categoryScores.depression += score;
+        questionCounts.depression++;
+    } else if (text.includes('sleep') || text.includes('tired') || text.includes('energy')) {
+        categoryScores.sleep += score;
+        questionCounts.sleep++;
+    } else if (text.includes('social') || text.includes('alone') || text.includes('isolat')) {
+        categoryScores.social += score;
+        questionCounts.social++;
+    } else {
+        categoryScores.general += score;
+        questionCounts.general++;
+    }
+}
+
+function parseAnswerScore(answer) {
+    const a = answer.toLowerCase();
+    if (a.includes('always') || a.includes('very often')) return 1.0;
+    if (a.includes('often') || a.includes('frequently')) return 0.75;
+    if (a.includes('sometimes') || a.includes('occasionally')) return 0.5;
+    if (a.includes('rarely') || a.includes('seldom')) return 0.25;
+    return 0.0;
+}
+
+// ── ADAPTIVE: Determine Next Focus Area ─────────────────────────────
+function determineNextFocus() {
+    let maxCategory = 'general';
+    let maxScore = 0;
+
+    for (const [cat, score] of Object.entries(categoryScores)) {
+        const count = questionCounts[cat] || 1;
+        const avgScore = score / count;
+        if (avgScore > maxScore) {
+            maxScore = avgScore;
+            maxCategory = cat;
+        }
+    }
+
+    if (maxScore > 0.7) return 'deep_' + maxCategory;
+    if (maxScore > 0.4) return maxCategory;
+    return 'skip_' + maxCategory;
+}
+
+// ── Next Question (FULL ADAPTIVE GROQ LOGIC) ────────────────────────
+function nextQuestion() {
+    saveAnswer();
+
+    // 🚀 ADAPTIVE: After 2nd question, get AI follow-up
+    if (currentIndex >= 1 && currentIndex < questions.length - 1) {
+        const focus = determineNextFocus();
+        const askedIds = questions.map(q => q.id);
+
+        // Only if not skipping and under question limit
+        if (!focus.startsWith('skip_') && questions.length < 12) {
+            // 🎯 CALL GROQ AI ENDPOINT
+            fetch('{{ path("take_assessment_adaptive") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    categoryScores: categoryScores,
+                    focus: focus.replace('deep_', ''),
+                    askedIds: askedIds
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success && data.question) {
+                    // Avoid duplicates
+                    const alreadyHas = questions.some(q => q.text === data.question.text);
+                    if (!alreadyHas) {
+                        // Insert AI question after current one
+                        questions.splice(currentIndex + 1, 0, data.question);
+                        console.log('✅ AI Question Added:', data.question.text);
+                    }
+                }
+                moveToNext();
+            })
+            .catch(err => {
+                console.warn('AI question failed, continuing normally:', err);
+                moveToNext();
+            });
+        } else {
+            moveToNext();
+        }
+    } else {
+        moveToNext();
+    }
+}
+
+function moveToNext() {
+    if (currentIndex < questions.length - 1) {
+        currentIndex++;
+        showQuestion(currentIndex);
+    }
+}
+
+// ── Previous Question ────────────────────────────────────────────────
+function prevQuestion() {
+    saveAnswer();
+    if (currentIndex > 0) {
+        currentIndex--;
+        showQuestion(currentIndex);
+    }
+}
+
+// ── Submit Assessment ────────────────────────────────────────────────
+function submitAssessment() {
+    saveAnswer();
+    
+    // Validate
+    let allAnswered = true;
+    for (const q of questions) {
+        if (!answers[q.id]) {
+            allAnswered = false;
+            break;
+        }
+    }
+    
+    if (!allAnswered) {
+        alert('Please answer all questions before submitting!');
+        return;
+    }
+    
+    // Build form
+    const container = document.getElementById('hiddenAnswers');
+    container.innerHTML = '';
+    
+    for (const [qId, answer] of Object.entries(answers)) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'answers[' + qId + ']';
+        input.value = answer;
+        container.appendChild(input);
+    }
+    
+    // Loading state
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
+    submitBtn.disabled = true;
+    
+    document.getElementById('submitForm').submit();
+}
+
+// ── Initialize ───────────────────────────────────────────────────────
+showQuestion(0);
+</script>
+{% endblock %}
+
+{% block stylesheets %}
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<style>
+.btn-primary-custom {
+    background: linear-gradient(135deg, #50C878 0%, #3A9B5E 100%);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+}
+.btn-primary-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(80, 200, 120, 0.4);
+    color: white !important;
+}
+.progress-bar {
+    transition: width 0.4s ease;
+}
+.card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
+}
+</style>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>AOS.init({ duration: 800 });</script>
+{% endblock %}

@@ -218,4 +218,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function eraseCredentials(): void
     {
     }
+    // Add this method to your User entity class
+public function getFullName(): string
+{
+    return trim($this->firstname . ' ' . $this->lastname);
+}
 }

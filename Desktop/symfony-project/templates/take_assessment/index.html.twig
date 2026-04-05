@@ -1,0 +1,246 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Take Assessment - Mentis{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    {# Header #}
+    <div class="text-center mb-5" data-aos="fade-up">
+        <h1 class="display-4 fw-bold" style="color: #2E7D32;">Take Assessment</h1>
+        <p class="lead text-muted">Choose an assessment to begin your mental wellness journey</p>
+    </div>
+
+    {# 🔥 ADVANCED FILTERS + SEARCH #}
+    <div class="row justify-content-center mb-5" data-aos="fade-up" data-aos-delay="100">
+        <div class="col-lg-10">
+            <form method="get" class="row g-3">
+                {# Search Bar #}
+                <div class="col-md-4">
+                    <input type="text" name="q" value="{{ search }}" 
+                           placeholder="🔍 Search title, description..."
+                           class="form-control form-control-lg rounded-pill ps-5"
+                           style="border: 2px solid #50C878;">
+                </div>
+                
+                {# Type Filter #}
+                <div class="col-md-3">
+                    <select name="type" class="form-select form-select-lg rounded-pill">
+                        <option value="">All Types</option>
+                        <option value="Depression" {% if type == 'Depression' %}selected{% endif %}>Depression</option>
+                        <option value="Anxiety" {% if type == 'Anxiety' %}selected{% endif %}>Anxiety</option>
+                        <option value="Stress" {% if type == 'Stress' %}selected{% endif %}>Stress</option>
+                        <option value="Wellness" {% if type == 'Wellness' %}selected{% endif %}>Wellness</option>
+                        <option value="Sleep" {% if type == 'Sleep' %}selected{% endif %}>Sleep</option>
+                    </select>
+                </div>
+                
+                {# Status Filter #}
+                <div class="col-md-2">
+                    <select name="status" class="form-select form-select-lg rounded-pill">
+                        <option value="">All Status</option>
+                        <option value="Active" {% if status == 'Active' %}selected{% endif %}>Active</option>
+                        <option value="Inactive" {% if status == 'Inactive' %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+                
+                {# Sort Dropdown #}
+                <div class="col-md-2">
+                    <select name="sort" class="form-select form-select-lg rounded-pill">
+                        <option value="title_asc" {% if sort == 'title_asc' %}selected{% endif %}>Title A-Z</option>
+                        <option value="title_desc" {% if sort == 'title_desc' %}selected{% endif %}>Title Z-A</option>
+                        <option value="type_asc" {% if sort == 'type_asc' %}selected{% endif %}>Type A-Z</option>
+                        <option value="created_at_desc" {% if sort == 'created_at_desc' %}selected{% endif %}>Newest First</option>
+                        <option value="questions_desc" {% if sort == 'questions_desc' %}selected{% endif %}>Most Questions</option>
+                    </select>
+                </div>
+                
+                {# Buttons #}
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-primary-custom w-100 h-100 rounded-pill">
+                        <i class="fas fa-filter me-1"></i>Filter
+                    </button>
+                </div>
+            </form>
+            
+            {# Clear Filters #}
+            {% if search or type or status %}
+                <div class="mt-2 text-center">
+                    <a href="{{ path('take_assessment_index') }}" class="btn btn-outline-secondary rounded-pill px-4">
+                        <i class="fas fa-times me-2"></i>Clear All Filters
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Filter Summary #}
+    {% if search or type or status %}
+        <div class="alert alert-info rounded-pill d-flex align-items-center mb-4" data-aos="fade-up">
+            <i class="fas fa-info-circle me-2"></i>
+            <div>
+                {% if search %}Searching "<strong>{{ search }}</strong>"{% endif %}
+                {% if type %}{{ type }}{% endif %}
+                {% if status %}{{ status }}{% endif %}
+                {% if sort %}
+                    - Sorted by: 
+                    {% if sort == 'title_asc' %}Title A-Z
+                    {% elseif sort == 'title_desc' %}Title Z-A
+                    {% elseif sort == 'type_asc' %}Type A-Z
+                    {% elseif sort == 'created_at_desc' %}Newest First
+                    {% elseif sort == 'questions_desc' %}Most Questions{% endif %}
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+
+    {# Assessment Cards Grid #}
+    {% if assessments is empty %}
+        <div class="text-center py-5" data-aos="fade-up">
+            <div class="card shadow-sm border-0 p-5" style="background: #F1F8E9;">
+                <i class="fas fa-clipboard-list fa-4x mb-3" style="color: #50C878;"></i>
+                <h3 class="text-muted">No Assessments Found</h3>
+                <p class="text-muted">
+                    {% if search or type or status %}Try adjusting your filters{% else %}No assessments available{% endif %}
+                </p>
+                <a href="{{ path('take_assessment_index') }}" class="btn btn-primary-custom rounded-pill px-4">
+                    <i class="fas fa-arrow-left me-2"></i>View All Assessments
+                </a>
+            </div>
+        </div>
+    {% else %}
+        <div class="row g-4">
+            {% for assessment in assessments %}
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="{{ loop.index * 50 }}">
+                    <div class="card h-100 border-0 shadow-sm assessment-card">
+                        {# Image Section #}
+                        <div class="position-relative">
+                            {% if assessment.imagePath %}
+                                <img src="{{ asset(assessment.imagePath) }}" 
+                                     class="card-img-top" 
+                                     alt="{{ assessment.title }}"
+                                     style="height: 200px; object-fit: cover;">
+                            {% else %}
+                                <div class="card-img-top d-flex align-items-center justify-content-center"
+                                     style="height: 200px; background: linear-gradient(135deg, 
+                                         {% if assessment.type == 'Depression' %}#7f6bc4, #9b59b6
+                                         {% elseif assessment.type == 'Anxiety' %}#e39595, #c0392b
+                                         {% elseif assessment.type == 'Stress' %}#e3cea3, #e67e22
+                                         {% elseif assessment.type == 'Wellness' %}#50C878, #2E7D32
+                                         {% else %}#74b9ff, #3498db{% endif %});">
+                                    <i class="fas fa-brain fa-4x text-white"></i>
+                                </div>
+                            {% endif %}
+                            
+                            {# Type Badge #}
+                            <span class="position-absolute top-0 end-0 m-3 px-3 py-1 rounded-pill text-white fw-bold small"
+                                  style="background: 
+                                      {% if assessment.type == 'Depression' %}#9b59b6
+                                      {% elseif assessment.type == 'Anxiety' %}#c0392b
+                                      {% elseif assessment.type == 'Stress' %}#e67e22
+                                      {% elseif assessment.type == 'Wellness' %}#27ae60
+                                      {% else %}#3498db{% endif %}; font-size: 11px;">
+                                {{ assessment.type }}
+                            </span>
+                            
+                            {# Status Badge #}
+                            <span class="position-absolute top-0 start-0 m-3 px-2 py-1 rounded-pill text-white fw-bold small"
+                                  style="background: 
+                                      {% if assessment.status == 'Active' %}#27ae60
+                                      {% else %}#e74c3c{% endif %}; font-size: 10px;">
+                                {{ assessment.status }}
+                            </span>
+                        </div>
+
+                        {# Content #}
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title fw-bold mb-2" style="color: #2E7D32; font-size: 1.1rem;">
+                                {{ assessment.title }}
+                            </h5>
+                            {% if assessment.description %}
+                                <p class="card-text text-muted small flex-grow-1">
+                                    {{ assessment.description|slice(0, 80) }}{% if assessment.description|length > 80 %}...{% endif %}
+                                </p>
+                            {% endif %}
+                            
+                            {# Stats Row #}
+                            <div class="d-flex justify-content-between align-items-center mt-auto">
+                                <span class="text-muted small">
+                                    <i class="fas fa-question-circle me-1"></i> 
+                                    {{ assessment.questions|length }} questions
+                                </span>
+                                <span class="text-muted small">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    {{ assessment.createdAt ? assessment.createdAt|date('M Y') : 'N/A' }}
+                                </span>
+                            </div>
+                        </div>
+
+                        {# Footer #}
+                        <div class="card-footer bg-transparent border-0 pt-0">
+                            {% if assessment.status == 'Active' %}
+                                <a href="{{ path('take_assessment_start', {id: assessment.assessmentId}) }}" 
+                                   class="btn btn-primary-custom w-100 rounded-pill py-2">
+                                    <i class="fas fa-play me-2"></i>Start Assessment
+                                </a>
+                            {% else %}
+                                <div class="text-center text-muted small">
+                                    <i class="fas fa-lock me-1"></i>Inactive
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        {# Pagination Info #}
+        <div class="text-center mt-5 text-muted">
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <small class="d-block">
+                        Showing {{ assessments|length }} of {{ totalCount }} assessments
+                        {% if search or type or status %}(filtered){% endif %}
+                    </small>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<style>
+.assessment-card {
+    transition: all 0.3s ease;
+    border-radius: 20px;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+.assessment-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+.btn-primary-custom {
+    background: linear-gradient(135deg, #50C878 0%, #3A9B5E 100%);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+.btn-primary-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(80, 200, 120, 0.4);
+    color: white !important;
+}
+.form-control:focus {
+    border-color: #50C878;
+    box-shadow: 0 0 0 0.2rem rgba(80, 200, 120, 0.25);
+}
+</style>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>AOS.init({ duration: 800, once: true });</script>
+{% endblock %}
