@@ -1,0 +1,85 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ isEdit ? 'Edit Event' : 'Create Event' }} - MENTIS{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0" style="border-radius: 15px;">
+                <div class="card-body p-4">
+                    <h1 class="card-title h3 mb-4" style="color: #2F5D52;">
+                        {{ isEdit ? '✏️ Edit Event' : '➕ Create New Event' }}
+                    </h1>
+                    
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                    
+                    <div class="mb-3">
+                        {{ form_label(form.title, 'Event Title *', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                        {{ form_widget(form.title, {'attr': {'class': 'form-control', 'placeholder': 'Enter event title'}}) }}
+                        {{ form_errors(form.title) }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form_label(form.description, 'Description', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                        {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 4, 'placeholder': 'Describe your event'}}) }}
+                        {{ form_errors(form.description) }}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.eventType, 'Event Type', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.eventType, {'attr': {'class': 'form-select'}}) }}
+                            {{ form_errors(form.eventType) }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.status, 'Status', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.status, {'attr': {'class': 'form-select'}}) }}
+                            {{ form_errors(form.status) }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form_label(form.dateTime, 'Date & Time *', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                        {{ form_widget(form.dateTime, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.dateTime) }}
+                        <small class="text-muted">Format: YYYY-MM-DD HH:MM:SS</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form_label(form.location, 'Location', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                        {{ form_widget(form.location, {'attr': {'class': 'form-control', 'placeholder': 'Venue address or "Online"'}}) }}
+                        {{ form_errors(form.location) }}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.maxParticipants, 'Max Participants *', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.maxParticipants, {'attr': {'class': 'form-control', 'placeholder': 'e.g., 50'}}) }}
+                            {{ form_errors(form.maxParticipants) }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.price, 'Price', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                {{ form_widget(form.price, {'attr': {'class': 'form-control', 'placeholder': '0.00'}}) }}
+                            </div>
+                            {{ form_errors(form.price) }}
+                            <small class="text-muted">Enter 0 for free events</small>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-success px-4 py-2">
+                            {{ isEdit ? '💾 Update Event' : '✅ Create Event' }}
+                        </button>
+                        <a href="{{ path('app_event_index') }}" class="btn btn-secondary px-4 py-2">Cancel</a>
+                    </div>
+                    
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,17 +1,21 @@
 security:
+    # Password hashers
     password_hashers:
         App\Entity\User: 'auto'
 
+    # User providers
     providers:
         app_user_provider:
             entity:
                 class: App\Entity\User
                 property: email
 
+    # Firewalls
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
+        
         main:
             lazy: true
             provider: app_user_provider
@@ -25,16 +29,98 @@ security:
                 target: app_home
             remember_me:
                 secret: '%kernel.secret%'
-                lifetime: 604800
+                lifetime: 604800  # 1 week
                 path: /
 
+    # Role Hierarchy - Defines inheritance
+    role_hierarchy:
+        ROLE_ADMIN: [ROLE_PSYCHOLOGIST, ROLE_PATIENT]
+        ROLE_PSYCHOLOGIST: [ROLE_PATIENT]
+
+    # Access Control Rules - URL-based permissions
     access_control:
+        # Public routes (no login required)
+        - { path: ^/$, roles: PUBLIC_ACCESS }
+        - { path: ^/home$, roles: PUBLIC_ACCESS }
+        - { path: ^/about$, roles: PUBLIC_ACCESS }
+        - { path: ^/services$, roles: PUBLIC_ACCESS }
+        - { path: ^/contact$, roles: PUBLIC_ACCESS }
         - { path: ^/login$, roles: PUBLIC_ACCESS }
         - { path: ^/register$, roles: PUBLIC_ACCESS }
         - { path: ^/forgot-password$, roles: PUBLIC_ACCESS }
         - { path: ^/reset-password, roles: PUBLIC_ACCESS }
+        
+        # Dashboard - authenticated users only
         - { path: ^/dashboard, roles: ROLE_USER }
+        
+        # Content Library - authenticated users only
         - { path: ^/content, roles: ROLE_USER }
+        
+        # ============= EVENTS MODULE PERMISSIONS =============
+        
+        # Events listing - Anyone (including guests) can VIEW events
+        - { path: ^/events$, roles: PUBLIC_ACCESS }
+        - { path: ^/events/[0-9]+$, roles: PUBLIC_ACCESS }
+        
+        # Create event - Admin and Psychologist only (FIXED typo and combined)
+        - { path: ^/events/new$, roles: [ROLE_ADMIN, ROLE_PSYCHOLOGIST] }
+
+        # Edit event - Admin and Psychologist only (FIXED typo and combined)
+        - { path: ^/events/[0-9]+/edit$, roles: [ROLE_ADMIN, ROLE_PSYCHOLOGIST] }
+
+        # Delete event - Admin only
+        - { path: ^/events/[0-9]+/delete$, roles: ROLE_ADMIN }
+        
+        # Statistics dashboard - Admin and Psychologist only (FIXED - combined)
+        - { path: ^/statistics, roles: [ROLE_ADMIN, ROLE_PSYCHOLOGIST] }
+
+        # Export event report - Admin only
+        - { path: ^/events/[0-9]+/export-report$, roles: ROLE_ADMIN }
+        
+        # ============= REGISTRATION PERMISSIONS =============
+        
+        # Create registration - Patients only (self registration)
+        - { path: ^/registration/event/[0-9]+/register$, roles: ROLE_PATIENT }
+        
+        # Create registration for others - Admin and Psychologist only
+        - { path: ^/registration/event/[0-9]+/register-other$, roles: [ROLE_ADMIN, ROLE_PSYCHOLOGIST] }
+        
+        # Edit registration - Admin and Psychologist only
+        - { path: ^/registration/[0-9]+/edit$, roles: [ROLE_ADMIN, ROLE_PSYCHOLOGIST] }
+        
+        # Cancel registration - Anyone logged in (controller checks ownership)
+        - { path: ^/registration/[0-9]+/cancel$, roles: ROLE_USER }
+        
+        # Delete registration - Admin and Psychologist only
+        - { path: ^/registration/[0-9]+/delete$, roles: [ROLE_ADMIN, ROLE_PSYCHOLOGIST] }
+        
+        # Download ticket - Anyone logged in (controller checks ownership)
+        - { path: ^/registration/[0-9]+/download-ticket$, roles: ROLE_USER }
+        
+        # Download QR code - Anyone logged in (controller checks ownership)
+        - { path: ^/registration/[0-9]+/download-qr$, roles: ROLE_USER }
+        
+        # Resend confirmation email - Admin and Psychologist only
+        - { path: ^/registration/[0-9]+/resend-email$, roles: [ROLE_ADMIN, ROLE_PSYCHOLOGIST] }
+        
+        # ============= OTHER MODULES =============
+        
+        # Chatbot - authenticated users
+        - { path: ^/chatbot, roles: ROLE_USER }
+        
+        # Calendar - authenticated users
+        - { path: ^/calendar, roles: ROLE_USER }
+        
+        # Sessions - authenticated users
+        - { path: ^/sessions, roles: ROLE_USER }
+        
+        # Assessments - authenticated users
+        - { path: ^/assessment, roles: ROLE_USER }
+        - { path: ^/take-assessment, roles: ROLE_USER }
+        - { path: ^/result, roles: ROLE_USER }
+        
+        # Reviews - authenticated users
+        - { path: ^/review, roles: ROLE_USER }
 
 when@test:
     security:

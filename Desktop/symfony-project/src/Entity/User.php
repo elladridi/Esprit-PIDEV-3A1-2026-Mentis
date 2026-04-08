@@ -201,20 +201,32 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return (string) $this->email;
     }
 
-    public function getRoles(): array
-    {
-        $roles = ['ROLE_USER'];
-        $type = strtolower($this->type);
-
-        if ($type === 'admin') {
-            $roles[] = 'ROLE_ADMIN';
-        } elseif ($type === 'psychologist') {
-            $roles[] = 'ROLE_PSYCHOLOGIST';
-        }
-
-        return array_unique($roles);
+   public function getRoles(): array
+{
+    $roles = ['ROLE_USER'];
+    
+    // Don't convert to lowercase - check the actual value
+    $type = trim($this->type ?? '');
+    
+    // Debug - log the actual type
+    error_log("User type from database: '" . $type . "'");
+    
+    // Check for exact matches (case-sensitive)
+    if ($type === 'Admin' || $type === 'admin') {
+        $roles[] = 'ROLE_ADMIN';
+        $roles[] = 'ROLE_PSYCHOLOGIST';
+        $roles[] = 'ROLE_PATIENT';
+    } elseif ($type === 'Psychologist' || $type === 'psychologist') {
+        $roles[] = 'ROLE_PSYCHOLOGIST';
+        $roles[] = 'ROLE_PATIENT';
+    } elseif ($type === 'Patient' || $type === 'patient') {
+        $roles[] = 'ROLE_PATIENT';
     }
-
+    
+    error_log("Assigned roles: " . implode(', ', $roles));
+    
+    return array_unique($roles);
+}
     public function eraseCredentials(): void
     {
     }

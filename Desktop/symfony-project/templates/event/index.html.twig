@@ -1,0 +1,269 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Events - MENTIS{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .event-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        .event-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(47,93,82,0.15);
+        }
+        .event-type-badge {
+            background: #AFCFC2;
+            color: #2F5D52;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .status-upcoming { color: #3E6F64; }
+        .status-ongoing { color: #9BC7B5; }
+        .status-completed { color: #9CA3AF; }
+        .status-cancelled { color: #D62828; }
+        .stats-bar {
+            background: #F1F6F4;
+            border-radius: 12px;
+            border: 1px solid #DDE5E2;
+        }
+        .search-field {
+            background: #F1F6F4;
+            border-radius: 20px;
+            border: 1px solid #DDE5E2;
+            padding: 10px 15px;
+            width: 250px;
+        }
+        .search-field:focus {
+            outline: none;
+            border-color: #9BC7B5;
+        }
+        .filter-select {
+            background: #F1F6F4;
+            border-radius: 10px;
+            border: 1px solid #DDE5E2;
+            padding: 10px;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="display-5 fw-bold" style="color: #1E1E1E;">
+                {% if is_granted('ROLE_PATIENT') %}
+                    📌 Browse Events
+                {% else %}
+                    📌 Events Management
+                {% endif %}
+            </h1>
+            <p class="text-muted">Manage and discover mental health events</p>
+        </div>
+    </div>
+
+    <!-- Stats Bar (Admin/Psychologist only) -->
+    {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_PSYCHOLOGIST') %}
+        {% if globalStats %}
+        <div class="stats-bar p-3 mb-4 d-flex justify-content-around">
+            <div class="text-center">
+                <div class="h3 fw-bold" style="color: #2F5D52;">{{ globalStats.totalEvents }}</div>
+                <small class="text-muted">📅 Events</small>
+            </div>
+            <div class="vr"></div>
+            <div class="text-center">
+                <div class="h3 fw-bold" style="color: #2F5D52;">{{ globalStats.totalParticipants }}</div>
+                <small class="text-muted">👥 Participants</small>
+            </div>
+            <div class="vr"></div>
+            <div class="text-center">
+                <div class="h3 fw-bold" style="color: #2F5D52;">{{ globalStats.totalRegistrations }}</div>
+                <small class="text-muted">🎟 Bookings</small>
+            </div>
+            <div class="vr"></div>
+            <div class="text-center">
+                <div class="h3 fw-bold" style="color: #2F5D52;">${{ globalStats.totalRevenue|number_format(0) }}</div>
+                <small class="text-muted">💵 Revenue</small>
+            </div>
+        </div>
+        {% endif %}
+    {% endif %}
+
+    <!-- Search and Filter Bar -->
+    <div class="d-flex gap-3 mb-4">
+        <div class="flex-grow-1 position-relative">
+            <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+            <input type="text" 
+                   id="searchInput" 
+                   class="search-field w-100 ps-5" 
+                   placeholder="🔍 Search events by title or description..."
+                   value="{{ searchKeyword|default('') }}">
+        </div>
+        <select id="typeFilter" class="filter-select">
+            <option value="">All Types</option>
+            {% for type in eventTypes %}
+                <option value="{{ type }}" {% if selectedType == type %}selected{% endif %}>
+                    {{ type|replace({'_': ' '})|title }}
+                </option>
+            {% endfor %}
+        </select>
+        
+        {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_PSYCHOLOGIST') %}
+        <a href="{{ path('app_event_new') }}" class="btn" style="background: #9BC7B5; color: #2F5D52; font-weight: bold;">
+            + Add Event
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Events Grid -->
+    <div class="row g-4" id="eventsGrid">
+        {% for event in events %}
+            {% set stats = eventStats[event.id]|default({registrationCount: 0, revenue: 0}) %}
+            <div class="col-md-6 col-lg-4 event-card-item" data-title="{{ event.title|lower }}" data-type="{{ event.eventType }}">
+                <div class="event-card bg-white h-100 shadow-sm">
+                    <div class="p-4">
+                        <!-- Header -->
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <span class="event-type-badge">{{ event.eventType|replace({'_': ' '})|title }}</span>
+                            <span class="fw-bold 
+                                {% if event.status == 'UPCOMING' %}status-upcoming
+                                {% elseif event.status == 'ONGOING' %}status-ongoing
+                                {% elseif event.status == 'COMPLETED' %}status-completed
+                                {% else %}status-cancelled{% endif %}">
+                                {{ event.status|title }}
+                            </span>
+                        </div>
+                        
+                        <!-- Title -->
+                        <h5 class="fw-bold mb-2" style="color: #1E1E1E;">{{ event.title }}</h5>
+                        
+                        <!-- Description -->
+                        <p class="text-muted small mb-3">
+                            {{ event.description|length > 100 ? event.description|slice(0, 100) ~ '...' : event.description }}
+                        </p>
+                        
+                        <!-- Date & Location -->
+                        <div class="mb-2">
+                            <i class="fas fa-calendar-alt text-muted me-2"></i>
+                            <small class="text-muted">{{ event.dateTime|date('M d, Y • H:i') }}</small>
+                        </div>
+                        <div class="mb-3">
+                            <i class="fas fa-map-marker-alt text-muted me-2"></i>
+                            <small class="text-muted">{{ event.location|default('Online') }}</small>
+                        </div>
+                        
+                        <!-- Capacity & Price -->
+                        <div class="d-flex justify-content-between mb-2">
+                            <small class="text-muted">
+                                <i class="fas fa-users me-1"></i> 
+                                {{ event.currentParticipants }}/{{ event.maxParticipants }}
+                            </small>
+                            <small class="fw-bold" style="color: #2F5D52;">
+                                {% if event.free %}🆓 Free{% else %}💰 ${{ event.price|number_format(2) }}{% endif %}
+                            </small>
+                        </div>
+                        
+                        <!-- Registration Info (Admin/Psychologist only) -->
+                        {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_PSYCHOLOGIST') %}
+                        <div class="d-flex justify-content-between mb-3">
+                            <small class="text-muted">🎟 {{ stats.registrationCount }} registrations</small>
+                            <small class="text-muted">💵 ${{ stats.revenue|number_format(2) }}</small>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Availability -->
+                        <div class="mb-3">
+                            {% if event.available %}
+                                <span class="badge" style="background: #E8F5E9; color: #3E6F64;">
+                                    🟢 {{ event.availableSpots }} spots available
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger">🔴 SOLD OUT</span>
+                            {% endif %}
+                        </div>
+                        
+                        <hr class="my-3" style="border-color: #DDE5E2;">
+                        
+                        <!-- Actions -->
+                        <div class="d-flex gap-2">
+                            <a href="{{ path('app_event_show', {id: event.id}) }}" 
+                               class="btn btn-sm flex-grow-1" 
+                               style="background: #9BC7B5; color: #2F5D52;">
+                                👁 View
+                            </a>
+                            
+                            {# Edit button - Admin and Psychologist #}
+                            {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_PSYCHOLOGIST') %}
+                                <a href="{{ path('app_event_edit', {id: event.id}) }}" 
+                                   class="btn btn-sm" 
+                                   style="background: #3E6F64; color: white;">
+                                    ✏ Edit
+                                </a>
+                            {% endif %}
+
+                            {# Delete button - Admin only #}
+                            {% if is_granted('ROLE_ADMIN') %}
+                                <form method="post" action="{{ path('app_event_delete', {id: event.id}) }}" 
+                                      onsubmit="return confirm('Delete this event? This will also delete all registrations.')" class="d-inline">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ event.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-danger">🗑</button>
+                                </form>
+                            {% endif %}
+                            
+                            {# Register button - Patient only and event must be available #}
+                            {% if is_granted('ROLE_PATIENT') and event.available %}
+                                <a href="{{ path('app_registration_new', {id: event.id}) }}" 
+                                   class="btn btn-sm flex-grow-1" 
+                                   style="background: #2F5D52; color: white;">
+                                    🎟 Register
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                <p class="text-muted">No events found.</p>
+                {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_PSYCHOLOGIST') %}
+                    <a href="{{ path('app_event_new') }}" class="btn btn-primary">+ Create your first event</a>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+    // Live search and filter
+    const searchInput = document.getElementById('searchInput');
+    const typeFilter = document.getElementById('typeFilter');
+    const events = document.querySelectorAll('.event-card-item');
+    
+    function filterEvents() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedType = typeFilter.value;
+        
+        events.forEach(event => {
+            const title = event.dataset.title || '';
+            const type = event.dataset.type || '';
+            
+            const matchesSearch = searchTerm === '' || title.includes(searchTerm);
+            const matchesType = selectedType === '' || type === selectedType;
+            
+            event.style.display = matchesSearch && matchesType ? 'block' : 'none';
+        });
+    }
+    
+    searchInput.addEventListener('input', filterEvents);
+    typeFilter.addEventListener('change', filterEvents);
+</script>
+{% endblock %}

@@ -1,0 +1,360 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ event.title }} - MENTIS{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .detail-card {
+            background: white;
+            border-radius: 15px;
+            border: 1px solid #DDE5E2;
+            padding: 20px;
+        }
+        .info-row {
+            display: flex;
+            margin-bottom: 12px;
+        }
+        .info-label {
+            width: 140px;
+            color: #2F5D52;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        .info-value {
+            color: #1E1E1E;
+            font-size: 13px;
+            flex: 1;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-UPCOMING { background: #E3F2FD; color: #1976D2; }
+        .status-ONGOING { background: #E8F5E9; color: #388E3C; }
+        .status-COMPLETED { background: #F5F5F5; color: #757575; }
+        .status-CANCELLED { background: #FFEBEE; color: #D32F2F; }
+        .registration-card {
+            background: #F1F6F4;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #2F5D52;
+        }
+        .my-ticket-card {
+            background: linear-gradient(135deg, #2F5D52 0%, #3E6F64 100%);
+            border-radius: 15px;
+            padding: 20px;
+            color: white;
+        }
+        .my-ticket-card .qr-placeholder {
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+        }
+        .btn-icon {
+            background: transparent;
+            border: 1px solid #DDE5E2;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        .btn-icon:hover {
+            background: #9BC7B5;
+            border-color: #9BC7B5;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .action-buttons .btn {
+            flex: 1;
+        }
+        .debug-box {
+            background: #FFF3CD;
+            border: 1px solid #FFE69C;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-size: 12px;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+    <!-- Back Button -->
+    <div class="mb-3">
+        <a href="{{ path('app_event_index') }}" class="text-decoration-none" style="color: #6B7280;">
+            ← Back to Events
+        </a>
+    </div>
+    
+    <!-- Status Badge -->
+    <div class="d-flex justify-content-end mb-3">
+        <span class="status-badge status-{{ event.status }}">
+            {{ event.status|title }}
+        </span>
+    </div>
+    
+    <!-- Event Title -->
+    <h1 class="display-5 fw-bold mb-4" style="color: #1E1E1E;">{{ event.title }}</h1>
+    
+    <!-- DEBUG INFO - Remove after testing -->
+    <div class="debug-box">
+        <strong>🔍 Debug Info:</strong><br>
+        👤 User logged in: {{ app.user ? 'Yes' : 'No' }}<br>
+        📧 User email: {{ app.user.email|default('N/A') }}<br>
+        🏷️ User type: {{ app.user.type|default('N/A') }}<br>
+        ✅ ROLE_PATIENT: {{ is_granted('ROLE_PATIENT') ? 'Yes' : 'No' }}<br>
+        ✅ ROLE_USER: {{ is_granted('ROLE_USER') ? 'Yes' : 'No' }}<br>
+        ✅ ROLE_PSYCHOLOGIST: {{ is_granted('ROLE_PSYCHOLOGIST') ? 'Yes' : 'No' }}<br>
+        ✅ ROLE_ADMIN: {{ is_granted('ROLE_ADMIN') ? 'Yes' : 'No' }}<br>
+        🟢 Event available: {{ event.available ? 'Yes' : 'No' }}<br>
+        🎫 Available spots: {{ event.availableSpots }}<br>
+        📝 User already registered: {{ userRegistration ? 'Yes' : 'No' }}
+    </div>
+    
+    <div class="row">
+        <!-- Left Column: Event Details -->
+        <div class="col-lg-7">
+            <div class="detail-card mb-4">
+                <h5 class="fw-bold mb-3" style="color: #2F5D52;">📅 Event Details</h5>
+                
+                <div class="info-row">
+                    <div class="info-label">Date & Time</div>
+                    <div class="info-value">{{ event.dateTime|date('l, F d, Y \\a\\t H:i') }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Location</div>
+                    <div class="info-value">{{ event.location|default('To be announced') }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Event Type</div>
+                    <div class="info-value">{{ event.eventType|replace({'_': ' '})|title }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Capacity</div>
+                    <div class="info-value">{{ event.currentParticipants }} / {{ event.maxParticipants }} ({{ event.availableSpots }} spots left)</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Price</div>
+                    <div class="info-value fw-bold" style="color: #2F5D52;">
+                        {% if event.free %}🆓 Free{% else %}💰 ${{ event.price|number_format(2) }}{% endif %}
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Description</div>
+                    <div class="info-value">{{ event.description|default('No description provided.')|nl2br }}</div>
+                </div>
+            </div>
+            
+            <!-- Map Section -->
+            {% if isOnlineEvent %}
+                <div class="detail-card mb-4">
+                    <h5 class="fw-bold mb-3" style="color: #2F5D52;">💻 Online Event</h5>
+                    <div class="text-center py-4">
+                        <i class="fas fa-globe fa-3x mb-3" style="color: #9BC7B5;"></i>
+                        <p class="mb-2">This is an online event</p>
+                        <p class="small text-muted">{{ event.location }}</p>
+                        <p class="small text-muted">📧 Check your email for the meeting link after registration</p>
+                    </div>
+                </div>
+            {% elseif mapUrl %}
+                <div class="detail-card mb-4">
+                    <h5 class="fw-bold mb-3" style="color: #2F5D52;">📍 Location Map</h5>
+                    <p class="small text-muted mb-2">{{ event.location }}</p>
+                    <img src="{{ mapUrl }}" alt="Map of {{ event.location }}" class="img-fluid rounded mb-3">
+                    <div class="d-flex gap-2">
+                        {% if googleMapsService is defined and googleMapsService %}
+                            <a href="{{ googleMapsService.getDirectionsUrl(event.location) }}" target="_blank" class="btn btn-sm" style="background: #2F5D52; color: white;">
+                                🧭 Get Directions
+                            </a>
+                            <a href="{{ googleMapsService.getSearchUrl(event.location) }}" target="_blank" class="btn btn-sm" style="background: #9BC7B5; color: #2F5D52;">
+                                🗺️ Open in Maps
+                            </a>
+                        {% else %}
+                            <a href="https://www.google.com/maps/search/?api=1&query={{ event.location|url_encode }}" target="_blank" class="btn btn-sm" style="background: #2F5D52; color: white;">
+                                🧭 Get Directions
+                            </a>
+                            <a href="https://www.google.com/maps/search/?api=1&query={{ event.location|url_encode }}" target="_blank" class="btn btn-sm" style="background: #9BC7B5; color: #2F5D52;">
+                                🗺️ Open in Maps
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Admin/Psychologist Actions -->
+            {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_PSYCHOLOGIST') %}
+                <div class="detail-card mb-4">
+                    <h5 class="fw-bold mb-3" style="color: #2F5D52;">⚙️ Event Actions</h5>
+                    <div class="action-buttons">
+                        <a href="{{ path('app_event_edit', {id: event.id}) }}" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Edit Event
+                        </a>
+                        {% if is_granted('ROLE_ADMIN') %}
+                            <form method="post" action="{{ path('app_event_delete', {id: event.id}) }}" 
+                                  onsubmit="return confirm('Delete this event? This will also delete all registrations.')" class="d-inline w-100">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ event.id) }}">
+                                <button type="submit" class="btn btn-danger w-100">
+                                    <i class="fas fa-trash"></i> Delete Event
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Right Column -->
+        <div class="col-lg-5">
+            <!-- Patient's Ticket (if registered) -->
+            {% if userRegistration %}
+                <div class="my-ticket-card mb-4">
+                    <h5 class="fw-bold mb-3">🎫 Your Ticket</h5>
+                    <p class="small opacity-75">Confirmation #: {{ userRegistration.confirmationNumber }}</p>
+                    <p class="small opacity-75">Status: {{ userRegistration.statusEmoji }} {{ userRegistration.status|title }}</p>
+                    <p class="small opacity-75">Ticket: {{ userRegistration.ticketType|title }} × {{ userRegistration.numberOfTickets }}</p>
+                    <p class="small fw-bold">Total: {% if userRegistration.freeTicket %}FREE{% else %}${{ userRegistration.totalPrice|number_format(2) }}{% endif %}</p>
+                    
+                    <div class="mt-3 d-flex gap-2">
+                        <a href="{{ path('app_registration_download_ticket', {id: userRegistration.id}) }}" class="btn btn-sm btn-light">📄 Download PDF</a>
+                        <form method="post" action="{{ path('app_registration_cancel', {id: userRegistration.id}) }}" 
+                              onsubmit="return confirm('Cancel your registration?')" class="d-inline">
+                            <input type="hidden" name="_token" value="{{ csrf_token('cancel' ~ userRegistration.id) }}">
+                            <button type="submit" class="btn btn-sm btn-outline-light">❌ Cancel</button>
+                        </form>
+                    </div>
+                </div>
+            
+            <!-- Register Button - For Patients who are NOT registered -->
+            {% elseif app.user and event.available and not is_granted('ROLE_ADMIN') and not is_granted('ROLE_PSYCHOLOGIST') %}
+                <div class="detail-card mb-4 text-center">
+                    <i class="fas fa-ticket-alt fa-3x mb-3" style="color: #9BC7B5;"></i>
+                    <h5>Register for this event</h5>
+                    <p class="small text-muted">{{ event.availableSpots }} spots available</p>
+                    <p class="small text-muted">Price: {% if event.free %}FREE{% else %}${{ event.price|number_format(2) }}{% endif %}</p>
+                    <a href="{{ path('app_registration_new', {id: event.id}) }}" class="btn w-100" style="background: #2F5D52; color: white;">
+                        🎟 Register Now
+                    </a>
+                </div>
+            
+            <!-- Sold Out Message -->
+            {% elseif app.user and not event.available and not is_granted('ROLE_ADMIN') and not is_granted('ROLE_PSYCHOLOGIST') %}
+                <div class="detail-card mb-4 text-center bg-danger bg-opacity-10">
+                    <i class="fas fa-ban fa-3x mb-3 text-danger"></i>
+                    <h5>Sold Out</h5>
+                    <p class="small text-muted">This event has reached maximum capacity.</p>
+                </div>
+            
+            <!-- Login Prompt for Guests -->
+            {% elseif not app.user %}
+                <div class="detail-card mb-4 text-center">
+                    <i class="fas fa-sign-in-alt fa-3x mb-3" style="color: #9BC7B5;"></i>
+                    <h5>Login to Register</h5>
+                    <p class="small text-muted">Please login or create an account to register for this event.</p>
+                    <div class="d-flex gap-2">
+                        <a href="{{ path('app_login') }}" class="btn flex-grow-1" style="background: #2F5D52; color: white;">
+                            Login
+                        </a>
+                        <a href="{{ path('app_register') }}" class="btn flex-grow-1" style="background: #9BC7B5; color: #2F5D52;">
+                            Register
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Registration Summary - Admin and Psychologist can see this -->
+            {% if canManage %}
+                <div class="detail-card mb-4">
+                    <h5 class="fw-bold mb-3" style="color: #2F5D52;">🎟 Registration Summary</h5>
+                    <div class="d-flex justify-content-around mb-3">
+                        <div class="text-center">
+                            <div class="h4 fw-bold" style="color: #2F5D52;">{{ registrationCount }}</div>
+                            <small class="text-muted">Bookings</small>
+                        </div>
+                        <div class="text-center">
+                            <div class="h4 fw-bold" style="color: #2F5D52;">{{ totalTickets }}</div>
+                            <small class="text-muted">Tickets</small>
+                        </div>
+                        <div class="text-center">
+                            <div class="h4 fw-bold" style="color: #2F5D52;">${{ revenue|number_format(2) }}</div>
+                            <small class="text-muted">Revenue</small>
+                        </div>
+                    </div>
+                    
+                    {% if event.available %}
+                        <a href="{{ path('app_registration_new', {id: event.id}) }}" class="btn w-100 mb-2" style="background: #9BC7B5; color: #2F5D52;">
+                            <i class="fas fa-user-plus"></i> + New Registration
+                        </a>
+                    {% else %}
+                        <button class="btn w-100 mb-2" disabled style="background: #DDE5E2; color: #9CA3AF;">
+                            🔴 SOLD OUT
+                        </button>
+                    {% endif %}
+                </div>
+                
+                <!-- Registrations List -->
+                <div class="detail-card">
+                    <h5 class="fw-bold mb-3" style="color: #2F5D52;">📋 Registrations ({{ registrations|length }})</h5>
+                    
+                    {% if registrations|length == 0 %}
+                        <p class="text-muted text-center py-3">No registrations yet.</p>
+                    {% else %}
+                        <div style="max-height: 400px; overflow-y: auto;">
+                            {% for reg in registrations %}
+                                <div class="registration-card">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <strong>{{ reg.userName }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ reg.email }}</small>
+                                            <br>
+                                            <small>{{ reg.ticketType|title }} × {{ reg.numberOfTickets }}</small>
+                                            <br>
+                                            <small>💰 ${{ reg.totalPrice|number_format(2) }}</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge {% if reg.status == 'CONFIRMED' %}bg-success{% elseif reg.status == 'PENDING' %}bg-warning{% else %}bg-danger{% endif %}">
+                                                {{ reg.statusEmoji }} {{ reg.status|title }}
+                                            </span>
+                                            <div class="mt-2">
+                                                <a href="{{ path('app_registration_edit', {id: reg.id}) }}" class="btn btn-sm btn-icon" title="Edit Registration">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <form method="post" action="{{ path('app_registration_delete', {id: reg.id}) }}" 
+                                                      onsubmit="return confirm('Delete this registration?')" class="d-inline">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reg.id) }}">
+                                                    <button type="submit" class="btn btn-sm btn-icon text-danger" title="Delete Registration">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                                <a href="{{ path('app_registration_download_ticket', {id: reg.id}) }}" class="btn btn-sm btn-icon" title="Download Ticket">
+                                                    <i class="fas fa-download"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% if reg.specialRequests %}
+                                        <div class="mt-2 pt-2 border-top">
+                                            <small class="text-muted">
+                                                <i class="fas fa-comment"></i> Special requests: {{ reg.specialRequests }}
+                                            </small>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

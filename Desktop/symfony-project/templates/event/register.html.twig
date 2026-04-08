@@ -1,0 +1,81 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Register for {{ event.title }} - MENTIS{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0" style="border-radius: 15px;">
+                <div class="card-body p-4">
+                    <h1 class="card-title h3 mb-4" style="color: #2F5D52;">🎟 Register for Event</h1>
+                    
+                    <div class="alert alert-info mb-4" style="background: #F1F6F4; border-color: #DDE5E2; color: #2F5D52;">
+                        <strong>{{ event.title }}</strong><br>
+                        📅 {{ event.dateTime|date('F d, Y • H:i') }}<br>
+                        📍 {{ event.location|default('Online') }}<br>
+                        💰 {% if event.free %}FREE{% else %}${{ event.price|number_format(2) }} per ticket{% endif %}<br>
+                        🟢 {{ event.availableSpots }} spots available
+                    </div>
+                    
+                    {{ form_start(form) }}
+                    
+                    <div class="mb-3">
+                        {{ form_label(form.userName, 'Full Name *', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                        {{ form_widget(form.userName, {'attr': {'class': 'form-control', 'placeholder': 'Enter your full name'}}) }}
+                        {{ form_errors(form.userName) }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form_label(form.email, 'Email Address *', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                        {{ form_widget(form.email, {'attr': {'class': 'form-control', 'placeholder': 'your@email.com'}}) }}
+                        {{ form_errors(form.email) }}
+                        <small class="text-muted">Confirmation will be sent to this email</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form_label(form.phone, 'Phone Number', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                        {{ form_widget(form.phone, {'attr': {'class': 'form-control', 'placeholder': '+1 (555) 123-4567'}}) }}
+                        {{ form_errors(form.phone) }}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.ticketType, 'Ticket Type', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.ticketType, {'attr': {'class': 'form-select'}}) }}
+                            {{ form_errors(form.ticketType) }}
+                            <small class="text-muted">VIP tickets are +50%</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.numberOfTickets, 'Number of Tickets', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.numberOfTickets, {'attr': {'class': 'form-control', 'min': 1, 'max': 10}}) }}
+                            {{ form_errors(form.numberOfTickets) }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form_label(form.paymentMethod, 'Payment Method', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                        {{ form_widget(form.paymentMethod, {'attr': {'class': 'form-select'}}) }}
+                        {{ form_errors(form.paymentMethod) }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form_label(form.specialRequests, 'Special Requests', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                        {{ form_widget(form.specialRequests, {'attr': {'class': 'form-control', 'rows': 3, 'placeholder': 'Any dietary needs, accessibility requirements, etc.'}}) }}
+                        {{ form_errors(form.specialRequests) }}
+                    </div>
+                    
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-success btn-lg px-5">
+                            ✅ Complete Registration
+                        </button>
+                        <a href="{{ path('app_event_show', {id: event.id}) }}" class="btn btn-secondary btn-lg">Cancel</a>
+                    </div>
+                    
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
