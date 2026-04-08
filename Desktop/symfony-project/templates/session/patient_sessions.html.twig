@@ -1,0 +1,185 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Sessions - Mentis{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="text-center mb-5" data-aos="fade-up">
+        <h1 class="display-5 fw-bold mb-3" style="color: #2E7D32;">
+            <i class="fas fa-calendar-alt me-2"></i>My Sessions
+        </h1>
+        <p class="lead text-muted">Manage your booked therapy sessions</p>
+    </div>
+
+    {# Flash Messages #}
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show rounded-pill mb-4 d-flex align-items-center" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger alert-dismissible fade show rounded-pill mb-4 d-flex align-items-center" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    {# UPCOMING SESSIONS #}
+    <div class="mb-5" data-aos="fade-up">
+        <h2 class="fw-bold mb-4" style="color: #2E7D32;">
+            <i class="fas fa-clock me-2"></i>Upcoming Sessions
+        </h2>
+        {% if upcoming is empty %}
+            <div class="card border-0 bg-light rounded-4 p-5 text-center">
+                <i class="fas fa-calendar-week fa-3x text-muted mb-3"></i>
+                <p class="text-muted mb-0">No upcoming sessions. Reserve one from available sessions!</p>
+                <a href="{{ path('session_available') }}" class="btn btn-primary-custom rounded-pill mt-3 px-4">Browse Sessions</a>
+            </div>
+        {% else %}
+            <div class="row g-4">
+                {% for session in upcoming %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card shadow-sm border-0 h-100 rounded-4 overflow-hidden">
+                            <div class="card-header bg-gradient text-white py-3 px-4" style="background: linear-gradient(135deg, #2E7D32 0%, #50C878 100%);">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge bg-white text-success rounded-pill px-3">{{ session.sessionType }}</span>
+                                    <span class="small">${{ session.price }}</span>
+                                </div>
+                            </div>
+                            <div class="card-body p-4">
+                                <h5 class="fw-bold mb-2" style="color: #2E7D32;">{{ session.title }}</h5>
+                                <div class="mb-3">
+                                    <div class="small text-muted mb-1">
+                                        <i class="fas fa-calendar me-2"></i>{{ session.sessionDate|date('l, M d, Y') }}
+                                    </div>
+                                    <div class="small text-muted mb-1">
+                                        <i class="fas fa-clock me-2"></i>{{ session.startTime|date('H:i') }} - {{ session.endTime|date('H:i') }}
+                                    </div>
+                                    <div class="small text-muted">
+                                        <i class="fas fa-map-marker-alt me-2"></i>{{ session.location }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-white border-0 p-4 pt-0">
+                                <div class="d-flex gap-2">
+                                    <a href="{{ path('session_show', {id: session.sessionId}) }}" class="btn btn-outline-primary rounded-pill flex-grow-1">
+                                        <i class="fas fa-eye me-1"></i>Details
+                                    </a>
+                                    <form method="post" action="{{ path('session_cancel_reservation', {id: session.sessionId}) }}" onsubmit="return confirm('Cancel this reservation?')">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('cancel' ~ session.sessionId) }}">
+                                        <button type="submit" class="btn btn-outline-danger rounded-pill">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    {# PAST SESSIONS - WITH REVIEW BUTTON #}
+    <div data-aos="fade-up" data-aos-delay="200">
+        <h2 class="fw-bold mb-4" style="color: #6c757d;">
+            <i class="fas fa-history me-2"></i>Past Sessions
+        </h2>
+        {% if past is empty %}
+            <div class="card border-0 bg-light rounded-4 p-5 text-center">
+                <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                <p class="text-muted mb-0">No past sessions yet.</p>
+            </div>
+        {% else %}
+            <div class="row g-4">
+                {% for session in past %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card shadow-sm border-0 h-100 rounded-4 overflow-hidden">
+                            <div class="card-header bg-secondary text-white py-3 px-4">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge bg-light text-secondary rounded-pill px-3">{{ session.sessionType }}</span>
+                                    <span class="small">${{ session.price }}</span>
+                                </div>
+                            </div>
+                            <div class="card-body p-4">
+                                <h5 class="fw-bold mb-2">{{ session.title }}</h5>
+                                <div class="mb-3">
+                                    <div class="small text-muted mb-1">
+                                        <i class="fas fa-calendar me-2"></i>{{ session.sessionDate|date('l, M d, Y') }}
+                                    </div>
+                                    <div class="small text-muted mb-1">
+                                        <i class="fas fa-clock me-2"></i>{{ session.startTime|date('H:i') }} - {{ session.endTime|date('H:i') }}
+                                    </div>
+                                    <div class="small text-muted">
+                                        <i class="fas fa-map-marker-alt me-2"></i>{{ session.location }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-white border-0 p-4 pt-0">
+                                {# WRITE REVIEW BUTTON - for past sessions #}
+                                {% set today = 'now'|date('Y-m-d') %}
+                                {% set sessionDate = session.sessionDate|date('Y-m-d') %}
+                                {% if sessionDate < today %}
+                                    <a href="{{ path('review_add', {sessionId: session.sessionId}) }}" 
+                                       class="btn btn-warning rounded-pill w-100 py-2 fw-bold">
+                                        <i class="fas fa-star me-2"></i>Write a Review
+                                    </a>
+                                {% else %}
+                                    <a href="{{ path('session_show', {id: session.sessionId}) }}" 
+                                       class="btn btn-outline-secondary rounded-pill w-100 py-2">
+                                        <i class="fas fa-eye me-2"></i>View Details
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<style>
+.btn-primary-custom {
+    background: linear-gradient(135deg, #50C878 0%, #3A9B5E 100%);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+.btn-primary-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(80, 200, 120, 0.4);
+    color: white !important;
+}
+.card {
+    transition: transform 0.3s ease;
+}
+.card:hover {
+    transform: translateY(-5px);
+}
+.bg-gradient {
+    position: relative;
+}
+.btn-warning {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    border: none;
+    color: white;
+    font-weight: 600;
+}
+.btn-warning:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(243, 156, 18, 0.4);
+    color: white;
+}
+</style>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>AOS.init({ duration: 800 });</script>
+{% endblock %}

@@ -47,28 +47,128 @@ class Assessment
         $this->createdAt = new \DateTime();
     }
 
-    // Getters and Setters
-    public function getAssessmentId(): ?int { return $this->assessmentId; }
-    public function setAssessmentId(int $assessmentId): self { $this->assessmentId = $assessmentId; return $this; }
-    
-    public function getTitle(): ?string { return $this->title; }
-    public function setTitle(string $title): self { $this->title = $title; return $this; }
-    
-    public function getType(): ?string { return $this->type; }
-    public function setType(?string $type): self { $this->type = $type; return $this; }
-    
-    public function getDescription(): ?string { return $this->description; }
-    public function setDescription(?string $description): self { $this->description = $description; return $this; }
-    
-    public function getStatus(): ?string { return $this->status; }
-    public function setStatus(?string $status): self { $this->status = $status; return $this; }
-    
-    public function getImagePath(): ?string { return $this->imagePath; }
-    public function setImagePath(?string $imagePath): self { $this->imagePath = $imagePath; return $this; }
-    
-    public function getCreatedAt(): ?\DateTimeInterface { return $this->createdAt; }
-    public function setCreatedAt(?\DateTimeInterface $createdAt): self { $this->createdAt = $createdAt; return $this; }
-    
-    public function getQuestions(): Collection { return $this->questions; }
-    public function getResults(): Collection { return $this->results; }
+    public function getAssessmentId(): ?int
+    {
+        return $this->assessmentId;
+    }
+
+    public function setAssessmentId(int $assessmentId): self
+    {
+        $this->assessmentId = $assessmentId;
+        return $this;
+    }
+
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
+
+    public function setTitle(?string $title): self
+    {
+        $this->title = $title;
+        return $this;
+    }
+
+    public function getType(): ?string
+    {
+        return $this->type;
+    }
+
+    public function setType(?string $type): self
+    {
+        $this->type = $type;
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): self
+    {
+        $this->description = $description;
+        return $this;
+    }
+
+    public function getStatus(): ?string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(?string $status): self
+    {
+        $this->status = $status;
+        return $this;
+    }
+
+    public function getImagePath(): ?string
+    {
+        return $this->imagePath;
+    }
+
+    public function setImagePath(?string $imagePath): self
+    {
+        $this->imagePath = $imagePath;
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(?\DateTimeInterface $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+        return $this;
+    }
+
+    public function getQuestions(): Collection
+    {
+        return $this->questions;
+    }
+
+    public function addQuestion(Question $question): self
+    {
+        if (!$this->questions->contains($question)) {
+            $this->questions->add($question);
+            $question->setAssessment($this);
+        }
+        return $this;
+    }
+
+    public function removeQuestion(Question $question): self
+    {
+        if ($this->questions->removeElement($question)) {
+            if ($question->getAssessment() === $this) {
+                $question->setAssessment(null);
+            }
+        }
+        return $this;
+    }
+
+    public function getResults(): Collection
+    {
+        return $this->results;
+    }
+
+    public function addResult(AssessmentResult $result): self
+    {
+        if (!$this->results->contains($result)) {
+            $this->results->add($result);
+            $result->setAssessment($this);
+        }
+        return $this;
+    }
+
+    public function removeResult(AssessmentResult $result): self
+    {
+        if ($this->results->removeElement($result)) {
+            if ($result->getAssessment() === $this) {
+                $result->setAssessment(null);
+            }
+        }
+        return $this;
+    }
 }

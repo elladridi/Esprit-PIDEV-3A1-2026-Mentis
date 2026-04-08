@@ -1,0 +1,159 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Calendar - Mentis{% endblock %}
+
+{% block stylesheets %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+<style>
+    .calendar-container {
+        background: white;
+        border-radius: 24px;
+        padding: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    }
+    .fc {
+        font-family: 'Inter', sans-serif;
+    }
+    .fc-toolbar-title {
+        color: #2E7D32;
+        font-weight: 700;
+    }
+    .fc-button-primary {
+        background: linear-gradient(135deg, #50C878 0%, #3A9B5E 100%);
+        border: none;
+    }
+    .fc-button-primary:hover {
+        background: linear-gradient(135deg, #3A9B5E 0%, #2E7D32 100%);
+        transform: translateY(-1px);
+    }
+    .fc-day-today {
+        background: rgba(80, 200, 120, 0.1) !important;
+    }
+    .fc-event {
+        border-radius: 8px;
+        padding: 4px 8px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: transform 0.2s;
+        border: none;
+    }
+    .fc-event:hover {
+        transform: scale(1.02);
+        filter: brightness(0.95);
+    }
+    .fc-event-title {
+        font-weight: 600;
+    }
+    .btn-primary-custom {
+        background: linear-gradient(135deg, #50C878 0%, #3A9B5E 100%);
+        border: none;
+        color: white;
+        transition: all 0.3s ease;
+        font-weight: 600;
+    }
+    .btn-primary-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(80, 200, 120, 0.4);
+        color: white !important;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="text-center mb-5" data-aos="fade-up">
+        <h1 class="display-5 fw-bold mb-3" style="color: #2E7D32;">
+            <i class="fas fa-calendar-alt me-2"></i>My Calendar
+        </h1>
+        <p class="lead text-muted">View all your reserved therapy sessions</p>
+    </div>
+
+    <div class="calendar-container" data-aos="fade-up">
+        <div id="calendar"></div>
+    </div>
+</div>
+
+<!-- Event Modal -->
+<div class="modal fade" id="eventModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4">
+            <div class="modal-header" style="background: linear-gradient(135deg, #50C878 0%, #3A9B5E 100%); color: white;">
+                <h5 class="modal-title"><i class="fas fa-calendar-check me-2"></i>Session Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Dynamic content will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <a href="#" id="modalViewLink" class="btn btn-primary-custom rounded-pill px-4">
+                    <i class="fas fa-eye me-2"></i>View Session
+                </a>
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            events: {{ events|raw }},
+            eventClick: function(info) {
+                var event = info.event;
+                var modal = new bootstrap.Modal(document.getElementById('eventModal'));
+                var modalBody = document.getElementById('modalBody');
+                var viewLink = document.getElementById('modalViewLink');
+                
+                // Format date nicely
+                var startDate = event.start.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                var startTime = event.start.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                var endTime = event.end ? event.end.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'N/A';
+                
+                var statusBadge = '';
+                if (event.extendedProps.status === 'active') {
+                    statusBadge = '<span class="badge bg-success">Active</span>';
+                } else if (event.extendedProps.status === 'completed') {
+                    statusBadge = '<span class="badge bg-secondary">Completed</span>';
+                } else if (event.extendedProps.status === 'cancelled') {
+                    statusBadge = '<span class="badge bg-danger">Cancelled</span>';
+                } else {
+                    statusBadge = '<span class="badge bg-info">Scheduled</span>';
+                }
+                
+                modalBody.innerHTML = `
+                    <div class="mb-3">
+                        <h6 class="fw-bold mb-2" style="color: #2E7D32;">${event.title}</h6>
+                        <hr>
+                        <p><i class="fas fa-calendar me-2 text-success"></i><strong>Date:</strong> ${startDate}</p>
+                        <p><i class="fas fa-clock me-2 text-success"></i><strong>Time:</strong> ${startTime} - ${endTime}</p>
+                        ${event.extendedProps.location ? `<p><i class="fas fa-map-marker-alt me-2 text-success"></i><strong>Location:</strong> ${event.extendedProps.location}</p>` : ''}
+                        ${event.extendedProps.type ? `<p><i class="fas fa-tag me-2 text-success"></i><strong>Type:</strong> ${event.extendedProps.type}</p>` : ''}
+                        <p><i class="fas fa-info-circle me-2 text-success"></i><strong>Status:</strong> ${statusBadge}</p>
+                    </div>
+                `;
+                
+                viewLink.href = event.url;
+                modal.show();
+            },
+            eventDidMount: function(info) {
+                // Add tooltip on hover
+                var tooltip = `${info.event.title}\n${info.event.start.toLocaleTimeString()} - ${info.event.end ? info.event.end.toLocaleTimeString() : ''}\n${info.event.extendedProps.location || ''}`;
+                info.el.setAttribute('title', tooltip);
+            }
+        });
+        
+        calendar.render();
+    });
+</script>
+{% endblock %}

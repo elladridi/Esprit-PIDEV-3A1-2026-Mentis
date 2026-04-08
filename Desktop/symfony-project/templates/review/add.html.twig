@@ -1,0 +1,79 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Add Review - Mentis{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="mb-4">
+        <a href="{{ path('session_by_patient', {patientId: app.user.id}) }}"
+           class="text-decoration-none d-inline-flex align-items-center" style="color: #50C878;">
+            <i class="fas fa-arrow-left me-2"></i> Back to My Sessions
+        </a>
+    </div>
+
+    <div class="text-center mb-5" data-aos="fade-up">
+        <h1 class="display-5 fw-bold mb-3" style="color: #2E7D32;">
+            <i class="fas fa-star me-2"></i>Write a Review
+        </h1>
+        <p class="lead text-muted">Share your experience with this session</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden" data-aos="fade-up">
+                <div class="card-header text-white py-4 text-center"
+                     style="background: linear-gradient(135deg, #50C878 0%, #2E7D32 100%);">
+                    <h3 class="mb-0 fw-bold">
+                        <i class="fas fa-calendar-check me-2"></i>{{ session.title }}
+                    </h3>
+                    <p class="mb-0 mt-2 opacity-75">
+                        {{ session.sessionDate|date('M d, Y') }} • {{ session.startTime|date('H:i') }} - {{ session.endTime|date('H:i') }}
+                    </p>
+                </div>
+                <div class="card-body p-5">
+                    {{ form_start(form, {attr: {novalidate: 'novalidate'}}) }}
+                    
+                    <div class="mb-4 text-center">
+                        <label class="form-label fw-bold mb-3" style="color: #2E7D32; font-size: 18px;">
+                            How would you rate this session?
+                        </label>
+                        {{ form_widget(form.rating) }}
+                        {{ form_errors(form.rating) }}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold mb-2" style="color: #2E7D32; font-size: 16px;">
+                            Your Review (Optional)
+                        </label>
+                        {{ form_widget(form.comment) }}
+                        {{ form_errors(form.comment) }}
+                        <small class="text-muted">Max 1000 characters</small>
+                    </div>
+                    
+                    <div class="d-flex gap-3 justify-content-end pt-4 border-top">
+                        <a href="{{ path('session_by_patient', {patientId: app.user.id}) }}" class="btn btn-outline-secondary rounded-pill px-5 py-2">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn rounded-pill px-5 py-2 fw-bold text-white"
+                                style="background: linear-gradient(135deg, #50C878 0%, #2E7D32 100%);">
+                            <i class="fas fa-paper-plane me-2"></i>Submit Review
+                        </button>
+                    </div>
+                    
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+.form-control:focus, .form-select:focus {
+    border-color: #50C878 !important;
+    box-shadow: 0 0 0 0.25rem rgba(80, 200, 120, 0.25) !important;
+}
+.card { border-radius: 24px; }
+</style>
+{% endblock %}

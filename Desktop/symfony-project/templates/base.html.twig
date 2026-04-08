@@ -381,9 +381,11 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav mx-auto">
                     {# Home - visible for all #}
+                    {% if (app.user and app.user.type == 'Patient') or is_granted('ROLE_PSYCHOLOGIST') %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ path('app_home') }}">Home</a>
                     </li>
+                    {% endif %}
                     
                     {# Dashboard - visible for all authenticated users #}
                     {% if app.user %}
@@ -409,14 +411,13 @@
                         </li>
                     {% endif %}
                     
-                    {# ASSESSMENTS DROPDOWN - Next to Content Library (Contains All Assessment Management + Results) #}
+                    {# ASSESSMENTS DROPDOWN #}
                     {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_PSYCHOLOGIST') or (app.user and app.user.type == 'Patient') %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                                 📋 Assessments
                             </a>
                             <ul class="dropdown-menu">
-                                {# For Patients - View their own results #}
                                 {% if app.user and app.user.type == 'Patient' %}
                                     <li><a class="dropdown-item" href="{{ path('take_assessment_index') }}">
                                         <i class="fas fa-play-circle me-2"></i>Take Assessment
@@ -429,14 +430,12 @@
                                     </a></li>
                                 {% endif %}
                                 
-                                {# For Psychologists - View patient results #}
                                 {% if is_granted('ROLE_PSYCHOLOGIST') %}
                                     <li><a class="dropdown-item" href="{{ path('result_index') }}">
                                         <i class="fas fa-users me-2"></i>Patient Results
                                     </a></li>
                                 {% endif %}
                                 
-                                {# For Admin - Full assessment management #}
                                 {% if is_granted('ROLE_ADMIN') %}
                                     <li><hr class="dropdown-divider"></li>
                                     <li><h6 class="dropdown-header fw-bold text-success">Assessment Management</h6></li>
@@ -463,6 +462,88 @@
                                         <i class="fas fa-chart-line me-2"></i>All Results
                                     </a></li>
                                 {% endif %}
+                            </ul>
+                        </li>
+                    {% endif %}
+
+                    {# SESSIONS DROPDOWN #}
+                    {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_PSYCHOLOGIST') or (app.user and app.user.type == 'Patient') %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-calendar-alt me-1"></i>Sessions
+                            </a>
+                            <ul class="dropdown-menu">
+                                {% if app.user and app.user.type == 'Patient' %}
+                                    <li><a class="dropdown-item" href="{{ path('session_by_patient', {patientId: app.user.id}) }}">
+                                        <i class="fas fa-calendar-check me-2"></i>My Sessions
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{{ path('calendar_patient') }}">
+                                        <i class="fas fa-calendar-alt me-2"></i>Calendar View
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{{ path('session_available') }}">
+                                        <i class="fas fa-search me-2"></i>Available Sessions
+                                    </a></li>
+                                {% endif %}
+                                
+                                {% if is_granted('ROLE_PSYCHOLOGIST') %}
+                                    <li><a class="dropdown-item" href="{{ path('session_index') }}">
+                                        <i class="fas fa-list me-2"></i>All Sessions
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{{ path('session_active') }}">
+                                        <i class="fas fa-play-circle me-2"></i>Active Sessions
+                                    </a></li>
+                                {% endif %}
+                                
+                                {% if is_granted('ROLE_ADMIN') %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header fw-bold text-success">Session Management</h6></li>
+                                    <li><a class="dropdown-item" href="{{ path('session_index') }}">
+                                        <i class="fas fa-list me-2"></i>All Sessions
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{{ path('session_active') }}">
+                                        <i class="fas fa-play-circle me-2"></i>Active Sessions
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{{ path('session_available') }}">
+                                        <i class="fas fa-calendar-check me-2"></i>Available Sessions
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{{ path('session_new') }}">
+                                        <i class="fas fa-plus me-2 text-success"></i>Add New Session
+                                    </a></li>
+                                {% endif %}
+                            </ul>
+                        </li>
+                    {% endif %}
+
+                    {# REVIEWS DROPDOWN #}
+                    {% if app.user and app.user.type == 'Patient' %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-star me-1"></i>Reviews
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ path('review_my_reviews') }}">
+                                    <i class="fas fa-list me-2"></i>My Reviews
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ path('session_by_patient', {patientId: app.user.id}) }}">
+                                    <i class="fas fa-calendar-check me-2"></i>My Sessions
+                                </a></li>
+                            </ul>
+                        </li>
+                    {% endif %}
+
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-star me-1"></i>Reviews
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ path('review_admin_all') }}">
+                                    <i class="fas fa-users me-2"></i>All Reviews
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ path('session_index') }}">
+                                    <i class="fas fa-calendar-alt me-2"></i>Manage Sessions
+                                </a></li>
                             </ul>
                         </li>
                     {% endif %}

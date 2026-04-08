@@ -1,0 +1,167 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Manage Sessions - Mentis{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    {# Header #}
+    <div class="d-flex justify-content-between align-items-center mb-5" data-aos="fade-up">
+        <div>
+            <h1 class="display-5 fw-bold mb-1" style="color: #2E7D32;">
+                <i class="fas fa-calendar-alt me-2"></i>Manage Sessions
+            </h1>
+            <p class="text-muted mb-0">{{ sessions|length }} total sessions</p>
+        </div>
+        <a href="{{ path('session_new') }}" class="btn btn-primary-custom rounded-pill px-5 py-2">
+            <i class="fas fa-plus me-2"></i>Add New Session
+        </a>
+    </div>
+
+    {# Flash Messages #}
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show rounded-pill mb-4 d-flex align-items-center" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    {% if sessions is empty %}
+        <div class="text-center py-5" data-aos="fade-up">
+            <div class="card shadow-sm border-0 p-5 rounded-4" style="max-width: 500px; margin: 0 auto; background: linear-gradient(135deg, #F8F9FA, #E9ECEF);">
+                <i class="fas fa-calendar-times fa-4x mb-3 text-muted"></i>
+                <h3 class="text-muted mb-3">No Sessions Yet</h3>
+                <p class="text-muted mb-4">Get started by creating your first therapy session</p>
+                <a href="{{ path('session_new') }}" class="btn btn-primary-custom rounded-pill px-5 py-2">
+                    <i class="fas fa-plus me-2"></i>Create First Session
+                </a>
+            </div>
+        </div>
+    {% else %}
+        <div class="card shadow-sm border-0 overflow-hidden" data-aos="fade-up">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="border-0 py-4 px-4 fw-bold" style="color: #2E7D32; font-size: 15px;">Title</th>
+                            <th class="border-0 py-4 px-3 fw-bold" style="color: #2E7D32; font-size: 15px;">Date & Time</th>
+                            <th class="border-0 py-4 px-3 fw-bold" style="color: #2E7D32; font-size: 15px;">Location</th>
+                            <th class="border-0 py-4 px-3 fw-bold" style="color: #2E7D32; font-size: 15px;">Type</th>
+                            <th class="border-0 py-4 px-3 fw-bold" style="color: #2E7D32; font-size: 15px;">Status</th>
+                            <th class="border-0 py-4 px-3 fw-bold text-center" style="color: #2E7D32; font-size: 15px;">Spots</th>
+                            <th class="border-0 py-4 px-4 fw-bold text-end" style="color: #2E7D32; font-size: 15px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for session in sessions %}
+                        <tr class="align-middle">
+                            <td class="py-4 px-4 fw-semibold" style="color: #1a3c34;">
+                                {{ session.title }}
+                            </td>
+                            <td class="py-4 px-3" style="font-size: 14px;">
+                                <div>{{ session.sessionDate|date('M d, Y') }}</div>
+                                <small class="text-muted">{{ session.startTime|date('H:i') }} - {{ session.endTime|date('H:i') }}</small>
+                            </td>
+                            <td class="py-4 px-3" style="color: #6c757d; font-size: 14px;">
+                                <i class="fas fa-map-marker-alt me-1" style="color: #50C878;"></i>
+                                {{ session.location }}
+                            </td>
+                            <td class="py-4 px-3">
+                                <span class="badge rounded-pill px-3 py-2 fw-semibold" 
+                                      style="background: 
+                                          {% if session.sessionType == 'Individual' %}linear-gradient(135deg, #9b59b6, #8e44ad);
+                                          {% elseif session.sessionType == 'Group' %}linear-gradient(135deg, #27ae60, #2ecc71);
+                                          {% elseif session.sessionType == 'Family' %}linear-gradient(135deg, #e74c3c, #c0392b);
+                                          {% elseif session.sessionType == 'Couple' %}linear-gradient(135deg, #f39c12, #e67e22);
+                                          {% elseif session.sessionType == 'Online' %}linear-gradient(135deg, #3498db, #2980b9);
+                                          {% else %}linear-gradient(135deg, #95a5a6, #7f8c8d);{% endif %}
+                                          color: white; font-size: 13px;">
+                                    {{ session.sessionType }}
+                                </span>
+                            </td>
+                            <td class="py-4 px-3">
+                                <span class="badge rounded-pill px-3 py-2 fw-semibold 
+                                    {% if session.status == 'active' %}bg-success
+                                    {% elseif session.status == 'scheduled' %}bg-info text-dark
+                                    {% elseif session.status == 'completed' %}bg-secondary
+                                    {% elseif session.status == 'cancelled' %}bg-danger
+                                    {% else %}bg-warning text-dark{% endif %}">
+                                    {{ session.status }}
+                                </span>
+                            </td>
+                            <td class="py-4 px-3 text-center">
+                                <div class="small fw-semibold" style="color: #50C878;">
+                                    {{ session.currentParticipants }}/{{ session.maxParticipants }}
+                                </div>
+                                <div class="progress" style="height: 4px;">
+                                    <div class="progress-bar bg-success" style="width: {{ (session.currentParticipants / session.maxParticipants) * 100 }}%"></div>
+                                </div>
+                            </td>
+                            <td class="py-4 px-4 text-end">
+                                <div class="btn-group" role="group">
+                                    <a href="{{ path('session_show', {id: session.sessionId}) }}" 
+                                       class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ path('session_edit', {id: session.sessionId}) }}" 
+                                       class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {# Summary #}
+        <div class="text-center mt-4 pt-4 border-top" data-aos="fade-up">
+            <small class="text-muted fw-semibold">
+                {{ sessions|length }} session{{ sessions|length|default(0) != 1 ? 's' : '' }} found
+                <span class="ms-3">
+                    {% set activeCount = 0 %}
+                    {% for session in sessions %}
+                        {% if session.status == 'active' %}
+                            {% set activeCount = activeCount + 1 %}
+                        {% endif %}
+                    {% endfor %}
+                    <i class="fas fa-circle text-success me-1"></i>{{ activeCount }} active
+                </span>
+            </small>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<style>
+.btn-primary-custom {
+    background: linear-gradient(135deg, #50C878 0%, #3A9B5E 100%);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+.btn-primary-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(80, 200, 120, 0.4);
+    color: white !important;
+}
+.table-hover tbody tr:hover {
+    background-color: rgba(80, 200, 120, 0.08);
+}
+.card {
+    border-radius: 24px;
+}
+.badge {
+    font-size: 12px;
+}
+</style>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>AOS.init({ duration: 800 });</script>
+{% endblock %}

@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Question;
+use App\Form\QuestionType;
 use App\Repository\AssessmentRepository;
 use App\Repository\QuestionRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -23,143 +24,111 @@ class QuestionController extends AbstractController
         QuestionRepository $questionRepo,
         AssessmentRepository $assessmentRepo
     ) {
-        $this->em = $em;
-        $this->questionRepo = $questionRepo;
+        $this->em             = $em;
+        $this->questionRepo   = $questionRepo;
         $this->assessmentRepo = $assessmentRepo;
     }
 
-    // ── LIST ALL ──────────────────────────────────────────────────
     #[Route('/', name: 'question_index', methods: ['GET'])]
     public function index(): Response
     {
-        $questions = $this->questionRepo->findAll();
         return $this->render('question/index.html.twig', [
-            'questions' => $questions,
+            'questions' => $this->questionRepo->findAll(),
         ]);
     }
 
-    // ── LIST BY ASSESSMENT ────────────────────────────────────────
     #[Route('/assessment/{assessmentId}', name: 'question_by_assessment', methods: ['GET'])]
     public function byAssessment(int $assessmentId): Response
     {
         $assessment = $this->assessmentRepo->find($assessmentId);
-
         if (!$assessment) {
             throw $this->createNotFoundException('Assessment not found');
         }
 
-        $questions = $this->questionRepo->findByAssessment($assessmentId);
-
         return $this->render('question/index.html.twig', [
-            'questions' => $questions,
+            'questions'  => $this->questionRepo->findByAssessment($assessmentId),
             'assessment' => $assessment,
         ]);
     }
 
-    // ── CREATE ────────────────────────────────────────────────────
     #[Route('/new', name: 'question_new', methods: ['GET', 'POST'])]
     public function new(Request $request): Response
     {
-        $assessments = $this->assessmentRepo->findAll();
+        $question = new Question();
+
+        // Pre-select assessment if passed via query string
         $assessmentId = $request->query->get('assessmentId');
-
-        if ($request->isMethod('POST')) {
-            $assessmentId = $request->request->get('assessment_id');
+        if ($assessmentId) {
             $assessment = $this->assessmentRepo->find($assessmentId);
-
-            if (!$assessment) {
-                $this->addFlash('error', 'Assessment not found');
-                return $this->redirectToRoute('question_new');
+            if ($assessment) {
+                $question->setAssessment($assessment);
             }
+        }
 
-            $question = new Question();
-            $question->setAssessment($assessment);
-            $question->setText($request->request->get('text'));
-            $question->setScale($request->request->get('scale'));
+        $form = $this->createForm(QuestionType::class, $question);
+        $form->handleRequest($request);
 
+        if ($form->isSubmitted() && $form->isValid()) {
             $this->em->persist($question);
             $this->em->flush();
 
             $this->addFlash('success', 'Question created successfully!');
             return $this->redirectToRoute('question_by_assessment', [
-                'assessmentId' => $assessmentId
+                'assessmentId' => $question->getAssessment()->getAssessmentId(),
             ]);
         }
 
         return $this->render('question/new.html.twig', [
-            'assessments' => $assessments,
-            'selectedAssessmentId' => $assessmentId,
+            'form' => $form->createView(),
         ]);
     }
 
-    // ── EDIT ──────────────────────────────────────────────────────
     #[Route('/{id}/edit', name: 'question_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, int $id): Response
     {
         $question = $this->questionRepo->find($id);
-
         if (!$question) {
             throw $this->createNotFoundException('Question not found');
         }
 
-        $assessments = $this->assessmentRepo->findAll();
+        $form = $this->createForm(QuestionType::class, $question);
+        $form->handleRequest($request);
 
-        if ($request->isMethod('POST')) {
-            $assessmentId = $request->request->get('assessment_id');
-            $assessment = $this->assessmentRepo->find($assessmentId);
-
-            if ($assessment) {
-                $question->setAssessment($assessment);
-            }
-
-            $question->setText($request->request->get('text'));
-            $question->setScale($request->request->get('scale'));
-
+        if ($form->isSubmitted() && $form->isValid()) {
             $this->em->flush();
-
             $this->addFlash('success', 'Question updated successfully!');
             return $this->redirectToRoute('question_by_assessment', [
-                'assessmentId' => $question->getAssessment()->getAssessmentId()
+                'assessmentId' => $question->getAssessment()->getAssessmentId(),
             ]);
         }
 
         return $this->render('question/edit.html.twig', [
             'question' => $question,
-            'assessments' => $assessments,
+            'form'     => $form->createView(),
         ]);
     }
 
-    // ── DELETE ────────────────────────────────────────────────────
     #[Route('/{id}/delete', name: 'question_delete', methods: ['POST'])]
     public function delete(int $id): Response
     {
         $question = $this->questionRepo->find($id);
-
         if (!$question) {
             throw $this->createNotFoundException('Question not found');
         }
 
         $assessmentId = $question->getAssessment()?->getAssessmentId();
-
         $this->em->remove($question);
         $this->em->flush();
-
         $this->addFlash('success', 'Question deleted successfully!');
 
-        if ($assessmentId) {
-            return $this->redirectToRoute('question_by_assessment', [
-                'assessmentId' => $assessmentId
-            ]);
-        }
-
-        return $this->redirectToRoute('question_index');
+        return $assessmentId
+            ? $this->redirectToRoute('question_by_assessment', ['assessmentId' => $assessmentId])
+            : $this->redirectToRoute('question_index');
     }
 
-    // ── COUNT BY ASSESSMENT ───────────────────────────────────────
     #[Route('/count/{assessmentId}', name: 'question_count', methods: ['GET'])]
     public function count(int $assessmentId): Response
     {
-        $questions = $this->questionRepo->findByAssessment($assessmentId);
-        return $this->json(['count' => count($questions)]);
+        return $this->json(['count' => count($this->questionRepo->findByAssessment($assessmentId))]);
     }
 }

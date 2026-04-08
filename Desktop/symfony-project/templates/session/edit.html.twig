@@ -1,0 +1,153 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit {{ session.title }} - Mentis{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="mb-4">
+        <a href="{{ path('session_show', {id: session.sessionId}) }}"
+           class="text-decoration-none d-inline-flex align-items-center" style="color: #50C878;">
+            <i class="fas fa-arrow-left me-2"></i> Back to Session
+        </a>
+    </div>
+
+    <div class="text-center mb-5" data-aos="fade-up">
+        <h1 class="display-5 fw-bold mb-3" style="color: #2E7D32;">
+            <i class="fas fa-edit me-2"></i>Edit Session
+        </h1>
+        <p class="lead text-muted">Update session details and settings</p>
+    </div>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show rounded-pill d-flex align-items-center mb-4" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 rounded-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="card-body p-5">
+
+                    {{ form_start(form, {attr: {novalidate: 'novalidate'}}) }}
+
+                    {# Title #}
+                    <div class="mb-4">
+                        <label class="form-label fw-bold mb-2" style="color: #2E7D32; font-size: 16px;">
+                            {{ form_label(form.title) }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form_widget(form.title) }}
+                        {{ form_errors(form.title) }}
+                    </div>
+
+                    {# Date & Time #}
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold mb-2" style="color: #2E7D32;">
+                                {{ form_label(form.sessionDate) }}
+                            </label>
+                            {{ form_widget(form.sessionDate) }}
+                            {{ form_errors(form.sessionDate) }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold mb-2" style="color: #2E7D32;">
+                                {{ form_label(form.startTime) }}
+                            </label>
+                            {{ form_widget(form.startTime) }}
+                            {{ form_errors(form.startTime) }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold mb-2" style="color: #2E7D32;">
+                                {{ form_label(form.endTime) }}
+                            </label>
+                            {{ form_widget(form.endTime) }}
+                            {{ form_errors(form.endTime) }}
+                        </div>
+                    </div>
+
+                    {# Location & Type #}
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold mb-2" style="color: #2E7D32;">
+                                {{ form_label(form.location) }}
+                            </label>
+                            {{ form_widget(form.location) }}
+                            {{ form_errors(form.location) }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold mb-2" style="color: #2E7D32;">
+                                {{ form_label(form.sessionType) }}
+                            </label>
+                            {{ form_widget(form.sessionType) }}
+                            {{ form_errors(form.sessionType) }}
+                        </div>
+                    </div>
+
+                    {# Status, Category, Capacity, Price #}
+                    <div class="row g-3 mb-5">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold mb-2" style="color: #2E7D32;">
+                                {{ form_label(form.status) }}
+                            </label>
+                            {{ form_widget(form.status) }}
+                            {{ form_errors(form.status) }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold mb-2" style="color: #2E7D32;">
+                                {{ form_label(form.category) }}
+                            </label>
+                            {{ form_widget(form.category) }}
+                            {{ form_errors(form.category) }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold mb-2" style="color: #2E7D32;">
+                                {{ form_label(form.maxParticipants) }}
+                            </label>
+                            {{ form_widget(form.maxParticipants) }}
+                            {{ form_errors(form.maxParticipants) }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold mb-2" style="color: #2E7D32;">
+                                {{ form_label(form.price) }}
+                            </label>
+                            {{ form_widget(form.price) }}
+                            {{ form_errors(form.price) }}
+                        </div>
+                    </div>
+
+                    {# Buttons #}
+                    <div class="d-flex gap-3 justify-content-end">
+                        <a href="{{ path('session_show', {id: session.sessionId}) }}"
+                           class="btn btn-outline-secondary rounded-pill px-5 py-2">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <button type="submit"
+                                class="btn rounded-pill px-5 py-2 fw-bold text-white"
+                                style="background: linear-gradient(135deg, #50C878 0%, #2E7D32 100%);">
+                            <i class="fas fa-save me-2"></i>Save Changes
+                        </button>
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+.form-control:focus, .form-select:focus {
+    border-color: #50C878 !important;
+    box-shadow: 0 0 0 0.25rem rgba(80, 200, 120, 0.25) !important;
+}
+.card { border-radius: 24px; }
+</style>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>AOS.init({ duration: 800 });</script>
+{% endblock %}

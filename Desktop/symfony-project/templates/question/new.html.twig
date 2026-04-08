@@ -4,15 +4,13 @@
 
 {% block body %}
 <div class="container py-5">
-    {# Back Button #}
     <div class="mb-4">
-        <a href="{{ path('question_index') }}" 
+        <a href="{{ path('question_index') }}"
            class="text-decoration-none d-inline-flex align-items-center" style="color: #50C878;">
             <i class="fas fa-arrow-left me-2"></i> Back to Questions
         </a>
     </div>
 
-    {# Header #}
     <div class="text-center mb-5" data-aos="fade-up">
         <h1 class="display-5 fw-bold mb-3" style="color: #2E7D32;">
             <i class="fas fa-plus-circle me-2"></i>Add New Question
@@ -20,121 +18,92 @@
         <p class="lead text-muted">Create a new question for an assessment</p>
     </div>
 
-    {# Flash Messages #}
     {% for message in app.flashes('error') %}
-        <div class="alert alert-danger alert-dismissible fade show rounded-pill mb-4 d-flex align-items-center" role="alert" data-aos="fade-up">
+        <div class="alert alert-danger alert-dismissible fade show rounded-pill mb-4 d-flex align-items-center" role="alert">
             <i class="fas fa-exclamation-circle me-2"></i>{{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     {% endfor %}
 
-    {# Form #}
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="card shadow-lg border-0 rounded-4 overflow-hidden" data-aos="fade-up" data-aos-delay="100">
-                <div class="card-header bg-primary-custom text-white py-4 text-center">
+                <div class="card-header text-white py-4 text-center"
+                     style="background: linear-gradient(135deg, #50C878 0%, #2E7D32 100%);">
                     <h3 class="mb-0 fw-bold">
                         <i class="fas fa-question-circle me-2"></i>Question Details
                     </h3>
                 </div>
                 <div class="card-body p-5">
-                    <form method="post">
-                        {# Assessment Select #}
-                        <div class="mb-4">
-                            <label class="form-label fw-bold mb-3 d-block" style="color: #2E7D32; font-size: 16px;">
-                                <i class="fas fa-clipboard-list me-1"></i>Assessment <span class="text-danger">*</span>
-                            </label>
-                            <select name="assessment_id" required class="form-select form-select-lg rounded-pill">
-                                <option value="">-- Select Assessment --</option>
-                                {% for assessment in assessments %}
-                                    <option value="{{ assessment.assessmentId }}"
-                                        {{ selectedAssessmentId == assessment.assessmentId ? 'selected' : '' }}>
-                                        {{ assessment.title }} ({{ assessment.type }}) - {{ assessment.status }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                            <small class="text-muted mt-2 d-block">Select which assessment this question belongs to</small>
-                        </div>
 
-                        {# Question Text #}
-                        <div class="mb-4">
-                            <label class="form-label fw-bold mb-3 d-block" style="color: #2E7D32; font-size: 16px;">
-                                <i class="fas fa-heading me-1"></i>Question Text <span class="text-danger">*</span>
-                            </label>
-                            <textarea name="text" rows="5" required
-                                      class="form-control rounded-3" 
-                                      placeholder="Enter the question text here..."
-                                      style="border: 2px solid #e0e0e0; padding: 15px; font-size: 15px; resize: vertical;"></textarea>
-                            <small class="text-muted mt-2 d-block">Clear, specific questions yield better assessment results</small>
-                        </div>
+                    {{ form_start(form, {attr: {novalidate: 'novalidate'}}) }}
 
-                        {# Scale / Options #}
-                        <div class="mb-4">
-                            <label class="form-label fw-bold mb-3 d-block" style="color: #2E7D32; font-size: 16px;">
-                                <i class="fas fa-ruler me-1"></i>Answer Scale <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" name="scale" required
-                                   placeholder="e.g. Never/Rarely/Sometimes/Often/Always"
-                                   class="form-control form-control-lg rounded-pill"
-                                   style="border: 2px solid #e0e0e0; padding: 14px 20px; font-size: 16px;">
-                            
-                            <div class="mt-3 p-3 bg-light rounded-4">
-                                <small class="text-muted d-block mb-2"><i class="fas fa-lightbulb me-1 text-warning"></i> Examples:</small>
-                                <div class="row g-2">
-                                    <div class="col-md-6">
-                                        <code class="small">Never/Rarely/Sometimes/Often/Always</code>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <code class="small">1-5 numeric</code>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <code class="small">Yes/No</code>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <code class="small">1=Never,2=Rarely,3=Sometimes,4=Often,5=Always</code>
-                                    </div>
-                                </div>
+                    {# Assessment #}
+                    <div class="mb-4">
+                        <label class="form-label fw-bold mb-2" style="color: #2E7D32; font-size: 16px;">
+                            <i class="fas fa-clipboard-list me-1"></i>
+                            {{ form_label(form.assessment) }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form_widget(form.assessment) }}
+                        {{ form_errors(form.assessment) }}
+                        <small class="text-muted">Select which assessment this question belongs to</small>
+                    </div>
+
+                    {# Question Text #}
+                    <div class="mb-4">
+                        <label class="form-label fw-bold mb-2" style="color: #2E7D32; font-size: 16px;">
+                            <i class="fas fa-heading me-1"></i>
+                            {{ form_label(form.text) }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form_widget(form.text) }}
+                        {{ form_errors(form.text) }}
+                    </div>
+
+                    {# Scale #}
+                    <div class="mb-4">
+                        <label class="form-label fw-bold mb-2" style="color: #2E7D32; font-size: 16px;">
+                            <i class="fas fa-ruler me-1"></i>
+                            {{ form_label(form.scale) }}
+                        </label>
+                        {{ form_widget(form.scale) }}
+                        {{ form_errors(form.scale) }}
+                        <div class="mt-3 p-3 bg-light rounded-4">
+                            <small class="text-muted d-block mb-2">
+                                <i class="fas fa-lightbulb me-1 text-warning"></i> Examples:
+                            </small>
+                            <div class="row g-2">
+                                <div class="col-md-6"><code class="small">Never/Rarely/Sometimes/Often/Always</code></div>
+                                <div class="col-md-6"><code class="small">1-5 numeric</code></div>
+                                <div class="col-md-6"><code class="small">Yes/No</code></div>
+                                <div class="col-md-6"><code class="small">1=Never,2=Rarely,3=Sometimes</code></div>
                             </div>
-                        </div>
-
-                        {# Preview #}
-                        <div class="mb-4 p-4 bg-light rounded-4">
-                            <h6 class="fw-bold mb-3" style="color: #2E7D32;"><i class="fas fa-eye me-2"></i>Preview</h6>
-                            <div class="bg-white rounded-3 p-3 text-center">
-                                <p class="text-muted mb-0" id="previewText">Question preview will appear here</p>
-                            </div>
-                        </div>
-
-                        {# Action Buttons #}
-                        <div class="d-flex gap-3 justify-content-end pt-4 border-top">
-                            <a href="{{ path('question_index') }}" class="btn btn-outline-secondary rounded-pill px-5 py-2">
-                                <i class="fas fa-times me-2"></i>Cancel
-                            </a>
-                            <button type="submit" class="btn btn-primary-custom rounded-pill px-5 py-2">
-                                <i class="fas fa-save me-2"></i>Add Question
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            {# Quick Tips #}
-            <div class="card border-0 mt-4 bg-light rounded-4" data-aos="fade-up" data-aos-delay="200">
-                <div class="card-body p-4">
-                    <div class="row align-items-center">
-                        <div class="col-md-2 text-center">
-                            <i class="fas fa-lightbulb fa-3x text-warning mb-3"></i>
-                        </div>
-                        <div class="col-md-10">
-                            <h6 class="fw-bold mb-2" style="color: #2E7D32;">Writing Effective Questions</h6>
-                            <ul class="mb-0 text-muted small">
-                                <li>Use clear, simple language that's easy to understand</li>
-                                <li>Focus on one concept per question</li>
-                                <li>Make questions relevant to the assessment type</li>
-                                <li>Consider the appropriate scale for the question type</li>
-                            </ul>
                         </div>
                     </div>
+
+                    {# Preview #}
+                    <div class="mb-4 p-4 bg-light rounded-4">
+                        <h6 class="fw-bold mb-3" style="color: #2E7D32;">
+                            <i class="fas fa-eye me-2"></i>Preview
+                        </h6>
+                        <div class="bg-white rounded-3 p-3 text-center">
+                            <p class="text-muted mb-0" id="previewText">Question preview will appear here</p>
+                        </div>
+                    </div>
+
+                    {# Buttons #}
+                    <div class="d-flex gap-3 justify-content-end pt-4 border-top">
+                        <a href="{{ path('question_index') }}"
+                           class="btn btn-outline-secondary rounded-pill px-5 py-2">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <button type="submit"
+                                class="btn rounded-pill px-5 py-2 fw-bold text-white"
+                                style="background: linear-gradient(135deg, #50C878 0%, #2E7D32 100%);">
+                            <i class="fas fa-save me-2"></i>Add Question
+                        </button>
+                    </div>
+
+                    {{ form_end(form) }}
                 </div>
             </div>
         </div>
@@ -142,50 +111,25 @@
 </div>
 
 <script>
-// Live preview
-const questionInput = document.querySelector('textarea[name="text"]');
-const previewText = document.getElementById('previewText');
-
-questionInput.addEventListener('input', function() {
-    if (this.value.trim()) {
-        previewText.textContent = this.value;
-        previewText.style.color = '#1a3c34';
-    } else {
-        previewText.textContent = 'Question preview will appear here';
-        previewText.style.color = '#6c757d';
-    }
-});
+const textarea = document.querySelector('textarea[name="question[text]"]');
+const preview  = document.getElementById('previewText');
+if (textarea) {
+    textarea.addEventListener('input', function() {
+        preview.textContent = this.value || 'Question preview will appear here';
+        preview.style.color = this.value ? '#1a3c34' : '#6c757d';
+    });
+}
 </script>
 {% endblock %}
 
 {% block stylesheets %}
-<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 <style>
-.btn-primary-custom {
-    background: linear-gradient(135deg, #50C878 0%, #3A9B5E 100%);
-    border: none;
-    color: white;
-    transition: all 0.3s ease;
-    font-weight: 600;
-}
-.btn-primary-custom:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(80, 200, 120, 0.4);
-    color: white !important;
-}
 .form-control:focus, .form-select:focus {
     border-color: #50C878 !important;
     box-shadow: 0 0 0 0.25rem rgba(80, 200, 120, 0.25) !important;
 }
-.card {
-    border-radius: 24px;
-}
-code {
-    background: #e9ecef;
-    padding: 2px 8px;
-    border-radius: 20px;
-    font-size: 11px;
-}
+.card { border-radius: 24px; }
+code { background: #e9ecef; padding: 2px 8px; border-radius: 20px; font-size: 11px; }
 </style>
 {% endblock %}
 

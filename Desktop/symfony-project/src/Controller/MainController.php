@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Repository\AssessmentRepository;
+use App\Repository\SessionRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -10,13 +11,31 @@ use Symfony\Component\Routing\Attribute\Route;
 class MainController extends AbstractController
 {
     #[Route('/', name: 'app_home')]
-    public function home(AssessmentRepository $assessmentRepo): Response
+    public function home(AssessmentRepository $assessmentRepo, SessionRepository $sessionRepo): Response
     {
-        // Get active assessments for patients to display in horizontal scroll
-        $assessments = $assessmentRepo->findAllActive();
+        /** @var User|null $user */
+        $user = $this->getUser();
+        
+        // If user is logged in, redirect to their specific dashboard
+        if ($user) {
+            $userType = strtolower($user->getType());
+            
+            if ($userType === 'admin') {
+                return $this->redirectToRoute('app_dashboard_admin');
+            } elseif ($userType === 'psychologist') {
+                return $this->redirectToRoute('app_dashboard_psychologist');
+            } elseif ($userType === 'patient') {
+                return $this->redirectToRoute('app_dashboard_patient');
+            }
+        }
+        
+        // For non-logged in users, show the public home page
+        $activeAssessments = $assessmentRepo->findAllActive();
+        $availableSessions = $sessionRepo->findAvailableSessions();
         
         return $this->render('main/home.html.twig', [
-            'assessments' => $assessments,
+            'assessments' => $activeAssessments,
+            'availableSessions' => $availableSessions,
         ]);
     }
 

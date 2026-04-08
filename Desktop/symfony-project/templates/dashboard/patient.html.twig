@@ -20,24 +20,7 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        {% if assignedContent is defined and assignedContent|length > 0 %}
-                            {% for content in assignedContent|slice(0, 3) %}
-                            <div class="col-md-4 mb-3">
-                                <div class="card h-100 border-0 shadow-sm">
-                                    <div class="card-body">
-                                        <h6 class="card-title">{{ content.title }}</h6>
-                                        <p class="card-text small text-muted">{{ content.description|slice(0, 80) }}...</p>
-                                        <a href="{{ path('content_view', {id: content.id}) }}" class="btn btn-sm btn-outline-success">View Content</a>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        {% else %}
-                            <div class="col-12 text-center text-muted py-4">
-                                <i class="fas fa-folder-open fa-3x mb-2"></i>
-                                <p>No content assigned yet. Check back later!</p>
-                            </div>
-                        {% endif %}
+                        
                     </div>
                 </div>
             </div>
@@ -76,6 +59,9 @@
                     </a>
                     <a href="{{ path('result_stats', {userId: user.id}) }}" class="btn btn-outline-success" style="padding: 12px; border-radius: 10px;">
                         <i class="fas fa-chart-line me-2"></i> View My Progress
+                    </a>
+                    <a href="{{ path('content_index') }}" class="btn btn-outline-success" style="padding: 12px; border-radius: 10px;">
+                        <i class="fas fa-book-open me-2"></i> View Content
                     </a>
                     <a href="{{ path('result_index') }}" class="btn btn-outline-success" style="padding: 12px; border-radius: 10px;">
                         <i class="fas fa-history me-2"></i> My Assessment History
@@ -121,7 +107,7 @@
                                     <td>{{ result.takenAt ? result.takenAt|date('M d, Y') : 'N/A' }}</td>
                                     <td>
                                         <a href="{{ path('result_show', {id: result.resultId}) }}" class="btn btn-sm btn-primary">View Details</a>
-                                     </td>
+                                    </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
