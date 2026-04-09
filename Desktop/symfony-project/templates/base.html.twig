@@ -106,6 +106,10 @@
             text-decoration: none;
         }
 
+        .nav-link-light {
+            font-weight: 400;
+        }
+
         .nav-link:hover {
             color: var(--primary-color);
         }
@@ -402,6 +406,24 @@
         <li class="nav-item">
             <a class="nav-link" href="{{ path('app_event_index') }}">
                 <i class="fas fa-calendar-alt me-1"></i> Events
+            </a>
+        </li>
+    {% endif %}
+
+    {# MOOD TRACKER - visible for Patients #}
+    {% if app.user and app.user.type == 'Patient' %}
+        <li class="nav-item">
+            <a class="nav-link nav-link-light" href="{{ path('app_mood_index') }}">
+                <i class="fas fa-smile me-1"></i> Mood Tracker
+            </a>
+        </li>
+    {% endif %}
+
+    {# GOALS - visible for Patients #}
+    {% if app.user and app.user.type == 'Patient' %}
+        <li class="nav-item">
+            <a class="nav-link nav-link-light" href="{{ path('app_goal_index') }}">
+                <i class="fas fa-bullseye me-1"></i> My Goals
             </a>
         </li>
     {% endif %}
