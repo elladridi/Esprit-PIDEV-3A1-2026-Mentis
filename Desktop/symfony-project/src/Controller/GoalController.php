@@ -143,3 +143,4 @@ class GoalController extends AbstractController
         return $this->redirectToRoute('app_goal_index');
     }
 }
+
