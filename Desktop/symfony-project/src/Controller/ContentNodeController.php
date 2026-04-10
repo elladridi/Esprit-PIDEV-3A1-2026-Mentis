@@ -108,6 +108,18 @@ public function index(Request $request, ContentNodeRepository $contentNodeReposi
             /** @var \Doctrine\Common\Collections\Collection $assignedUsers */
             $assignedUsers = $form->get('assignedUsers')->getData();
 
+            // Handle PDF file upload
+            $pdfFile = $form->get('pdfPath')->getData();
+            if ($pdfFile) {
+                $originalFilename = pathinfo($pdfFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $originalFilename . '-' . uniqid() . '.' . $pdfFile->guessExtension();
+                $pdfFile->move(
+                    $this->getParameter('kernel.project_dir') . '/public/uploads',
+                    $safeFilename
+                );
+                $contentNode->setPdfPath('/uploads/' . $safeFilename);
+            }
+
             $contentNode->setAssignedUsers(array_map(fn($u) => $u->getId(), $assignedUsers->toArray()));
             $contentNode->setCreatedBy($user);
             $contentNode->setCreatedAt(new \DateTime());
@@ -211,6 +223,18 @@ public function index(Request $request, ContentNodeRepository $contentNodeReposi
                 $assignedUsersArray = $assignedUsers;
             } else {
                 $assignedUsersArray = [];
+            }
+
+            // Handle PDF file upload
+            $pdfFile = $form->get('pdfPath')->getData();
+            if ($pdfFile) {
+                $originalFilename = pathinfo($pdfFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $originalFilename . '-' . uniqid() . '.' . $pdfFile->guessExtension();
+                $pdfFile->move(
+                    $this->getParameter('kernel.project_dir') . '/public/uploads',
+                    $safeFilename
+                );
+                $contentNode->setPdfPath('/uploads/' . $safeFilename);
             }
 
             $contentNode->setAssignedUsers(array_map(fn($u) => $u->getId(), $assignedUsersArray));

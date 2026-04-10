@@ -14,12 +14,27 @@
                 {{ form_start(form) }}
                 <div class="row g-3">
                     <div class="col-md-6">{{ form_label(form.title) }} {{ form_widget(form.title, {attr: {class: 'form-control'}}) }} {{ form_errors(form.title) }}</div>
-                    <div class="col-md-6">{{ form_label(form.pdfPath) }} {{ form_widget(form.pdfPath, {attr: {class: 'form-control'}}) }} {{ form_errors(form.pdfPath) }}</div>
+                    <div class="col-md-6">
+                        {{ form_label(form.pdfPath) }}
+                        {% if contentNode.pdfPath %}
+                            <div class="mb-2">
+                                <small class="text-muted">Current PDF: <a href="{{ asset(contentNode.pdfPath) }}" target="_blank">{{ contentNode.pdfPath|split('/')|last }}</a></small>
+                            </div>
+                        {% endif %}
+                        {{ form_widget(form.pdfPath, {attr: {class: 'form-control'}}) }}
+                        <small class="form-text text-muted">Leave empty to keep current PDF, or upload a new one to replace it.</small>
+                        {{ form_errors(form.pdfPath) }}
+                    </div>
 
                     <div class="col-12">{{ form_label(form.description) }} {{ form_widget(form.description, {attr: {class: 'form-control', rows: 5}}) }} {{ form_errors(form.description) }}</div>
 
                     <div class="col-md-6">{{ form_label(form.parentNode) }} {{ form_widget(form.parentNode, {attr: {class: 'form-select'}}) }} {{ form_errors(form.parentNode) }}</div>
-                    <div class="col-md-6">{{ form_label(form.assignedUsers) }} <div class="border rounded p-2" style="max-height: 230px; overflow-y: auto;">{{ form_widget(form.assignedUsers) }}</div> {{ form_errors(form.assignedUsers) }}</div>
+                    <div class="col-md-6">
+                        {{ form_label(form.assignedUsers) }}
+                        {{ form_widget(form.assignedUsers, {attr: {class: 'form-select'}}) }}
+                        <div class="form-text text-muted">Use Ctrl/Cmd + click to select multiple users.</div>
+                        {{ form_errors(form.assignedUsers) }}
+                    </div>
                 </div>
 
                 <div class="mt-4 d-flex justify-content-end gap-2">

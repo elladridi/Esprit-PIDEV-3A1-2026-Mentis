@@ -7,8 +7,12 @@ use App\Entity\User;
 use App\Repository\UserRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Validator\Constraints\File;
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -24,8 +28,8 @@ class ContentNodeType extends AbstractType
                     'placeholder' => 'Example: Cognitive Behavioral Therapy module',
                 ],
                 'constraints' => [
-                    new \Symfony\Component\Validator\Constraints\NotBlank(['message' => 'Title is required']),
-                    new \Symfony\Component\Validator\Constraints\Length(['max' => 255]),
+                    new NotBlank(['message' => 'Title is required']),
+                    new Length(['max' => 255]),
                 ],
             ])
             ->add('description', TextareaType::class, [
@@ -37,12 +41,20 @@ class ContentNodeType extends AbstractType
                     'placeholder' => 'Describe the content purpose and takeaway',
                 ],
             ])
-            ->add('pdfPath', TextType::class, [
-                'label' => 'PDF Path',
+            ->add('pdfPath', FileType::class, [
+                'label' => 'PDF File',
                 'required' => false,
+                'mapped' => false,
                 'attr' => [
                     'class' => 'form-control',
-                    'placeholder' => '/uploads/guides/worksheet.pdf',
+                    'accept' => '.pdf',
+                ],
+                'constraints' => [
+                    new File([
+                        'maxSize' => '10M',
+                        'mimeTypes' => ['application/pdf'],
+                        'mimeTypesMessage' => 'Please upload a valid PDF file',
+                    ])
                 ],
             ])
             ->add('parentNode', EntityType::class, [
@@ -56,11 +68,10 @@ class ContentNodeType extends AbstractType
                 'query_builder' => fn (UserRepository $ur) => $ur->createQueryBuilder('u')->where('u.type = :patient')->setParameter('patient', 'Patient'),
                 'choice_label' => fn (User $user) => sprintf('%s %s (%s)', $user->getFirstname(), $user->getLastname(), $user->getEmail()),
                 'multiple' => true,
-                'expanded' => true,
+                'expanded' => false,
                 'required' => false,
                 'mapped' => false,
-                'attr' => ['class' => 'form-check'],
-                'choice_attr' => ['class' => 'form-check-input'],
+                'attr' => ['class' => 'form-select', 'size' => 6],
             ]);
     }
 
