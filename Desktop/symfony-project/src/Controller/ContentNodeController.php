@@ -40,7 +40,7 @@ public function index(Request $request, ContentNodeRepository $contentNodeReposi
     } elseif (in_array('ROLE_PSYCHOLOGIST', $roles)) {
         $nodes = $contentNodeRepository->findForPsychologist($user, $q, $sort);
     } else {
-        // POUR LES PATIENTS - Utilise la nouvelle méthode
+        // FOR PATIENTS - Uses the new method
         $nodes = $contentNodeRepository->findAssignedToUserPhp($user->getId());
         
         // Appliquer la recherche en PHP

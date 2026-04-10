@@ -28,13 +28,13 @@ class MoodType extends AbstractType
             ])
             ->add('note', TextareaType::class, [
                 'label' => 'Additional Notes',
-                'required' => false,
+                'required' => true,
                 'attr' => [
                     'class' => 'form-control',
                     'rows' => 4,
                     'placeholder' => 'Share more about your mood...',
                 ],
-                'help' => 'Optional: Add more details about how you\'re feeling',
+                'help' => 'Please share your thoughts about your current mood',
             ])
         ;
     }

@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\MoodRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: MoodRepository::class)]
 #[ORM\Table(name: 'mood')]
@@ -16,9 +17,21 @@ class Mood
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Please select your current feeling.')]
+    #[Assert\Length(
+        min: 2,
+        max: 50,
+        minMessage: 'Feeling must be at least {{ limit }} characters long.',
+        maxMessage: 'Feeling cannot be longer than {{ limit }} characters.'
+    )]
     private ?string $feeling = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Assert\NotBlank(message: 'Please provide a note about your mood.')]
+    #[Assert\Length(
+        max: 1000,
+        maxMessage: 'Note cannot be longer than {{ limit }} characters.'
+    )]
     private ?string $note = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
@@ -26,6 +39,7 @@ class Mood
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotNull(message: 'User is required.')]
     private ?User $user = null;
 
     public function __construct()

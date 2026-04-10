@@ -17,13 +17,31 @@ class Goal
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Please enter a title for your goal.')]
+    #[Assert\Length(
+        min: 3,
+        max: 255,
+        minMessage: 'Goal title must be at least {{ limit }} characters long.',
+        maxMessage: 'Goal title cannot be longer than {{ limit }} characters.'
+    )]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank(message: 'Please provide a description for your goal.')]
+    #[Assert\Length(
+        min: 10,
+        max: 2000,
+        minMessage: 'Goal description must be at least {{ limit }} characters long.',
+        maxMessage: 'Goal description cannot be longer than {{ limit }} characters.'
+    )]
     private ?string $description = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     #[Assert\NotNull(message: 'Please choose a deadline for your goal.')]
+    #[Assert\GreaterThan(
+        'today',
+        message: 'Deadline must be in the future.'
+    )]
     private ?\DateTimeInterface $deadline = null;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['default' => false])]
@@ -34,6 +52,7 @@ class Goal
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotNull(message: 'User is required.')]
     private ?User $user = null;
 
     public function __construct()
