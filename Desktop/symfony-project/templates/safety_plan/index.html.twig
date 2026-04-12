@@ -1,0 +1,649 @@
+{% extends 'base.html.twig' %}
+{% block title %}My Safety Plan - Mentis{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+
+    {# Top Navigation Row #}
+    <div class="d-flex justify-content-between align-items-center mb-4" data-aos="fade-up">
+        <div>
+            {% if resultId %}
+                <a href="{{ path('result_show', {id: resultId}) }}"
+                   class="btn btn-outline-secondary rounded-pill px-4 d-inline-flex align-items-center">
+                    <i class="fas fa-arrow-left me-2"></i>Back to My Results
+                </a>
+            {% else %}
+                <a href="{{ path('result_index') }}"
+                   class="btn btn-outline-secondary rounded-pill px-4 d-inline-flex align-items-center">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Results
+                </a>
+            {% endif %}
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ path('safety_plan_export') }}"
+               class="btn btn-outline-danger rounded-pill px-4">
+                <i class="fas fa-file-pdf me-2"></i>Download PDF
+            </a>
+        </div>
+    </div>
+
+    {# Page Header #}
+    <div class="text-center mb-4" data-aos="fade-up">
+        <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+             style="width: 70px; height: 70px;
+                    background: linear-gradient(135deg, #e74c3c, #c0392b);">
+            <i class="fas fa-shield-heart fa-2x text-white"></i>
+        </div>
+        <h1 class="display-5 fw-bold" style="color: #2E7D32;">My Safety Plan</h1>
+        <p class="lead text-muted">
+            A personal plan to help you stay safe during difficult moments
+        </p>
+        {% if plan.updated_at %}
+            <span class="badge rounded-pill px-3 py-2"
+                  style="background: #e8f5e9; color: #2E7D32; border: 1px solid #c8dcd2;">
+                <i class="fas fa-check-circle me-1"></i>
+                Saved on {{ plan.updated_at }}
+            </span>
+        {% else %}
+            <span class="badge rounded-pill px-3 py-2 bg-warning text-dark">
+                <i class="fas fa-exclamation-circle me-1"></i>Not saved yet
+            </span>
+        {% endif %}
+    </div>
+
+    {# Flash Messages #}
+    {% for msg in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show rounded-4 mb-4 d-flex align-items-center">
+            <i class="fas fa-check-circle me-2"></i>{{ msg }}
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    {# Crisis Banner #}
+    <div class="alert border-0 rounded-4 mb-4 p-4"
+         style="background: linear-gradient(135deg, #fff3f3, #ffebee);">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <i class="fas fa-phone fa-2x flex-shrink-0" style="color: #e74c3c;"></i>
+            <div class="flex-grow-1">
+                <strong style="color: #c0392b; font-size: 15px;">
+                    In immediate danger? Call now:
+                </strong>
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                    <a href="tel:988"  class="btn btn-danger btn-sm rounded-pill px-3 fw-semibold">
+                        <i class="fas fa-phone me-1"></i>988 (USA)
+                    </a>
+                    <a href="tel:112"  class="btn btn-danger btn-sm rounded-pill px-3 fw-semibold">
+                        <i class="fas fa-phone me-1"></i>112 (EU)
+                    </a>
+                    <a href="tel:1891" class="btn btn-danger btn-sm rounded-pill px-3 fw-semibold">
+                        <i class="fas fa-phone me-1"></i>1891 (Tunisia)
+                    </a>
+                    <span class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold">
+                        Text HOME → 741741
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ── AI GENERATE FULL PLAN CARD ── #}
+    <div class="card border-0 rounded-4 shadow-sm mb-5 overflow-hidden" data-aos="fade-up">
+        <div class="card-body p-4"
+             style="background: linear-gradient(135deg, #f0faf4, #e8f5e9);
+                    border: 1px solid #c8dcd2;">
+            <div class="row align-items-center g-3">
+                <div class="col-md-7">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                             style="width: 52px; height: 52px;
+                                    background: linear-gradient(135deg, #50C878, #2E7D32);">
+                            <i class="fas fa-robot fa-lg text-white"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-1" style="color: #2E7D32;">
+                                Generate Complete Plan with AI
+                            </h5>
+                            <p class="mb-0 text-muted small">
+                                Let our AI create a personalized safety plan for you instantly.
+                                You can then edit, add, or remove any item before saving.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="d-flex gap-2 align-items-center">
+                        <input type="text"
+                               id="aiPlanContext"
+                               class="form-control rounded-pill"
+                               placeholder="Optional: describe your situation..."
+                               style="border: 2px solid #c8dcd2; font-size: 13px;">
+                        <button type="button"
+                                onclick="generateFullPlan()"
+                                id="generateFullBtn"
+                                class="btn rounded-pill px-4 fw-semibold flex-shrink-0 text-white"
+                                style="background: linear-gradient(135deg, #50C878, #2E7D32);
+                                       border: none; white-space: nowrap;">
+                            <i class="fas fa-magic me-1"></i>Generate
+                        </button>
+                    </div>
+                    <small class="text-muted d-block mt-1 ps-1">
+                        <i class="fas fa-info-circle me-1"></i>
+                        This will fill all sections below automatically
+                    </small>
+                </div>
+            </div>
+
+            {# Generation status #}
+            <div id="generateStatus" class="mt-3" style="display: none;">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="spinner-border spinner-border-sm text-success" role="status"></div>
+                    <span class="text-muted small" id="generateStatusText">
+                        AI is creating your personalized safety plan...
+                    </span>
+                </div>
+                <div class="progress mt-2" style="height: 4px; border-radius: 4px;">
+                    <div id="generateProgress"
+                         class="progress-bar bg-success progress-bar-striped progress-bar-animated"
+                         style="width: 0%;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ── FORM ── #}
+    <form method="post" action="{{ path('safety_plan_save') }}" id="safetyPlanForm">
+
+        {% if resultId %}
+            <input type="hidden" name="result_id" value="{{ resultId }}">
+        {% endif %}
+
+        <div class="row g-4">
+
+            {# ── Step 1: Warning Signs ── #}
+            <div class="col-12" data-aos="fade-up">
+                <div class="card border-0 rounded-4 shadow-sm overflow-hidden">
+                    <div class="card-header py-3 px-4 border-0"
+                         style="background: linear-gradient(135deg, #fff3e0, #ffe0b2);">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="fw-bold mb-0" style="color: #e65100;">
+                                    <i class="fas fa-triangle-exclamation me-2"></i>
+                                    Step 1 — My Warning Signs
+                                </h5>
+                                <small class="text-muted">
+                                    Signs that tell me a crisis may be coming
+                                </small>
+                            </div>
+                            <button type="button"
+                                    onclick="suggestForSection('warning_signs', this)"
+                                    class="btn btn-sm rounded-pill px-3 fw-semibold"
+                                    style="background: #ff9800; color: white; border: none;">
+<i class="fas fa-comment-dots me-1"></i> Suggestions 🌸
+
+git branch                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <div id="warning_signs_suggestions" class="mb-3" style="display:none;"></div>
+                        <textarea name="warning_signs"
+                                  id="field_warning_signs"
+                                  class="form-control rounded-3"
+                                  rows="5"
+                                  placeholder="One item per line, e.g.:&#10;I stop sleeping well&#10;I isolate from friends and family&#10;I feel hopeless about the future&#10;I stop eating or eat too much"
+                                  style="border: 2px solid #ffe0b2; resize: vertical;">{{ plan.warning_signs|join('\n') }}</textarea>
+                        <div class="d-flex justify-content-between mt-2">
+                            <small class="text-muted">
+                                <i class="fas fa-lightbulb me-1 text-warning"></i>
+                                One warning sign per line — click AI Suggest or type your own
+                            </small>
+                            <small class="text-muted">
+                                <span id="count_warning_signs">{{ plan.warning_signs|length }}</span> items
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# ── Step 2: Coping Strategies ── #}
+            <div class="col-md-6" data-aos="fade-up" data-aos-delay="50">
+                <div class="card border-0 rounded-4 shadow-sm h-100 overflow-hidden">
+                    <div class="card-header py-3 px-4 border-0"
+                         style="background: linear-gradient(135deg, #e8f5e9, #c8e6c9);">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="fw-bold mb-0" style="color: #2E7D32;">
+                                    <i class="fas fa-heart-pulse me-2"></i>
+                                    Step 2 — Coping Strategies
+                                </h5>
+                                <small class="text-muted">Things I can do alone to feel better</small>
+                            </div>
+                            <button type="button"
+                                    onclick="suggestForSection('coping_strategies', this)"
+                                    class="btn btn-sm rounded-pill px-3 fw-semibold"
+                                    style="background: #50C878; color: white; border: none;">
+                                <i class="fas fa-comment-dots me-1"></i> Suggestions 🌸
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <div id="coping_strategies_suggestions" class="mb-3" style="display:none;"></div>
+                        <textarea name="coping_strategies"
+                                  id="field_coping_strategies"
+                                  class="form-control rounded-3"
+                                  rows="6"
+                                  placeholder="e.g.:&#10;Do box breathing for 5 minutes&#10;Go for a 20-minute walk outside&#10;Call a friend or family member&#10;Write in my journal"
+                                  style="border: 2px solid #c8e6c9; resize: vertical;">{{ plan.coping_strategies|join('\n') }}</textarea>
+                        <small class="text-muted mt-2 d-block">
+                            <span id="count_coping_strategies">{{ plan.coping_strategies|length }}</span> items
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            {# ── Step 3: Social Distractions ── #}
+            <div class="col-md-6" data-aos="fade-up" data-aos-delay="100">
+                <div class="card border-0 rounded-4 shadow-sm h-100 overflow-hidden">
+                    <div class="card-header py-3 px-4 border-0"
+                         style="background: linear-gradient(135deg, #e3f2fd, #bbdefb);">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="fw-bold mb-0" style="color: #1565c0;">
+                                    <i class="fas fa-people-group me-2"></i>
+                                    Step 3 — Social Distractions
+                                </h5>
+                                <small class="text-muted">People and places that help me</small>
+                            </div>
+                            <button type="button"
+                                    onclick="suggestForSection('social_distractions', this)"
+                                    class="btn btn-sm rounded-pill px-3 fw-semibold"
+                                    style="background: #2196f3; color: white; border: none;">
+                                <i class="fas fa-comment-dots me-1"></i> Suggestions 🌸
+
+
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <div id="social_distractions_suggestions" class="mb-3" style="display:none;"></div>
+                        <textarea name="social_distractions"
+                                  id="field_social_distractions"
+                                  class="form-control rounded-3"
+                                  rows="6"
+                                  placeholder="e.g.:&#10;Call my best friend Sara&#10;Go to the library or a café&#10;Visit my parents&#10;Go to the gym with a friend"
+                                  style="border: 2px solid #bbdefb; resize: vertical;">{{ plan.social_distractions|join('\n') }}</textarea>
+                        <small class="text-muted mt-2 d-block">
+                            <span id="count_social_distractions">{{ plan.social_distractions|length }}</span> items
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            {# ── Step 4: Safe Environment ── #}
+            <div class="col-md-6" data-aos="fade-up" data-aos-delay="150">
+                <div class="card border-0 rounded-4 shadow-sm h-100 overflow-hidden">
+                    <div class="card-header py-3 px-4 border-0"
+                         style="background: linear-gradient(135deg, #e0f2f1, #b2dfdb);">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="fw-bold mb-0" style="color: #00695c;">
+                                    <i class="fas fa-house-chimney me-2"></i>
+                                    Step 4 — Safe Environment
+                                </h5>
+                                <small class="text-muted">
+                                    Steps to make my surroundings safer
+                                </small>
+                            </div>
+                            <button type="button"
+                                    onclick="suggestForSection('safe_environment', this)"
+                                    class="btn btn-sm rounded-pill px-3 fw-semibold"
+                                    style="background: #009688; color: white; border: none;">
+<i class="fas fa-comment-dots me-1"></i> Suggestions 🌸
+
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <div id="safe_environment_suggestions" class="mb-3" style="display:none;"></div>
+                        <textarea name="safe_environment"
+                                  id="field_safe_environment"
+                                  class="form-control rounded-3"
+                                  rows="6"
+                                  placeholder="e.g.:&#10;Ask a trusted person to hold my medications&#10;Remove sharp objects from easy reach&#10;Lock the balcony door when feeling unsafe&#10;Stay with family when I feel at risk"
+                                  style="border: 2px solid #b2dfdb; resize: vertical;">{{ plan.safe_environment }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            {# ── Step 5: Reasons to Live ── #}
+            <div class="col-md-6" data-aos="fade-up" data-aos-delay="200">
+                <div class="card border-0 rounded-4 shadow-sm h-100 overflow-hidden">
+                    <div class="card-header py-3 px-4 border-0"
+                         style="background: linear-gradient(135deg, #fff8e1, #ffecb3);">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="fw-bold mb-0" style="color: #e65100;">
+                                    <i class="fas fa-star me-2"></i>
+                                    Step 5 — My Reasons to Live
+                                </h5>
+                                <small class="text-muted">
+                                    What makes my life worth living
+                                </small>
+                            </div>
+                            <button type="button"
+                                    onclick="suggestForSection('reasons_to_live', this)"
+                                    class="btn btn-sm rounded-pill px-3 fw-semibold"
+                                    style="background: #ff9800; color: white; border: none;">
+<i class="fas fa-comment-dots me-1"></i> Suggestions 🌸
+
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <div id="reasons_to_live_suggestions" class="mb-3" style="display:none;"></div>
+                        <textarea name="reasons_to_live"
+                                  id="field_reasons_to_live"
+                                  class="form-control rounded-3"
+                                  rows="6"
+                                  placeholder="e.g.:&#10;My family loves me and needs me&#10;My dog depends on me every day&#10;I want to travel to Japan someday&#10;I want to finish my degree"
+                                  style="border: 2px solid #ffecb3; resize: vertical;">{{ plan.reasons_to_live|join('\n') }}</textarea>
+                        <small class="text-muted mt-2 d-block">
+                            <span id="count_reasons_to_live">{{ plan.reasons_to_live|length }}</span> items
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        {# ── Action Buttons ── #}
+        <div class="d-flex gap-3 mt-5 justify-content-center flex-wrap"
+             data-aos="fade-up" data-aos-delay="250">
+
+            <button type="submit"
+                    class="btn btn-lg rounded-pill px-5 py-3 fw-bold text-white"
+                    style="background: linear-gradient(135deg, #50C878, #2E7D32); border: none;">
+                <i class="fas fa-save me-2"></i>Save My Safety Plan
+            </button>
+
+            <a href="{{ path('safety_plan_export') }}"
+               class="btn btn-lg btn-outline-danger rounded-pill px-5 py-3 fw-bold">
+                <i class="fas fa-file-pdf me-2"></i>Download PDF
+            </a>
+
+            <button type="button"
+                    onclick="if(confirm('Clear your entire safety plan? This cannot be undone.')) {
+                        document.getElementById('clearForm').submit();
+                    }"
+                    class="btn btn-lg btn-outline-secondary rounded-pill px-4 py-3">
+                <i class="fas fa-trash me-2"></i>Clear All
+            </button>
+
+            {% if resultId %}
+                <a href="{{ path('result_show', {id: resultId}) }}"
+                   class="btn btn-lg btn-outline-primary rounded-pill px-4 py-3">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Results
+                </a>
+            {% else %}
+                <a href="{{ path('result_index') }}"
+                   class="btn btn-lg btn-outline-primary rounded-pill px-4 py-3">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Results
+                </a>
+            {% endif %}
+
+        </div>
+
+    </form>
+
+    <form id="clearForm" method="post"
+          action="{{ path('safety_plan_clear') }}" style="display:none;"></form>
+
+</div>
+
+<script>
+// ── Generate Full AI Plan ─────────────────────────────────
+function generateFullPlan() {
+    const btn      = document.getElementById('generateFullBtn');
+    const status   = document.getElementById('generateStatus');
+    const progress = document.getElementById('generateProgress');
+    const text     = document.getElementById('generateStatusText');
+    const context  = document.getElementById('aiPlanContext').value.trim();
+
+    btn.disabled  = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Generating...';
+    status.style.display = 'block';
+
+    // Animate progress bar
+    let pct = 0;
+    const timer = setInterval(function () {
+        pct = Math.min(pct + 8, 90);
+        progress.style.width = pct + '%';
+        if (pct < 30)  text.textContent = 'AI is thinking about your plan...';
+        if (pct >= 30) text.textContent = 'Building warning signs and coping strategies...';
+        if (pct >= 60) text.textContent = 'Finalizing reasons to live and safe steps...';
+    }, 400);
+
+    fetch('{{ path("safety_plan_ai_full") }}', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body:    'context=' + encodeURIComponent(context),
+    })
+    .then(r => r.json())
+    .then(data => {
+        clearInterval(timer);
+        progress.style.width = '100%';
+
+        if (!data.success || !data.plan) {
+            text.textContent = '❌ Could not generate plan. Please try again.';
+            progress.classList.remove('bg-success');
+            progress.classList.add('bg-danger');
+            btn.disabled  = false;
+            btn.innerHTML = '<i class="fas fa-magic me-1"></i>Generate';
+            return;
+        }
+
+        // Fill all textarea fields with generated content
+        const plan = data.plan;
+
+        fillTextarea('field_warning_signs',       plan.warning_signs       || []);
+        fillTextarea('field_coping_strategies',   plan.coping_strategies   || []);
+        fillTextarea('field_social_distractions', plan.social_distractions || []);
+        fillTextarea('field_reasons_to_live',     plan.reasons_to_live     || []);
+
+        // Safe environment is an array too — join as lines
+        if (plan.safe_environment && Array.isArray(plan.safe_environment)) {
+            const el = document.getElementById('field_safe_environment');
+            if (el) el.value = plan.safe_environment.join('\n');
+        }
+
+        // Update item counts
+        updateCounts();
+
+        // Success state
+        text.textContent = '✅ Plan generated! Review and edit the sections below, then save.';
+        progress.classList.remove('progress-bar-animated', 'progress-bar-striped');
+        btn.disabled  = false;
+        btn.innerHTML = '<i class="fas fa-magic me-1"></i>Regenerate';
+
+        // Scroll to first section
+        document.querySelector('[id="field_warning_signs"]')
+            ?.closest('.card')
+            ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        showToast('AI plan generated! Review and edit before saving.', 'success');
+    })
+    .catch(err => {
+        clearInterval(timer);
+        text.textContent = '❌ Error: ' + err.message;
+        progress.classList.add('bg-danger');
+        btn.disabled  = false;
+        btn.innerHTML = '<i class="fas fa-magic me-1"></i>Generate';
+    });
+}
+
+function fillTextarea(fieldId, items) {
+    const el = document.getElementById(fieldId);
+    if (!el) return;
+    el.value = Array.isArray(items) ? items.join('\n') : items;
+}
+
+function updateCounts() {
+    const fields = [
+        'warning_signs', 'coping_strategies',
+        'social_distractions', 'reasons_to_live'
+    ];
+    fields.forEach(function (f) {
+        const ta    = document.getElementById('field_' + f);
+        const count = document.getElementById('count_' + f);
+        if (!ta || !count) return;
+        const lines = ta.value.split('\n').filter(l => l.trim().length > 0);
+        count.textContent = lines.length;
+    });
+}
+
+// ── AI Suggest for single section ────────────────────────
+function suggestForSection(section, btn) {
+    const textarea  = document.getElementById('field_' + section);
+    const container = document.getElementById(section + '_suggestions');
+    const context   = textarea ? textarea.value.trim() : '';
+    const origHTML  = btn.innerHTML;
+
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>';
+    btn.disabled  = true;
+
+    fetch('{{ path("safety_plan_ai_suggest") }}', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body:    'section=' + encodeURIComponent(section)
+               + '&context=' + encodeURIComponent(context),
+    })
+    .then(r => r.json())
+    .then(data => {
+        btn.innerHTML = origHTML;
+        btn.disabled  = false;
+
+        if (!data.success || !data.suggestions || !data.suggestions.length) {
+            showToast('Could not generate suggestions. Please try again.', 'warning');
+            return;
+        }
+
+        // Filter out any SCALE: lines that slipped through
+        const clean = data.suggestions.filter(s =>
+            !s.toUpperCase().startsWith('SCALE:')
+            && !s.match(/^(Never|Rarely|Sometimes|Often|Always|Strongly)/i)
+        );
+
+        if (!clean.length) {
+            showToast('No valid suggestions generated. Try again.', 'warning');
+            return;
+        }
+
+        container.style.display = 'block';
+        container.innerHTML =
+            '<div class="p-3 rounded-3 mb-2"'
+            + ' style="background: #f0faf4; border: 1px solid #c8dcd2;">'
+            + '<div class="fw-semibold mb-2 small" style="color: #2E7D32;">'
+            + '<i class="fas fa-robot me-1"></i>'
+            + 'Click any suggestion to add it to your plan:</div>'
+            + '<div class="d-flex flex-wrap gap-2">'
+            + clean.map(s =>
+                '<button type="button"'
+                + ' class="btn btn-sm rounded-pill px-3 py-2 suggestion-btn"'
+                + ' style="background: white; color: #2E7D32;'
+                + ' border: 1px solid #c8dcd2; font-size: 13px;'
+                + ' text-align: left; max-width: 100%;"'
+                + ' onclick="addSuggestion(\'' + section + '\', this)">'
+                + '<i class="fas fa-plus-circle me-1" style="color:#50C878;"></i>'
+                + escapeHtml(s)
+                + '</button>'
+            ).join('')
+            + '</div></div>';
+    })
+    .catch(err => {
+        btn.innerHTML = origHTML;
+        btn.disabled  = false;
+        showToast('Error: ' + err.message, 'danger');
+    });
+}
+
+function addSuggestion(section, btn) {
+    const textarea = document.getElementById('field_' + section);
+    if (!textarea) return;
+
+    const text    = btn.textContent.replace(/^\s*\+\s*/, '').trim();
+    const current = textarea.value.trim();
+    textarea.value = current ? current + '\n' + text : text;
+
+    // Mark as added
+    btn.style.background    = '#e8f5e9';
+    btn.style.borderColor   = '#50C878';
+    btn.style.color         = '#666';
+    btn.innerHTML           = '<i class="fas fa-check-circle me-1" style="color:#50C878;"></i>'
+        + escapeHtml(text);
+    btn.disabled            = true;
+    btn.onclick             = null;
+
+    updateCounts();
+}
+
+// ── Helpers ───────────────────────────────────────────────
+function showToast(message, type) {
+    const toast = document.createElement('div');
+    toast.className = 'alert alert-' + (type || 'info')
+        + ' position-fixed bottom-0 end-0 m-3 rounded-3 shadow';
+    toast.style.zIndex   = '9999';
+    toast.style.minWidth = '280px';
+    toast.innerHTML = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+}
+
+function escapeHtml(text) {
+    return String(text)
+        .replace(/&/g,  '&amp;')
+        .replace(/</g,  '&lt;')
+        .replace(/>/g,  '&gt;')
+        .replace(/"/g,  '&quot;')
+        .replace(/'/g,  '&#039;');
+}
+
+// Update counts when user types manually
+document.querySelectorAll('textarea[id^="field_"]').forEach(function (ta) {
+    ta.addEventListener('input', updateCounts);
+});
+</script>
+
+{% endblock %}
+
+{% block stylesheets %}
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<style>
+.form-control:focus,
+.form-select:focus {
+    border-color: #50C878 !important;
+    box-shadow: 0 0 0 0.25rem rgba(80, 200, 120, 0.2) !important;
+}
+.card {
+    border-radius: 20px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+}
+textarea {
+    font-size: 14px;
+    line-height: 1.8;
+}
+.suggestion-btn:hover {
+    background: #f0faf4 !important;
+    border-color: #50C878 !important;
+    transform: translateY(-1px);
+}
+</style>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>AOS.init({ duration: 800, once: true });</script>
+{% endblock %}

@@ -126,7 +126,12 @@ class SessionType extends AbstractType
                 ],
                 'constraints' => [
                     new Positive(['message' => 'Max participants must be a positive number']),
-                    new Range(['min' => 1, 'max' => 100, 'minMessage' => 'Must have at least 1 participant', 'maxMessage' => 'Cannot exceed 100 participants']),
+                    // FIXED: Use notInRangeMessage instead of minMessage/maxMessage
+                    new Range([
+                        'min' => 1, 
+                        'max' => 100, 
+                        'notInRangeMessage' => 'Max participants must be between {{ min }} and {{ max }}.'
+                    ]),
                 ],
             ])
             ->add('price', NumberType::class, [
@@ -137,7 +142,11 @@ class SessionType extends AbstractType
                     'style' => 'border: 2px solid #e0e0e0; padding: 12px 20px;',
                 ],
                 'constraints' => [
-                    new Range(['min' => 0, 'minMessage' => 'Price cannot be negative']),
+                    // FIXED: Use notInRangeMessage for single min constraint
+                    new Range([
+                        'min' => 0,
+                        'notInRangeMessage' => 'Price cannot be negative.'
+                    ]),
                 ],
             ]);
     }

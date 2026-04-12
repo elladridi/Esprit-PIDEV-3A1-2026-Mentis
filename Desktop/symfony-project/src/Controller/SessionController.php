@@ -28,20 +28,49 @@ class SessionController extends AbstractController
     // ==================== ADMIN & PSYCHOLOGIST: Full Session Management ====================
     
     #[Route('/', name: 'session_index', methods: ['GET'])]
-    #[IsGranted('ROLE_ADMIN')]
     public function index(): Response
     {
+        /** @var User $user */
+        $user = $this->getUser();
+        
+        // For psychologists: show only their sessions
+        if ($this->isGranted('ROLE_PSYCHOLOGIST')) {
+            return $this->render('session/index.html.twig', [
+                'sessions' => $this->repo->findBy(['reservedBy' => $user->getId()]),
+                'isPsychologist' => true,
+            ]);
+        }
+        
+        // For admin: show all sessions
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
         return $this->render('session/index.html.twig', [
             'sessions' => $this->repo->findAllSessions(),
+            'isPsychologist' => false,
         ]);
     }
 
     #[Route('/active', name: 'session_active', methods: ['GET'])]
-    #[IsGranted('ROLE_ADMIN')]
     public function active(): Response
     {
+        /** @var User $user */
+        $user = $this->getUser();
+        
+        // For psychologists: show only their active sessions
+        if ($this->isGranted('ROLE_PSYCHOLOGIST')) {
+            return $this->render('session/active.html.twig', [
+                'sessions' => $this->repo->findBy([
+                    'reservedBy' => $user->getId(),
+                    'status' => 'active'
+                ]),
+                'isPsychologist' => true,
+            ]);
+        }
+        
+        // For admin: show all active sessions
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
         return $this->render('session/active.html.twig', [
             'sessions' => $this->repo->findActiveSessions(),
+            'isPsychologist' => false,
         ]);
     }
 
