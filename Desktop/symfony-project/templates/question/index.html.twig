@@ -1,0 +1,402 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Manage Questions - Mentis{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    {# Header #}
+    <div class="d-flex justify-content-between align-items-center mb-4" data-aos="fade-up">
+        <div>
+            <h1 class="display-5 fw-bold mb-1" style="color: #2E7D32;">
+                <i class="fas fa-question-circle me-2"></i>Manage Questions
+            </h1>
+            {% if assessment is defined and assessment %}
+                <p class="text-muted mb-0">
+                    {{ assessment.title }} ({{ assessment.type }}) - {{ questions|length }} questions
+                </p>
+            {% else %}
+                <p class="text-muted mb-0">{{ questions|length }} total questions across all assessments</p>
+            {% endif %}
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ path('assessment_index') }}" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="fas fa-arrow-left me-2"></i>Back
+            </a>
+            {% if assessment is defined and assessment %}
+                <button onclick="openAIGenerator()" class="btn btn-primary-custom rounded-pill px-4">
+                    <i class="fas fa-robot me-2"></i>Generate with AI
+                </button>
+            {% endif %}
+            <a href="{{ path('question_new', assessment is defined and assessment ? {assessmentId: assessment.assessmentId} : {}) }}" 
+               class="btn btn-primary-custom rounded-pill px-4">
+                <i class="fas fa-plus me-2"></i>Add Question
+            </a>
+        </div>
+    </div>
+
+    {# Flash Messages #}
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show rounded-pill mb-4 d-flex align-items-center" role="alert" data-aos="fade-up">
+            <i class="fas fa-check-circle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger alert-dismissible fade show rounded-pill mb-4 d-flex align-items-center" role="alert" data-aos="fade-up">
+            <i class="fas fa-exclamation-circle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    {% if questions is empty %}
+        <div class="text-center py-5" data-aos="fade-up">
+            <div class="card shadow-sm border-0 p-5 rounded-4" style="max-width: 500px; margin: 0 auto; background: linear-gradient(135deg, #F8F9FA, #E9ECEF);">
+                <i class="fas fa-question-circle fa-4x mb-3 text-muted"></i>
+                <h3 class="text-muted mb-3">No Questions Yet</h3>
+                <p class="text-muted mb-4">
+                    {% if assessment is defined and assessment %}
+                        This assessment has no questions. Add your first question to make it available.
+                    {% else %}
+                        No questions available. Create your first question.
+                    {% endif %}
+                </p>
+                <a href="{{ path('question_new', assessment is defined and assessment ? {assessmentId: assessment.assessmentId} : {}) }}" 
+                   class="btn btn-primary-custom rounded-pill px-5 py-2">
+                    <i class="fas fa-plus me-2"></i>Add First Question
+                </a>
+            </div>
+        </div>
+    {% else %}
+        <div class="card shadow-sm border-0 overflow-hidden" data-aos="fade-up">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="border-0 py-4 px-4 fw-bold" style="color: #2E7D32; font-size: 15px;">Question</th>
+                            <th class="border-0 py-4 px-3 fw-bold" style="color: #2E7D32; font-size: 15px;">Scale</th>
+                            <th class="border-0 py-4 px-3 fw-bold" style="color: #2E7D32; font-size: 15px;">Assessment</th>
+                            <th class="border-0 py-4 px-4 fw-bold text-end" style="color: #2E7D32; font-size: 15px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for question in questions %}
+                        <tr class="align-middle">
+                            <td class="py-4 px-4" style="color: #1a3c34; max-width: 400px;">
+                                <div class="fw-semibold">{{ question.text|slice(0, 80) }}{% if question.text|length > 80 %}...{% endif %}</div>
+                                <small class="text-muted">ID: {{ question.questionId }}</small>
+                            </td>
+                            <td class="py-4 px-3">
+                                <span class="badge rounded-pill px-3 py-2 bg-info bg-opacity-10 text-info">
+                                    <i class="fas fa-ruler me-1"></i>{{ question.scale ?: 'Standard scale' }}
+                                </span>
+                            </td>
+                            <td class="py-4 px-3">
+                                <span class="badge rounded-pill px-3 py-2" style="background: linear-gradient(135deg, #50C87820, #3A9B5E20); color: #2E7D32;">
+                                    {{ question.assessment ? question.assessment.title : 'N/A' }}
+                                </span>
+                            </td>
+                            <td class="py-4 px-4 text-end">
+                                <div class="btn-group" role="group">
+                                    <a href="{{ path('question_edit', {id: question.questionId}) }}" 
+                                       class="btn btn-outline-primary btn-sm rounded-pill px-3 me-1">
+                                        <i class="fas fa-edit me-1"></i>Edit
+                                    </a>
+                                    <form method="post" action="{{ path('question_delete', {id: question.questionId}) }}" 
+                                          onsubmit="return confirm('Delete this question permanently?')" class="d-inline">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                                            <i class="fas fa-trash me-1"></i>Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {# Summary #}
+        <div class="text-center mt-4 pt-4 border-top" data-aos="fade-up">
+            <small class="text-muted fw-semibold">
+                {{ questions|length }} question{{ questions|length|default(0) != 1 ? 's' : '' }} found
+                {% if assessment is defined and assessment %}
+                    <span class="ms-3"><i class="fas fa-clipboard-list text-success me-1"></i>{{ assessment.title }}</span>
+                {% endif %}
+            </small>
+        </div>
+    {% endif %}
+</div>
+
+{# ═══════════════════════ AI QUESTION GENERATOR MODAL ═══════════════════════ #}
+{% if assessment is defined and assessment %}
+<div id="aiModal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content rounded-4">
+            <div class="modal-header border-0 pt-4 px-4">
+                <div>
+                    <h2 class="modal-title fs-3 fw-bold" style="color: #2E7D32;">
+                        <i class="fas fa-robot me-2"></i>AI Question Generator
+                    </h2>
+                    <p class="text-muted mb-0 mt-1">Generate questions for: <strong>{{ assessment.title }}</strong></p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                {# Controls #}
+                <div class="bg-light rounded-4 p-4 mb-4">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="color: #2E7D32;">Number of questions</label>
+                            <select id="aiCount" class="form-select rounded-pill">
+                                <option>3</option>
+                                <option selected>5</option>
+                                <option>7</option>
+                                <option>10</option>
+                                <option>15</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="color: #2E7D32;">Assessment focus</label>
+                            <select id="aiFocus" class="form-select rounded-pill">
+                                <option>General mental wellness</option>
+                                <option>Anxiety &amp; stress</option>
+                                <option>Depression &amp; mood</option>
+                                <option>Sleep quality</option>
+                                <option>Social functioning</option>
+                                <option>Work-related burnout</option>
+                                <option>Self-esteem &amp; confidence</option>
+                                <option>Trauma &amp; PTSD</option>
+                                <option>Eating habits</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold" style="color: #2E7D32;">Answer scale</label>
+                            <select id="aiScale" class="form-select rounded-pill">
+                                <option>Never/Rarely/Sometimes/Often/Always</option>
+                                <option>Not at all/A little/Moderately/Quite a bit/Extremely</option>
+                                <option>1-5 numeric</option>
+                                <option>Yes/No</option>
+                                <option>Never/Sometimes/Half the time/Usually/Always</option>
+                                <option>Strongly Disagree/Disagree/Neutral/Agree/Strongly Agree</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold" style="color: #2E7D32;">Extra context (optional)</label>
+                            <input type="text" id="aiContext" class="form-control rounded-pill" 
+                                   placeholder="e.g. for university students, ages 18-25, focusing on social anxiety">
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button onclick="generateWithAI()" id="generateBtn" class="btn btn-primary-custom rounded-pill px-5 py-2 w-100">
+                            <i class="fas fa-magic me-2"></i>Generate Questions with AI
+                        </button>
+                        <span id="aiStatus" class="small text-muted d-block text-center mt-2"></span>
+                    </div>
+                </div>
+
+                {# Review Section #}
+                <h5 class="fw-bold mb-3" style="color: #2E7D32;">
+                    <i class="fas fa-list-check me-2"></i>Review Generated Questions
+                </h5>
+                <p class="text-muted small mb-3">Check the questions you want to keep. You can edit them before saving.</p>
+
+                <div id="questionsContainer" class="border rounded-4 p-3 bg-white" style="max-height: 400px; overflow-y: auto;">
+                    <div class="text-center py-5">
+                        <i class="fas fa-lightbulb fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Generated questions will appear here after clicking "Generate"</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pb-4 px-4">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancel
+                </button>
+                <button id="saveQuestionsBtn" onclick="saveSelectedQuestions()" disabled
+                        class="btn btn-primary-custom rounded-pill px-4" style="opacity: 0.5;">
+                    <i class="fas fa-save me-2"></i>Save Selected Questions
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let generatedQuestions = [];
+const assessmentId = {{ assessment.assessmentId }};
+
+function openAIGenerator() {
+    const modal = new bootstrap.Modal(document.getElementById('aiModal'));
+    modal.show();
+}
+
+function generateWithAI() {
+    const count = document.getElementById('aiCount').value;
+    const focus = document.getElementById('aiFocus').value;
+    const scale = document.getElementById('aiScale').value;
+    const context = document.getElementById('aiContext').value;
+    const status = document.getElementById('aiStatus');
+    const btn = document.getElementById('generateBtn');
+    const saveBtn = document.getElementById('saveQuestionsBtn');
+
+    btn.disabled = true;
+    saveBtn.disabled = true;
+    saveBtn.style.opacity = '0.5';
+    status.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Generating questions...';
+    status.style.color = '#6c757d';
+
+    document.getElementById('questionsContainer').innerHTML = 
+        '<div class="text-center py-5"><i class="fas fa-spinner fa-spin fa-3x text-success mb-3"></i><p class="text-muted">AI is creating questions...</p></div>';
+
+    fetch('{{ path("take_assessment_generate_questions") }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ count: parseInt(count), focus, scale, context })
+    })
+    .then(r => r.json())
+    .then(data => {
+        btn.disabled = false;
+
+        if (!data.success || !data.questions || !data.questions.length) {
+            status.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>Could not generate questions. Try again.';
+            status.style.color = '#e67e22';
+            document.getElementById('questionsContainer').innerHTML = 
+                '<div class="text-center py-5"><i class="fas fa-times-circle fa-3x text-warning mb-3"></i><p class="text-muted">No questions generated. Try different settings.</p></div>';
+            return;
+        }
+
+        generatedQuestions = data.questions;
+        renderGeneratedQuestions(data.questions);
+        status.innerHTML = '<i class="fas fa-check-circle me-1"></i>' + data.questions.length + ' questions generated!';
+        status.style.color = '#27ae60';
+        saveBtn.disabled = false;
+        saveBtn.style.opacity = '1';
+    })
+    .catch(err => {
+        btn.disabled = false;
+        status.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i>Error: ' + err.message;
+        status.style.color = '#e74c3c';
+    });
+}
+
+function renderGeneratedQuestions(questions) {
+    const container = document.getElementById('questionsContainer');
+    container.innerHTML = '';
+
+    questions.forEach(function(q, i) {
+        const card = document.createElement('div');
+        card.id = 'card_' + i;
+        card.className = 'bg-light rounded-4 p-3 mb-3';
+        card.innerHTML = `
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <input type="checkbox" id="check_${i}" checked class="form-check-input" style="width: 20px; height: 20px; cursor: pointer;" onchange="toggleCard(${i}, this.checked)">
+                <span class="fw-bold text-success bg-white px-3 py-1 rounded-pill">Q${i + 1}</span>
+                <span class="ms-auto"><span class="badge rounded-pill bg-success bg-opacity-10 text-success"><i class="fas fa-robot me-1"></i>AI Generated</span></span>
+            </div>
+            <label class="form-label fw-semibold small mb-1 text-muted">Question text:</label>
+            <input type="text" id="qtext_${i}" value="${escapeHtml(q.text)}" class="form-control rounded-pill mb-3 bg-white">
+            <label class="form-label fw-semibold small mb-1 text-muted">Answer scale:</label>
+            <input type="text" id="qscale_${i}" value="${escapeHtml(q.scale)}" class="form-control rounded-pill bg-white">
+        `;
+        container.appendChild(card);
+    });
+}
+
+function toggleCard(index, selected) {
+    const card = document.getElementById('card_' + index);
+    card.style.opacity = selected ? '1' : '0.5';
+    document.getElementById('qtext_' + index).disabled = !selected;
+    document.getElementById('qscale_' + index).disabled = !selected;
+}
+
+function saveSelectedQuestions() {
+    const toSave = [];
+
+    generatedQuestions.forEach(function(q, i) {
+        const checkbox = document.getElementById('check_' + i);
+        if (checkbox && checkbox.checked) {
+            const text = document.getElementById('qtext_' + i).value.trim();
+            const scale = document.getElementById('qscale_' + i).value.trim();
+            if (text) toSave.push({ text, scale });
+        }
+    });
+
+    if (toSave.length === 0) {
+        alert('Please select at least one question to save.');
+        return;
+    }
+
+    const saveBtn = document.getElementById('saveQuestionsBtn');
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+
+    fetch('/take/ai/save-questions/' + assessmentId, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ questions: toSave })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            alert('✓ ' + data.saved + ' question(s) saved successfully!');
+            location.reload();
+        } else {
+            alert('Error: ' + (data.error || 'Unknown error'));
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save me-2"></i>Save Selected Questions';
+        }
+    })
+    .catch(err => {
+        alert('Error: ' + err.message);
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="fas fa-save me-2"></i>Save Selected Questions';
+    });
+}
+
+function escapeHtml(text) {
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+</script>
+{% endif %}
+{% endblock %}
+
+{% block stylesheets %}
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<style>
+.btn-primary-custom {
+    background: linear-gradient(135deg, #50C878 0%, #3A9B5E 100%);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+.btn-primary-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(80, 200, 120, 0.4);
+    color: white !important;
+}
+.table-hover tbody tr:hover {
+    background-color: rgba(80, 200, 120, 0.08);
+}
+.card {
+    border-radius: 24px;
+}
+.modal-content {
+    border-radius: 24px;
+}
+.form-control:focus, .form-select:focus {
+    border-color: #50C878 !important;
+    box-shadow: 0 0 0 0.25rem rgba(80, 200, 120, 0.25) !important;
+}
+</style>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>AOS.init({ duration: 800 });</script>
+{% endblock %}

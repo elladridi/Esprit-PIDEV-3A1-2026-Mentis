@@ -1,0 +1,445 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ assessment.title }} - Mentis{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+
+    {# Back Button #}
+    <div class="mb-4" data-aos="fade-right">
+        <a href="{{ path('take_assessment_index') }}" class="text-decoration-none" style="color: #50C878;">
+            <i class="fas fa-arrow-left me-2"></i> Back to Assessments
+        </a>
+    </div>
+
+    {# Progress Bar #}
+    <div class="mb-4" data-aos="fade-up">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-muted">
+                <i class="fas fa-question-circle me-1"></i>
+                Question <span id="currentQuestionNum">1</span>
+                of <span id="totalQuestions">{{ total + 1 }}</span>
+            </span>
+            <span class="text-muted">
+                <i class="fas fa-clock me-1"></i> Take your time
+            </span>
+        </div>
+        <div class="progress" style="height: 8px; border-radius: 10px;">
+            <div id="progressBar" class="progress-bar"
+                 style="width: 0%;
+                        background: linear-gradient(90deg, #50C878, #2E7D32);
+                        border-radius: 10px;
+                        transition: width 0.4s ease;">
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+            <div class="card shadow-sm border-0" data-aos="fade-up" data-aos-delay="100"
+                 style="border-radius: 20px; overflow: hidden;">
+
+                {# Assessment Image #}
+                {% if assessment.imagePath %}
+                    <img src="{{ asset(assessment.imagePath) }}"
+                         class="card-img-top"
+                         alt="{{ assessment.title }}"
+                         style="height: 200px; object-fit: cover;">
+                {% else %}
+                    <div class="card-img-top d-flex align-items-center justify-content-center"
+                         style="height: 200px; background: linear-gradient(135deg,
+                             {% if assessment.type == 'Depression' %}#7f6bc4, #9b59b6
+                             {% elseif assessment.type == 'Anxiety' %}#e39595, #c0392b
+                             {% elseif assessment.type == 'Stress' %}#e3cea3, #e67e22
+                             {% elseif assessment.type == 'Wellness' %}#50C878, #2E7D32
+                             {% else %}#74b9ff, #3498db{% endif %});">
+                        <i class="fas fa-brain fa-5x text-white"></i>
+                    </div>
+                {% endif %}
+
+                <div class="card-body p-4">
+
+                    {# Standard Question Section - All questions use scales #}
+                    <div id="questionSection">
+                        <h4 id="questionText"
+                            class="mb-4 text-center fw-semibold"
+                            style="color: #2E7D32; min-height: 80px;">
+                            Loading...
+                        </h4>
+                        <div class="mb-4">
+                            <select id="answerSelect"
+                                    class="form-select form-select-lg rounded-pill"
+                                    style="border: 2px solid #50C878; padding: 12px 20px;">
+                                <option value="">Select your answer...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {# Free Text Section - Only ONE at the end #}
+                    <div id="freeTextSection" style="display: none;">
+                        <div class="text-center mb-4">
+                            <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                                 style="width: 60px; height: 60px;
+                                        background: linear-gradient(135deg, #50C878, #2E7D32);">
+                                <i class="fas fa-heart fa-xl text-white"></i>
+                            </div>
+                            <h4 class="fw-bold" style="color: #2E7D32;">One Last Question</h4>
+                            <p class="text-muted">
+                                Your honest answer helps us personalize your analysis
+                            </p>
+                        </div>
+
+                        <div class="p-4 rounded-4 mb-4"
+                             style="background: linear-gradient(135deg, #f0faf4, #e8f5e9);
+                                    border: 1px solid #c8dcd2;">
+                            <p class="fw-semibold mb-3" style="color: #1a3c34; font-size: 18px;">
+                                💬 In your own words, how have you been feeling lately?
+                                Describe your emotional state, any worries, or anything on your mind.
+                            </p>
+                            <textarea id="freeTextAnswer"
+                                      class="form-control rounded-3"
+                                      rows="6"
+                                      placeholder="Take your time... there are no right or wrong answers.
+Write as much or as little as you like."
+                                      style="border: 2px solid #50C878; resize: vertical; font-size: 15px; line-height: 1.7;">
+                            </textarea>
+                            <div class="d-flex justify-content-between mt-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-lock me-1"></i>
+                                    Your response is private and confidential
+                                </small>
+                                <small id="charCount" class="text-muted">0 / 1000</small>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info rounded-3 border-0" style="background: #e3f2fd;">
+                            <i class="fas fa-robot me-2"></i>
+                            <strong>AI Sentiment Analysis:</strong> Our AI will analyze your response
+                            to detect emotional patterns and provide deeper insights in your results.
+                        </div>
+                    </div>
+
+                    {# Navigation Buttons #}
+                    <div class="d-flex justify-content-center gap-3 mt-4">
+                        <button id="prevBtn" onclick="prevQuestion()"
+                                class="btn btn-outline-secondary rounded-pill px-4" disabled>
+                            <i class="fas fa-arrow-left me-2"></i>Previous
+                        </button>
+                        <button id="nextBtn" onclick="nextQuestion()"
+                                class="btn btn-primary-custom rounded-pill px-4">
+                            Next <i class="fas fa-arrow-right ms-2"></i>
+                        </button>
+                        <button id="submitBtn" onclick="submitAssessment()"
+                                class="btn btn-success rounded-pill px-4"
+                                style="display: none;
+                                       background: linear-gradient(135deg, #50C878, #2E7D32);
+                                       border: none;">
+                            <i class="fas fa-check-circle me-2"></i>Submit & Analyze
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {# Tip Card #}
+            <div class="card mt-4 border-0 rounded-4"
+                 style="background: #f8f9fa;" data-aos="fade-up" data-aos-delay="200">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-lightbulb fa-2x me-3 text-warning"></i>
+                        <div>
+                            <h6 class="mb-0 fw-bold">Tip</h6>
+                            <small class="text-muted">
+                                Answer honestly for the most accurate results.
+                                There are no right or wrong answers.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Hidden Submission Form #}
+<form id="submitForm" method="post" action="{{ path('result_submit') }}" style="display: none;">
+    <input type="hidden" name="user_id"       value="{{ app.user.id }}">
+    <input type="hidden" name="assessment_id" value="{{ assessment.assessmentId }}">
+    <input type="hidden" name="free_text"     id="hiddenFreeText" value="">
+    <div id="hiddenAnswers"></div>
+</form>
+
+<script>
+// Data
+const questions = {{ questions|json_encode|raw }};
+let TOTAL = questions.length + 1;  // +1 for free text at the end
+
+// State
+let currentIndex = 0;
+let answers = {};
+let isFreeTextStep = false;
+let categoryScores = { anxiety: 0, depression: 0, sleep: 0, social: 0, general: 0 };
+let questionCounts = { anxiety: 0, depression: 0, sleep: 0, social: 0, general: 0 };
+let adaptiveQuestionsAdded = 0;
+const MAX_ADAPTIVE_QUESTIONS = 3;
+
+// Show Question
+function showQuestion(index) {
+    const progress = ((index + 1) / TOTAL) * 100;
+    document.getElementById('progressBar').style.width = progress + '%';
+    document.getElementById('currentQuestionNum').textContent = index + 1;
+    document.getElementById('totalQuestions').textContent = TOTAL;
+
+    // Last step = free text
+    if (index === questions.length) {
+        isFreeTextStep = true;
+        document.getElementById('questionSection').style.display = 'none';
+        document.getElementById('freeTextSection').style.display = 'block';
+        document.getElementById('nextBtn').style.display = 'none';
+        document.getElementById('submitBtn').style.display = 'inline-block';
+        document.getElementById('prevBtn').disabled = false;
+        return;
+    }
+
+    isFreeTextStep = false;
+    document.getElementById('questionSection').style.display = 'block';
+    document.getElementById('freeTextSection').style.display = 'none';
+
+    const q = questions[index];
+    document.getElementById('questionText').textContent = q.text;
+
+    const select = document.getElementById('answerSelect');
+    select.innerHTML = '<option value="">Select your answer...</option>';
+    
+    if (q.options && q.options.length > 0) {
+        q.options.forEach(function(option) {
+            const opt = document.createElement('option');
+            opt.value = option;
+            opt.textContent = option;
+            if (answers[q.id] === option) opt.selected = true;
+            select.appendChild(opt);
+        });
+    } else {
+        // Default options if none provided
+        ['Never', 'Rarely', 'Sometimes', 'Often', 'Always'].forEach(function(option) {
+            const opt = document.createElement('option');
+            opt.value = option;
+            opt.textContent = option;
+            if (answers[q.id] === option) opt.selected = true;
+            select.appendChild(opt);
+        });
+    }
+
+    document.getElementById('prevBtn').disabled = (index === 0);
+
+    if (index === questions.length - 1) {
+        document.getElementById('nextBtn').style.display = 'inline-block';
+        document.getElementById('submitBtn').style.display = 'none';
+        document.getElementById('nextBtn').innerHTML = 'Continue <i class="fas fa-arrow-right ms-2"></i>';
+    } else {
+        document.getElementById('nextBtn').style.display = 'inline-block';
+        document.getElementById('submitBtn').style.display = 'none';
+        document.getElementById('nextBtn').innerHTML = 'Next <i class="fas fa-arrow-right ms-2"></i>';
+    }
+}
+
+// Save Answer
+function saveAnswer() {
+    if (isFreeTextStep) return;
+    const q = questions[currentIndex];
+    const val = document.getElementById('answerSelect').value;
+    if (val && q) {
+        answers[q.id] = val;
+        updateCategoryScore(q.text, val);
+    }
+}
+
+// Category Score Tracking
+function updateCategoryScore(questionText, answer) {
+    const text = questionText.toLowerCase();
+    const score = parseAnswerScore(answer);
+    
+    if (text.includes('anxious') || text.includes('worry') || text.includes('nervous') || text.includes('fear')) {
+        categoryScores.anxiety += score;
+        questionCounts.anxiety++;
+    } else if (text.includes('depress') || text.includes('sad') || text.includes('hopeless') || text.includes('down')) {
+        categoryScores.depression += score;
+        questionCounts.depression++;
+    } else if (text.includes('sleep') || text.includes('tired') || text.includes('energy') || text.includes('fatigue')) {
+        categoryScores.sleep += score;
+        questionCounts.sleep++;
+    } else if (text.includes('social') || text.includes('alone') || text.includes('isolat') || text.includes('people')) {
+        categoryScores.social += score;
+        questionCounts.social++;
+    } else {
+        categoryScores.general += score;
+        questionCounts.general++;
+    }
+}
+
+function parseAnswerScore(answer) {
+    const a = answer.toLowerCase();
+    if (a.includes('always') || a.includes('very often') || a === '5') return 1.0;
+    if (a.includes('often') || a.includes('frequently') || a === '4') return 0.75;
+    if (a.includes('sometimes') || a.includes('occasionally') || a === '3') return 0.5;
+    if (a.includes('rarely') || a.includes('seldom') || a === '2') return 0.25;
+    return 0.0;
+}
+
+// Determine Next Focus for Adaptive Questions
+function determineNextFocus() {
+    // Don't add too many adaptive questions
+    if (adaptiveQuestionsAdded >= MAX_ADAPTIVE_QUESTIONS) {
+        return null;
+    }
+    
+    let maxCategory = 'general';
+    let maxScore = 0;
+    
+    for (const [cat, score] of Object.entries(categoryScores)) {
+        const count = questionCounts[cat] || 1;
+        const avgScore = score / count;
+        if (avgScore > maxScore && avgScore > 0.4) {  // Only if score is moderate or higher
+            maxScore = avgScore;
+            maxCategory = cat;
+        }
+    }
+    
+    // Only add adaptive questions if we have enough data and haven't asked too many
+    if (maxScore > 0.5 && questions.length < 15) {
+        return maxCategory;
+    }
+    
+    return null;
+}
+
+// Next Question
+function nextQuestion() {
+    saveAnswer();
+
+    if (currentIndex >= 1 && currentIndex < questions.length - 1) {
+        const focus = determineNextFocus();
+        
+        if (focus && adaptiveQuestionsAdded < MAX_ADAPTIVE_QUESTIONS) {
+            const askedIds = questions.map(q => q.id);
+            
+            fetch('{{ path("take_assessment_adaptive") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    categoryScores: categoryScores,
+                    focus: focus,
+                    askedIds: askedIds,
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success && data.question) {
+                    const alreadyHas = questions.some(q => q.text === data.question.text);
+                    if (!alreadyHas && data.question.options && data.question.options.length > 0) {
+                        questions.splice(currentIndex + 1, 0, data.question);
+                        adaptiveQuestionsAdded++;
+                        TOTAL = questions.length + 1;
+                        document.getElementById('totalQuestions').textContent = TOTAL;
+                    }
+                }
+                moveToNext();
+            })
+            .catch(() => moveToNext());
+            return;
+        }
+    }
+
+    moveToNext();
+}
+
+function moveToNext() {
+    if (currentIndex < questions.length) {
+        currentIndex++;
+        showQuestion(currentIndex);
+    }
+}
+
+// Previous Question
+function prevQuestion() {
+    saveAnswer();
+    if (isFreeTextStep) {
+        isFreeTextStep = false;
+        currentIndex = questions.length - 1;
+        showQuestion(currentIndex);
+        return;
+    }
+    if (currentIndex > 0) {
+        currentIndex--;
+        showQuestion(currentIndex);
+    }
+}
+
+// Submit Assessment
+function submitAssessment() {
+    // Check if all questions are answered
+    for (const q of questions) {
+        if (!answers[q.id]) {
+            alert('Please answer all questions before submitting.');
+            return;
+        }
+    }
+
+    const container = document.getElementById('hiddenAnswers');
+    container.innerHTML = '';
+    for (const [qId, answer] of Object.entries(answers)) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'answers[' + qId + ']';
+        input.value = answer;
+        container.appendChild(input);
+    }
+
+    const freeText = document.getElementById('freeTextAnswer').value.trim();
+    document.getElementById('hiddenFreeText').value = freeText;
+
+    const btn = document.getElementById('submitBtn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Analyzing...';
+    btn.disabled = true;
+
+    document.getElementById('submitForm').submit();
+}
+
+// Character Counter
+const freeTextArea = document.getElementById('freeTextAnswer');
+if (freeTextArea) {
+    freeTextArea.addEventListener('input', function() {
+        const len = this.value.length;
+        document.getElementById('charCount').textContent = len + ' / 1000';
+        if (len > 1000) this.value = this.value.substring(0, 1000);
+    });
+}
+
+// Initialize
+showQuestion(0);
+</script>
+{% endblock %}
+
+{% block stylesheets %}
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<style>
+.btn-primary-custom {
+    background: linear-gradient(135deg, #50C878 0%, #3A9B5E 100%);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+}
+.btn-primary-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(80, 200, 120, 0.4);
+    color: white !important;
+}
+.progress-bar { transition: width 0.4s ease; }
+.card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+</style>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>AOS.init({ duration: 800 });</script>
+{% endblock %}

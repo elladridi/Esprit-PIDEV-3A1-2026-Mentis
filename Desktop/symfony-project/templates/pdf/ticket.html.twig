@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Event Ticket - {{ event.title }}</title>
+    <style>
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: white;
+        }
+        .ticket {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #2F5D52 0%, #3E6F64 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .header p {
+            margin: 5px 0 0;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        .content {
+            padding: 20px;
+        }
+        .event-details {
+            background: #F1F6F4;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .ticket-details {
+            margin-bottom: 20px;
+        }
+        .qr-code {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .qr-code img {
+            width: 150px;
+            height: 150px;
+        }
+        .footer {
+            background: #F1F6F4;
+            padding: 15px;
+            text-align: center;
+            font-size: 10px;
+            color: #666;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        td {
+            padding: 8px;
+            vertical-align: top;
+        }
+        .label {
+            font-weight: bold;
+            color: #2F5D52;
+            width: 140px;
+        }
+        .confirmation {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2F5D52;
+            text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            background: #F1F6F4;
+            border-radius: 8px;
+        }
+        .status-confirmed {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .status-pending {
+            color: #ffc107;
+            font-weight: bold;
+        }
+        .status-cancelled {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        hr {
+            margin: 15px 0;
+            border: none;
+            border-top: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="ticket">
+        <div class="header">
+            <h1>🎟 MENTIS EVENT TICKET</h1>
+            <p>Mental Health Platform - Event Registration Confirmation</p>
+        </div>
+        
+        <div class="content">
+            <div class="confirmation">
+                Confirmation #: {{ registration.confirmationNumber }}
+            </div>
+            
+            <div class="event-details">
+                <h3 style="color: #2F5D52; margin-top: 0; margin-bottom: 15px;">📌 Event Details</h3>
+                <table>
+                    <tr>
+                        <td class="label">Event Name:</td>
+                        <td><strong>{{ event.title }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td class="label">Date & Time:</td>
+                        <td>{{ event.dateTime|date('l, F d, Y \\a\\t H:i') }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Location:</td>
+                        <td>{{ event.location|default('Online Event') }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Event Type:</td>
+                        <td>{{ event.eventType|replace({'_': ' '})|title }}</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="ticket-details">
+                <h3 style="color: #2F5D52; margin-top: 0; margin-bottom: 15px;">🎫 Ticket Information</h3>
+                <table>
+                    <tr>
+                        <td class="label">Attendee Name:</td>
+                        <td>{{ registration.userName }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Email:</td>
+                        <td>{{ registration.email }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Phone:</td>
+                        <td>{{ registration.phone|default('N/A') }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Ticket Type:</td>
+                        <td>{{ registration.ticketType|title }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Quantity:</td>
+                        <td>{{ registration.numberOfTickets }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Total Price:</td>
+                        <td>{% if registration.freeTicket %}FREE{% else %}${{ registration.totalPrice|number_format(2) }}{% endif %}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Payment Method:</td>
+                        <td>{{ registration.paymentMethod|default('N/A') }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Status:</td>
+                        <td class="status-{{ registration.status|lower }}">{{ registration.status|title }}</td>
+                    </tr>
+                    {% if registration.specialRequests %}
+                    <tr>
+                        <td class="label">Special Requests:</td>
+                        <td>{{ registration.specialRequests }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+            
+            {% if qrCodeDataUri %}
+            <div class="qr-code">
+                <h3 style="color: #2F5D52;">📱 QR Code - Scan for Check-in</h3>
+                <img src="{{ qrCodeDataUri }}" alt="QR Code">
+                <p style="font-size: 12px; color: #666;">Present this QR code at the event entrance</p>
+            </div>
+            {% endif %}
+            
+            <hr>
+            
+            <p style="font-size: 12px; text-align: center; color: #666;">
+                <strong>Important:</strong> Please arrive 15 minutes before the event start time.<br>
+                For online events, the meeting link will be sent to your email.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>© {{ "now"|date("Y") }} MENTIS - Mental Health Platform</p>
+            <p>This ticket is valid for one-time entry only.</p>
+            <p>For questions, contact: support@mentis.com</p>
+        </div>
+    </div>
+</body>
+</html>

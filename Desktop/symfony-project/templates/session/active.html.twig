@@ -1,0 +1,136 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Active Sessions - Mentis{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    {# Header #}
+    <div class="d-flex justify-content-between align-items-center mb-5" data-aos="fade-up">
+        <div>
+            <h1 class="display-5 fw-bold mb-2" style="color: #2E7D32;">
+                <i class="fas fa-play-circle me-2"></i>Active Sessions
+            </h1>
+            <p class="text-muted mb-0">{{ sessions|length }} sessions available for booking</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ path('session_index') }}" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="fas fa-list me-2"></i>All Sessions
+            </a>
+            <a href="{{ path('session_new') }}" class="btn btn-primary-custom rounded-pill px-4">
+                <i class="fas fa-plus me-2"></i>Add New
+            </a>
+        </div>
+    </div>
+
+    {# Flash Messages #}
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show rounded-pill mb-4 d-flex align-items-center" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    {% if sessions is empty %}
+        <div class="text-center py-5" data-aos="fade-up">
+            <div class="card shadow-sm border-0 p-5 rounded-4" style="background: linear-gradient(135deg, #F1F8E9, #E8F5E8); max-width: 500px; margin: 0 auto;">
+                <i class="fas fa-calendar-day fa-4x mb-3" style="color: #50C878;"></i>
+                <h3 class="text-muted mb-3">No Active Sessions</h3>
+                <p class="text-muted mb-4">Create your first session or activate existing ones</p>
+                <a href="{{ path('session_new') }}" class="btn btn-primary-custom rounded-pill px-5 py-2">
+                    <i class="fas fa-plus me-2"></i>Create Session
+                </a>
+            </div>
+        </div>
+    {% else %}
+        <div class="row g-4">
+            {% for session in sessions %}
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="{{ loop.index * 100 }}">
+                    <div class="card shadow-sm border-0 h-100 rounded-4 overflow-hidden">
+                        <div class="card-header bg-gradient text-white py-3 px-4" style="background: linear-gradient(135deg, #2E7D32 0%, #50C878 100%);">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-white text-success rounded-pill px-3">{{ session.sessionType }}</span>
+                                <span class="small">${{ session.price }}</span>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            <h5 class="fw-bold mb-2" style="color: #2E7D32;">{{ session.title }}</h5>
+                            <div class="mb-3">
+                                <div class="small text-muted mb-1">
+                                    <i class="fas fa-calendar me-2"></i>{{ session.sessionDate|date('l, M d, Y') }}
+                                </div>
+                                <div class="small text-muted mb-1">
+                                    <i class="fas fa-clock me-2"></i>{{ session.startTime|date('H:i') }} - {{ session.endTime|date('H:i') }}
+                                </div>
+                                <div class="small text-muted">
+                                    <i class="fas fa-map-marker-alt me-2"></i>{{ session.location }}
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span>Available Spots</span>
+                                    <span class="fw-bold">{{ session.maxParticipants - session.currentParticipants }}/{{ session.maxParticipants }}</span>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-success" style="width: {{ (session.currentParticipants / session.maxParticipants) * 100 }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white border-0 p-4 pt-0">
+                            <form method="post" action="{{ path('session_reserve', {id: session.sessionId}) }}">
+                                <input type="hidden" name="patientId" value="{{ app.user.id ?? 1 }}">
+                                <button type="submit" class="btn btn-primary-custom w-100 rounded-pill py-2 {% if session.reservedBy is not null %}disabled{% endif %}">
+                                    {% if session.reservedBy is null %}
+                                        <i class="fas fa-calendar-check me-2"></i>Reserve Now
+                                    {% else %}
+                                        <i class="fas fa-lock me-2"></i>Reserved
+                                    {% endif %}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        {# Summary #}
+        <div class="text-center mt-5" data-aos="fade-up">
+            <small class="text-muted">
+                Showing {{ sessions|length }} active session{{ sessions|length|default(0) != 1 ? 's' : '' }}
+            </small>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<style>
+.btn-primary-custom {
+    background: linear-gradient(135deg, #50C878 0%, #3A9B5E 100%);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+.btn-primary-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(80, 200, 120, 0.4);
+    color: white !important;
+}
+.card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 35px rgba(0, 0, 0, 0.1) !important;
+}
+.bg-gradient {
+    position: relative;
+}
+</style>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>AOS.init({ duration: 800 });</script>
+{% endblock %}

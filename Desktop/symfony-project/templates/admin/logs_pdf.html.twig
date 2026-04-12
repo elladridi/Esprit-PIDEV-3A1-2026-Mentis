@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        h1 { color: #50C878; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f2f2f2; color: #333; font-weight: bold; }
+        tr:nth-child(even) { background-color: #fafafa; }
+        .footer { position: fixed; bottom: 0; width: 100%; text-align: center; font-size: 10px; color: #777; }
+    </style>
+</head>
+<body>
+    <h1>Mentis - Content Access Logs</h1>
+    <p>Report generated on: {{ "now"|date("Y-m-d H:i:s") }}</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>User</th>
+                <th>Email</th>
+                <th>Content</th>
+                <th>Accessed At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr>
+                <td>{{ log.id }}</td>
+                <td>{{ log.user.firstname }} {{ log.user.lastname }}</td>
+                <td>{{ log.user.email }}</td>
+                <td>{{ log.contentNode.title }}</td>
+                <td>{{ log.accessedAt|date("Y-m-d H:i:s") }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div class="footer">
+        Mentis Mental Health Platform - Access Audit Report
+    </div>
+</body>
+</html>

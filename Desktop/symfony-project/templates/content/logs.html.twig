@@ -1,0 +1,295 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Content Observability Logs{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>Content Access Logs</h1>
+            <p class="text-muted">Live observability with real assignment metrics.</p>
+        </div>
+        <form class="d-flex" method="get" action="{{ path('content_logs') }}">
+            <input id="logsSearch" type="text" class="form-control me-2" name="q" placeholder="Search content" value="{{ searchTerm|default('') }}">
+            <button class="btn btn-outline-success" type="submit">Search</button>
+        </form>
+        <small class="text-muted ms-3">Filter logs as you type.</small>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 text-center p-3">
+                <h6 class="text-muted mb-1">Total Content</h6>
+                <h3 class="mb-0">{{ kpis.totalContent }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 text-center p-3">
+                <h6 class="text-muted mb-1">Total Assignments</h6>
+                <h3 class="mb-0">{{ kpis.totalAssigned }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 text-center p-3">
+                <h6 class="text-muted mb-1">Total Opened</h6>
+                <h3 class="mb-0">{{ kpis.totalOpened }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 text-center p-3">
+                <h6 class="text-muted mb-1">Completion Rate</h6>
+                <h3 class="mb-0">{{ kpis.overallCompletionRate }}%</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">Top Completion Content</h6>
+                </div>
+                <div class="card-body p-3">
+                    <ul class="list-unstyled mb-0">
+                        {% for entry in topContent %}
+                            <li class="mb-2">
+                                <strong>{{ entry.node.title }}</strong> – {{ entry.completionRate }}% ({{ entry.totalOpened }}/{{ entry.totalAssigned }})
+                            </li>
+                        {% else %}
+                            <li class="text-muted">No entries yet.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">Lowest Completion Content</h6>
+                </div>
+                <div class="card-body p-3">
+                    <ul class="list-unstyled mb-0">
+                        {% for entry in bottomContent %}
+                            <li class="mb-2">
+                                <strong>{{ entry.node.title }}</strong> – {{ entry.completionRate }}% ({{ entry.totalOpened }}/{{ entry.totalAssigned }})
+                            </li>
+                        {% else %}
+                            <li class="text-muted">No entries yet.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 text-center p-3">
+                <h6 class="text-muted mb-1">Average Content Completion</h6>
+                <h3 class="mb-0">{{ kpis.averageCompletion }}%</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 text-center p-3">
+                <h6 class="text-muted mb-1">Not Opened Yet</h6>
+                <h3 class="mb-0">{{ kpis.totalNotOpened }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">Completion by content</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="completionChart" height="180"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">Assigned vs Opened ratio</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="ratioChart" height="180"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-3">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Content</th>
+                        <th>Assigned</th>
+                        <th>Opened</th>
+                        <th>Completion</th>
+                        <th>Not open yet</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in logs %}
+                        <tr>
+                            <td>{{ entry.node.title }}</td>
+                            <td>{{ entry.totalAssigned }}</td>
+                            <td>{{ entry.totalOpened }}</td>
+                            <td>{{ entry.completionRate }}%</td>
+                            <td>{{ entry.notOpened|length }}</td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="5" class="text-center">No records found for this query.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Recently Opened</h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-sm mb-0">
+                        <thead><tr><th>Content</th><th>User</th><th>Accessed</th></tr></thead>
+                        <tbody>
+                            {% for entry in logs %}
+                                {% for path in entry.paths %}
+                                    <tr>
+                                        <td>{{ entry.node.title }}</td>
+                                        <td>{{ path.user.firstname }} {{ path.user.lastname }}</td>
+                                        <td>{{ path.accessedAt|date('M d, Y H:i') }}</td>
+                                    </tr>
+                                {% endfor %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Pending Opens</h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-sm mb-0">
+                        <thead><tr><th>Content</th><th>Patient</th></tr></thead>
+                        <tbody>
+                            {% for entry in logs %}
+                                {% for patient in entry.notOpened %}
+                                    <tr>
+                                        <td>{{ entry.node.title }}</td>
+                                        <td>{{ patient.firstname }} {{ patient.lastname }}</td>
+                                    </tr>
+                                {% endfor %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a class="btn btn-secondary" href="{{ path('content_index') }}">Back to Content Library</a>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const logsSearch = document.getElementById('logsSearch');
+            const logRows = document.querySelectorAll('table tbody tr');
+
+            function filterLogs() {
+                const query = logsSearch.value.trim().toLowerCase();
+                logRows.forEach(row => {
+                    const rowText = row.textContent.toLowerCase();
+                    row.style.display = !query || rowText.includes(query) ? 'table-row' : 'none';
+                });
+            }
+
+            if (logsSearch) {
+                logsSearch.addEventListener('input', filterLogs);
+                filterLogs();
+            }
+
+            const completionLabels = {{ logs|map(entry => entry.node.title)|json_encode|raw }};
+            const completionData = {{ logs|map(entry => entry.completionRate)|json_encode|raw }};
+            const assignedData = {{ logs|map(entry => entry.totalAssigned)|json_encode|raw }};
+            const openedData = {{ logs|map(entry => entry.totalOpened)|json_encode|raw }};
+
+            const ctx1 = document.getElementById('completionChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: completionLabels,
+                    datasets: [{
+                        label: 'Completion %',
+                        data: completionData,
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {display: true, text: 'Completion %'}
+                        }
+                    }
+                }
+            });
+
+            const ctx2 = document.getElementById('ratioChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: completionLabels,
+                    datasets: [
+                        {
+                            label: 'Assigned',
+                            data: assignedData,
+                            borderColor: 'rgba(99, 132, 255, 1)',
+                            backgroundColor: 'rgba(99, 132, 255, 0.4)',
+                            fill: false,
+                            tension: 0.2
+                        },
+                        {
+                            label: 'Opened',
+                            data: openedData,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.4)',
+                            fill: false,
+                            tension: 0.2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {display: true, text: 'Users'}
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}

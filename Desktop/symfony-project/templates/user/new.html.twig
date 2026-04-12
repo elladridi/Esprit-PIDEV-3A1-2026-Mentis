@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Add New {{ role|capitalize }} - Mentis{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">➕ Add New {{ role|capitalize }}</h4>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.firstname) }}
+                            {{ form_widget(form.firstname, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.firstname) }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.lastname) }}
+                            {{ form_widget(form.lastname, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.lastname) }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.email) }}
+                            {{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.email) }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.phone) }}
+                            {{ form_widget(form.phone, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.phone) }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.dateofbirth) }}
+                            {{ form_widget(form.dateofbirth, {'attr': {'class': 'form-control', 'type': 'date'}}) }}
+                            {{ form_errors(form.dateofbirth) }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.gender) }}
+                            {{ form_widget(form.gender, {'attr': {'class': 'form-select'}}) }}
+                            {{ form_errors(form.gender) }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form_label(form.plainPassword) }}
+                        {{ form_widget(form.plainPassword, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.plainPassword) }}
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Save {{ role|capitalize }}</button>
+                    <a href="{{ path('app_dashboard_' ~ role) }}" class="btn btn-secondary">Cancel</a>
+                    
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

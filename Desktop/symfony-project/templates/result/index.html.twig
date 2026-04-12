@@ -1,0 +1,319 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Assessment Results - Mentis{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    {# Header - PATIENT vs PSYCHOLOGIST #}
+    <div class="d-flex justify-content-between align-items-center mb-4" data-aos="fade-up">
+        <div>
+            {% if app.user and app.user.type == 'Psychologist' %}
+                <h1 class="display-4 fw-bold" style="color: #2E7D32;">
+                    <i class="fas fa-chart-line me-2"></i>Patient Assessment Results
+                </h1>
+                <p class="lead text-muted">Manage all patient assessments</p>
+            {% else %}
+                <h1 class="display-4 fw-bold" style="color: #2E7D32;">
+                    <i class="fas fa-clipboard-list me-2"></i>My Assessment Results
+                </h1>
+                <p class="lead text-muted">Your personal mental health journey</p>
+            {% endif %}
+        </div>
+        
+        {# Patient Progress Button #}
+        {% if app.user and app.user.type == 'Patient' %}
+            <a href="{{ path('result_stats', {userId: app.user.id}) }}" class="btn btn-primary-custom rounded-pill px-4">
+                <i class="fas fa-chart-simple me-2"></i>My Progress
+            </a>
+        {% endif %}
+    </div>
+
+    {# Flash Messages #}
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert" data-aos="fade-up">
+            <i class="fas fa-check-circle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    {# 🔒 PATIENT FILTERS HIDDEN - Only Psychologists See Filters #}
+    {% if app.user and app.user.type == 'Psychologist' %}
+    <div class="card shadow-sm border-0 mb-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" id="filterPatient" class="form-control rounded-pill" placeholder="🔍 Search by patient name...">
+                </div>
+                <div class="col-md-3">
+                    <select id="filterRisk" class="form-select rounded-pill">
+                        <option value="">All Risk Levels</option>
+                        <option value="Low">Low</option>
+                        <option value="Minimal">Minimal</option>
+                        <option value="Mild">Mild</option>
+                        <option value="Moderate">Moderate</option>
+                        <option value="High">High</option>
+                        <option value="Severe">Severe</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <input type="date" id="filterDate" class="form-control rounded-pill">
+                </div>
+                <div class="col-md-2">
+                    <button id="resetFilters" class="btn btn-secondary rounded-pill w-100">Reset</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Results Table #}
+    {% if results is empty %}
+        <div class="text-center py-5" data-aos="fade-up">
+            <div class="card shadow-sm border-0 p-5" style="background: #F1F8E9;">
+                <i class="fas fa-chart-line fa-4x mb-3" style="color: #50C878;"></i>
+                <h3 class="text-muted">
+                    {% if app.user and app.user.type == 'Psychologist' %}
+                        No Patient Results Yet
+                    {% else %}
+                        No Results Yet
+                    {% endif %}
+                </h3>
+                <p class="text-muted">
+                    {% if app.user and app.user.type == 'Psychologist' %}
+                        No patients have completed assessments.
+                    {% else %}
+                        Take your first assessment to see results here.
+                    {% endif %}
+                </p>
+                <a href="{{ path('take_assessment_index') }}" class="btn btn-primary-custom rounded-pill px-4 mx-auto d-inline-block">
+                    <i class="fas fa-play me-2"></i>
+                    {% if app.user and app.user.type == 'Psychologist' %}
+                        View Assessments
+                    {% else %}
+                        Take Assessment
+                    {% endif %}
+                </a>
+            </div>
+        </div>
+    {% else %}
+        <div class="table-responsive" data-aos="fade-up" data-aos-delay="200">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        {% if app.user and app.user.type == 'Psychologist' %}
+                            <th>Patient</th>
+                        {% endif %}
+                        <th>Assessment</th>
+                        <th class="text-center">Score</th>
+                        <th>Risk Level</th>
+                        <th>Date</th>
+                        {% if app.user and app.user.type == 'Psychologist' %}
+                            <th>Session Suggested</th>
+                        {% endif %}
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in results %}
+                    <tr class="result-row" 
+                        {% if app.user and app.user.type == 'Psychologist' %}
+                            data-patient="{{ result.user ? result.user.firstname ~ ' ' ~ result.user.lastname : 'Unknown'|lower }}"
+                            data-risk="{{ result.riskLevel }}"
+                            data-date="{{ result.takenAt ? result.takenAt|date('Y-m-d') : '' }}"
+                        {% endif %}>
+                        
+                        <td>{{ result.resultId }}</td>
+                        
+                        {# 🔒 PATIENTS DON'T SEE OTHER PATIENT NAMES #}
+                        {% if app.user and app.user.type == 'Psychologist' %}
+                            <td>
+                                <strong>{{ result.user ? result.user.firstname ~ ' ' ~ result.user.lastname : 'Unknown' }}</strong>
+                            </td>
+                        {% endif %}
+                        
+                        <td>{{ result.assessment ? result.assessment.title : 'N/A' }}</td>
+                        <td class="text-center">
+                            <span class="fw-bold">{{ result.totalScore }}</span>
+                        </td>
+                        <td>
+                            <span class="badge rounded-pill px-3 py-2 
+                                {% if result.riskLevel in ['High', 'Severe'] %}bg-danger
+                                {% elseif result.riskLevel in ['Moderate', 'Mild'] %}bg-warning text-dark
+                                {% else %}bg-success{% endif %}">
+                                {{ result.riskLevel }}
+                            </span>
+                        </td>
+                        <td>{{ result.takenAt ? result.takenAt|date('M d, Y H:i') : 'N/A' }}</td>
+                        
+                        {# 🔒 SESSION COLUMN ONLY FOR PSYCHOLOGISTS #}
+                        {% if app.user and app.user.type == 'Psychologist' %}
+                            <td>
+                                {% if result.suggestSession %}
+                                    <span class="badge bg-danger rounded-pill">Yes</span>
+                                {% else %}
+                                    <span class="badge bg-secondary rounded-pill">No</span>
+                                {% endif %}
+                            </td>
+                        {% endif %}
+                        
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{{ path('result_show', {id: result.resultId}) }}" 
+                                   class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                    <i class="fas fa-eye me-1"></i>View
+                                </a>
+                                <a href="{{ path('result_export_pdf', {id: result.resultId}) }}" 
+                                   class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                                    <i class="fas fa-file-pdf me-1"></i>PDF
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {# Summary Cards - PATIENT vs PSYCHOLOGIST #}
+        <div class="row mt-4 g-3" data-aos="fade-up" data-aos-delay="300">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center p-3" style="background: #F1F8E9;">
+                    <div class="card-body">
+                        <i class="fas fa-chart-line fa-2x mb-2" style="color: #50C878;"></i>
+                        <h5 class="mb-0">{{ results|length }}</h5>
+                        <small class="text-muted">
+                            {% if app.user and app.user.type == 'Psychologist' %}
+                                Total Assessments
+                            {% else %}
+                                My Assessments
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center p-3" style="background: #F1F8E9;">
+                    <div class="card-body">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-2" style="color: #e67e22;"></i>
+                        <h5 class="mb-0">
+                            {% set highRisk = 0 %}
+                            {% for result in results %}
+                                {% if result.riskLevel in ['High', 'Severe'] %}{% set highRisk = highRisk + 1 %}{% endif %}
+                            {% endfor %}
+                            {{ highRisk }}
+                        </h5>
+                        <small class="text-muted">
+                            {% if app.user and app.user.type == 'Psychologist' %}
+                                High Risk Cases
+                            {% else %}
+                                My High Risk
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center p-3" style="background: #F1F8E9;">
+                    <div class="card-body">
+                        <i class="fas fa-calendar-alt fa-2x mb-2" style="color: #50C878;"></i>
+                        <h5 class="mb-0">{{ results|last ? results|last.takenAt|date('M d, Y') : 'N/A' }}</h5>
+                        <small class="text-muted">Latest Assessment</small>
+                    </div>
+                </div>
+            </div>
+            {% if app.user and app.user.type == 'Psychologist' %}
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center p-3" style="background: #F1F8E9;">
+                    <div class="card-body">
+                        <i class="fas fa-users fa-2x mb-2" style="color: #50C878;"></i>
+                        <h5 class="mb-0">
+                            {% set uniquePatients = [] %}
+                            {% for result in results %}
+                                {% if result.user and result.user.id not in uniquePatients %}
+                                    {% set uniquePatients = uniquePatients|merge([result.user.id]) %}
+                                {% endif %}
+                            {% endfor %}
+                            {{ uniquePatients|length }}
+                        </h5>
+                        <small class="text-muted">Unique Patients</small>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+{# 🔒 PSYCHOLOGIST-ONLY FILTERING SCRIPT #}
+{% if app.user and app.user.type == 'Psychologist' %}
+<script>
+document.getElementById('filterPatient')?.addEventListener('keyup', filterResults);
+document.getElementById('filterRisk')?.addEventListener('change', filterResults);
+document.getElementById('filterDate')?.addEventListener('change', filterResults);
+document.getElementById('resetFilters')?.addEventListener('click', resetFilters);
+
+function filterResults() {
+    const patientFilter = document.getElementById('filterPatient')?.value.toLowerCase() || '';
+    const riskFilter = document.getElementById('filterRisk')?.value || '';
+    const dateFilter = document.getElementById('filterDate')?.value || '';
+    
+    const rows = document.querySelectorAll('.result-row');
+    
+    rows.forEach(row => {
+        const patient = row.getAttribute('data-patient') || '';
+        const risk = row.getAttribute('data-risk') || '';
+        const date = row.getAttribute('data-date') || '';
+        
+        let show = true;
+        
+        if (patientFilter && !patient.includes(patientFilter)) show = false;
+        if (riskFilter && risk !== riskFilter) show = false;
+        if (dateFilter && date !== dateFilter) show = false;
+        
+        row.style.display = show ? '' : 'none';
+    });
+}
+
+function resetFilters() {
+    if (document.getElementById('filterPatient')) document.getElementById('filterPatient').value = '';
+    if (document.getElementById('filterRisk')) document.getElementById('filterRisk').value = '';
+    if (document.getElementById('filterDate')) document.getElementById('filterDate').value = '';
+    filterResults();
+}
+</script>
+{% endif %}
+{% endblock %}
+
+{% block stylesheets %}
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<style>
+.btn-primary-custom {
+    background: linear-gradient(135deg, #50C878 0%, #3A9B5E 100%);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+}
+.btn-primary-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(80, 200, 120, 0.4);
+    color: white !important;
+}
+.table th {
+    border-bottom: 2px solid #50C878;
+    font-weight: 600;
+}
+.card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
+}
+</style>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>AOS.init({ duration: 800 });</script>
+{% endblock %}

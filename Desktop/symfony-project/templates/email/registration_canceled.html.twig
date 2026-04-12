@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Cancelled - MENTIS</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #D62828 0%, #B71C1C 100%);
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 28px;
+        }
+        .header p {
+            color: #FFCDD2;
+            margin: 10px 0 0 0;
+        }
+        .content {
+            padding: 30px;
+        }
+        .cancelled-badge {
+            background: #FFEBEE;
+            color: #D62828;
+            padding: 10px 20px;
+            border-radius: 20px;
+            display: inline-block;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .event-card {
+            background: #F1F6F4;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #D62828;
+        }
+        .event-card h2 {
+            color: #D62828;
+            margin: 0 0 15px 0;
+            font-size: 20px;
+        }
+        .detail-row {
+            display: flex;
+            margin: 10px 0;
+        }
+        .detail-label {
+            color: #6B7280;
+            width: 120px;
+        }
+        .detail-value {
+            color: #1E1E1E;
+            font-weight: 500;
+        }
+        .footer {
+            background: #F1F6F4;
+            padding: 20px;
+            text-align: center;
+            color: #6B7280;
+            font-size: 12px;
+        }
+        .button {
+            display: inline-block;
+            background: #2F5D52;
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 25px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>❌ Registration Cancelled</h1>
+            <p>MENTIS Mental Health Platform</p>
+        </div>
+        
+        <div class="content">
+            <span class="cancelled-badge">❌ CANCELLED</span>
+            
+            <p>Dear <strong>{{ registration.userName }}</strong>,</p>
+            <p>Your registration for the following event has been cancelled as requested.</p>
+            
+            <div class="event-card">
+                <h2>📌 {{ event.title }}</h2>
+                <div class="detail-row">
+                    <span class="detail-label">📅 Date & Time:</span>
+                    <span class="detail-value">{{ event.dateTime|date('l, F d, Y \\a\\t H:i') }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">📍 Location:</span>
+                    <span class="detail-value">{{ event.location|default('Online Event') }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">🎫 Ticket:</span>
+                    <span class="detail-value">{{ registration.ticketType|title }} × {{ registration.numberOfTickets }}</span>
+                </div>
+            </div>
+            
+            <p>If you cancelled by mistake or would like to re-register, please visit our events page.</p>
+            <p>We hope to see you at future events!</p>
+            
+            <a href="{{ url('app_event_index') }}" class="button">Browse Events</a>
+        </div>
+        
+        <div class="footer">
+            <p>© {{ "now"|date("Y") }} MENTIS - Mental Health Platform</p>
+            <p>This is an automated message. Please do not reply directly to this email.</p>
+        </div>
+    </div>
+</body>
+</html>

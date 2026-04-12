@@ -1,0 +1,141 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Patient Dashboard - Mentis{% endblock %}
+
+{% block body %}
+<div class="container-lg py-4">
+    <div class="app-hero mb-4">
+        <div class="hero-inner">
+            <h1 class="dash-welcome mb-2" style="font-size: 2.3rem; font-weight: 800;">Welcome back, {{ user.firstname }}!</h1>
+            <p class="text-muted" style="font-size: 1.05rem;">Your mental wellness journey continues here.</p>
+        </div>
+    </div>
+
+    {# Assessment Quick Access Section #}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-clipboard-list me-2" style="color: #50C878;"></i> Quick Access Assessments</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row gy-4">
+        <div class="col-md-6">
+            <div class="info-card p-4 bg-white rounded-3 shadow-sm">
+                <h5><i class="fas fa-user-circle me-2" style="color: #50C878;"></i> My Profile</h5>
+                <table class="table table-borderless">
+                    <tr><th width="35%">Full Name:</th><td>{{ user.firstname }} {{ user.lastname }}</td></tr>
+                    <tr><th>Email:</th><td>{{ user.email }}</td></tr>
+                    <tr><th>Phone:</th><td>{{ user.phone }}</td></tr>
+                    <tr><th>Date of Birth:</th><td>{{ user.dateofbirth }}</td></tr>
+                    <tr><th>Age:</th><td>{{ user.age }} years</td></tr>
+                    <tr><th>Gender:</th><td>
+                        {% if user.gender == 'male' %}
+                            <span class="badge" style="background: #d4f5e8; color: #2d6a4f;">👨 Male</span>
+                        {% elseif user.gender == 'female' %}
+                            <span class="badge" style="background: #fce4e4; color: #c92a2a;">👩 Female</span>
+                        {% else %}
+                            <span class="badge" style="background: #e9ecef;">👤 Other</span>
+                        {% endif %}
+                    </td></tr>
+                    <tr><th>Member Since:</th><td>{{ user.createdAt|date('d/m/Y') }}</td></tr>
+                </table>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="info-card p-4 bg-white rounded-3 shadow-sm">
+                <h5><i class="fas fa-heart-pulse me-2" style="color: #50C878;"></i> Quick Actions</h5>
+                <div class="d-grid gap-2">
+                    <a href="{{ path('take_assessment_index') }}" class="btn btn-modern" style="background: #50C878; color: white; padding: 12px; border-radius: 10px; text-decoration: none; text-align: center;">
+                        <i class="fas fa-clipboard-list me-2"></i> Take an Assessment
+                    </a>
+                    <a href="{{ path('result_stats', {userId: user.id}) }}" class="btn btn-outline-success" style="padding: 12px; border-radius: 10px;">
+                        <i class="fas fa-chart-line me-2"></i> View My Progress
+                    </a>
+                    <a href="{{ path('content_index') }}" class="btn btn-outline-success" style="padding: 12px; border-radius: 10px;">
+                        <i class="fas fa-book-open me-2"></i> View Content
+                    </a>
+                    <a href="{{ path('result_index') }}" class="btn btn-outline-success" style="padding: 12px; border-radius: 10px;">
+                        <i class="fas fa-history me-2"></i> My Assessment History
+                    </a>
+                    <a href="{{ path('app_chatbot') }}" class="btn btn-outline-success" style="padding: 12px; border-radius: 10px;">
+                        <i class="fas fa-robot me-2"></i> AI Chatbot Support
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {# Recent Assessments Section #}
+    {% if recentResults is defined and recentResults|length > 0 %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-simple me-2" style="color: #50C878;"></i> Recent Assessment Results</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Assessment</th>
+                                    <th>Score</th>
+                                    <th>Risk Level</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for result in recentResults|slice(0, 5) %}
+                                <tr>
+                                    <td>{{ result.assessment ? result.assessment.title : 'N/A' }}</td>
+                                    <td class="text-center">{{ result.totalScore }}</td>
+                                    <td>
+                                        <span class="badge {% if result.riskLevel in ['High', 'Severe'] %}bg-danger{% elseif result.riskLevel in ['Moderate', 'Mild'] %}bg-warning{% else %}bg-success{% endif %}">
+                                            {{ result.riskLevel }}
+                                        </span>
+                                    </td>
+                                    <td>{{ result.takenAt ? result.takenAt|date('M d, Y') : 'N/A' }}</td>
+                                    <td>
+                                        <a href="{{ path('result_show', {id: result.resultId}) }}" class="btn btn-sm btn-primary">View Details</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .info-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .info-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    .btn-modern {
+        transition: all 0.3s;
+    }
+    .btn-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(80, 200, 120, 0.3);
+    }
+</style>
+{% endblock %}

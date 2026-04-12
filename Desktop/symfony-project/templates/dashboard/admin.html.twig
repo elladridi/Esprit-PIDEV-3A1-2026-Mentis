@@ -1,0 +1,474 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin Dashboard - Mentis{% endblock %}
+
+{% block body %}
+<div class="container-lg py-4">
+    <!-- Welcome Section -->
+    <div class="app-hero mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="display-5 fw-bold">👋 Welcome, {{ user.firstname }}!</h1>
+                <p class="lead">Manage patients, psychologists, and system settings.</p>
+            </div>
+            <div>
+                <i class="bi bi-shield-lock fs-1" style="color: #50C878;"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Patients Section -->
+    <div class="info-card p-0 bg-white overflow-hidden mb-4">
+        <div class="p-3 border-bottom d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #f8f9fa, #e9ecef);">
+            <h5 class="mb-0"><i class="bi bi-people me-2"></i> Patients Management</h5>
+            <div>
+                <a href="{{ path('app_admin_patient_new') }}" class="btn-modern btn-sm">
+                    <i class="bi bi-plus-circle me-1"></i> Add Patient
+                </a>
+            </div>
+        </div>
+        
+        <!-- Search and Filter Bar -->
+        <div class="p-3 bg-light border-bottom">
+            <div class="row g-2">
+                <div class="col-md-4">
+                    <input type="text" id="patientSearch" class="form-control" placeholder="🔍 Search by name, email, phone...">
+                </div>
+                <div class="col-md-3">
+                    <select id="patientGenderFilter" class="form-select">
+                        <option value="">All Genders</option>
+                        <option value="male">👨 Male</option>
+                        <option value="female">👩 Female</option>
+                        <option value="other">👤 Other</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select id="patientAgeFilter" class="form-select">
+                        <option value="">All Ages</option>
+                        <option value="0-18">0-18 years</option>
+                        <option value="19-30">19-30 years</option>
+                        <option value="31-45">31-45 years</option>
+                        <option value="46-60">46-60 years</option>
+                        <option value="60+">60+ years</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-secondary w-100" onclick="resetPatientFilters()">
+                        <i class="bi bi-arrow-repeat"></i> Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Patient Statistics (dynamic) -->
+        <div id="patientStats" class="row g-3 p-3 bg-light border-bottom">
+            <div class="col-md-3">
+                <div class="chart-stat text-center">
+                    <small class="text-muted">Total Patients</small>
+                    <strong id="patientTotal">0</strong>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="chart-stat text-center">
+                    <small class="text-muted">Average Age</small>
+                    <strong id="patientAvgAge">0</strong>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="chart-stat text-center">
+                    <small class="text-muted">Age Range</small>
+                    <strong id="patientAgeRange">0 - 0</strong>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="chart-stat text-center">
+                    <small class="text-muted">Gender Ratio</small>
+                    <strong id="patientGenderRatio">👨 0 | 👩 0</strong>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Age Distribution Chart -->
+        <div class="p-3 border-bottom">
+            <canvas id="patientAgeChart" height="120"></canvas>
+        </div>
+        
+        <!-- Patients Table -->
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th><a href="#" onclick="sortPatients('id')">ID <i class="bi bi-arrow-down-up"></i></a></th>
+                        <th><a href="#" onclick="sortPatients('firstname')">Name <i class="bi bi-arrow-down-up"></i></a></th>
+                        <th><a href="#" onclick="sortPatients('email')">Email <i class="bi bi-arrow-down-up"></i></a></th>
+                        <th><a href="#" onclick="sortPatients('phone')">Phone <i class="bi bi-arrow-down-up"></i></a></th>
+                        <th>Date of Birth</th>
+                        <th>Age</th>
+                        <th>Gender</th>
+                        <th><a href="#" onclick="sortPatients('createdAt')">Registered <i class="bi bi-arrow-down-up"></i></a></th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="patientsTableBody">
+                    <tr>
+                        <td colspan="9" class="text-center py-4">
+                            <div class="spinner-border text-success" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Psychologists Section -->
+    <div class="info-card p-0 bg-white overflow-hidden mb-4">
+        <div class="p-3 border-bottom d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #f8f9fa, #e9ecef);">
+            <h5 class="mb-0"><i class="bi bi-person-badge me-2"></i> Psychologists Management</h5>
+            <div>
+                <a href="{{ path('app_admin_psychologist_new') }}" class="btn-modern btn-sm">
+                    <i class="bi bi-plus-circle me-1"></i> Add Psychologist
+                </a>
+            </div>
+        </div>
+        
+        <!-- Search and Filter Bar for Psychologists -->
+        <div class="p-3 bg-light border-bottom">
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <input type="text" id="psychologistSearch" class="form-control" placeholder="🔍 Search by name, email, phone...">
+                </div>
+                <div class="col-md-4">
+                    <select id="psychologistGenderFilter" class="form-select">
+                        <option value="">All Genders</option>
+                        <option value="male">👨 Male</option>
+                        <option value="female">👩 Female</option>
+                        <option value="other">👤 Other</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-secondary w-100" onclick="resetPsychologistFilters()">
+                        <i class="bi bi-arrow-repeat"></i> Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Psychologists Table -->
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th><a href="#" onclick="sortPsychologists('id')">ID <i class="bi bi-arrow-down-up"></i></a></th>
+                        <th><a href="#" onclick="sortPsychologists('firstname')">Name <i class="bi bi-arrow-down-up"></i></a></th>
+                        <th><a href="#" onclick="sortPsychologists('email')">Email <i class="bi bi-arrow-down-up"></i></a></th>
+                        <th><a href="#" onclick="sortPsychologists('phone')">Phone <i class="bi bi-arrow-down-up"></i></a></th>
+                        <th>Date of Birth</th>
+                        <th>Age</th>
+                        <th>Gender</th>
+                        <th><a href="#" onclick="sortPsychologists('createdAt')">Registered <i class="bi bi-arrow-down-up"></i></a></th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="psychologistsTableBody">
+                    <tr>
+                        <td colspan="9" class="text-center py-4">
+                            <div class="spinner-border text-success" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Access Logs Section -->
+    <div class="info-card p-0 bg-white overflow-hidden mb-4">
+        <div class="p-3 border-bottom d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #f8f9fa, #e9ecef);">
+            <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i> Content Access Logs</h5>
+            <div class="d-flex gap-2">
+                <a href="{{ path('app_admin_logs_pdf') }}" class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-file-earmark-pdf me-1"></i> Export PDF
+                </a>
+                <a href="{{ path('app_admin_logs_excel') }}" class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-file-earmark-excel me-1"></i> Export CSV
+                </a>
+            </div>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Content</th>
+                        <th>Accessed At</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                        <tr>
+                            <td>{{ log.id }}</td>
+                            <td>
+                                <div><strong>{{ log.user.firstname }} {{ log.user.lastname }}</strong></div>
+                                <small class="text-muted">{{ log.user.email }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">{{ log.contentNode.title }}</span>
+                            </td>
+                            <td>
+                                <span class="text-muted"><i class="bi bi-calendar3 me-1"></i> {{ log.accessedAt|date('Y-m-d H:i:s') }}</span>
+                            </td>
+                            <td class="text-end">
+                                <form method="post" action="{{ path('app_admin_log_delete', {id: log.id}) }}" style="display: inline-block;">
+                                    <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this log entry?')" title="Delete Log">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">No access logs found.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% block javascripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Global variables
+    let patientChart = null;
+    let currentPatientSort = 'id';
+    let currentPatientOrder = 'DESC';
+    let currentPsychologistSort = 'id';
+    let currentPsychologistOrder = 'DESC';
+    
+    // Load patients on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadPatients();
+        loadPsychologists();
+        
+        // Add event listeners for real-time search
+        document.getElementById('patientSearch').addEventListener('input', debounce(loadPatients, 500));
+        document.getElementById('patientGenderFilter').addEventListener('change', loadPatients);
+        document.getElementById('patientAgeFilter').addEventListener('change', loadPatients);
+        document.getElementById('psychologistSearch').addEventListener('input', debounce(loadPsychologists, 500));
+        document.getElementById('psychologistGenderFilter').addEventListener('change', loadPsychologists);
+    });
+    
+    // Debounce function for search
+    function debounce(func, delay) {
+        let timeout;
+        return function() {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, arguments), delay);
+        };
+    }
+    
+    // Load Patients with AJAX
+    function loadPatients() {
+        const search = document.getElementById('patientSearch').value;
+        const gender = document.getElementById('patientGenderFilter').value;
+        const ageGroup = document.getElementById('patientAgeFilter').value;
+        
+        fetch(`/dashboard/admin/patients/data?search=${encodeURIComponent(search)}&sort=${currentPatientSort}&order=${currentPatientOrder}&gender=${gender}&ageGroup=${ageGroup}`)
+            .then(response => response.json())
+            .then(data => {
+                updatePatientsTable(data.patients);
+                updatePatientStats(data.stats);
+                updatePatientChart(data.stats.ageGroups);
+            })
+            .catch(error => console.error('Error:', error));
+    }
+    
+    // Load Psychologists with AJAX
+    function loadPsychologists() {
+        const search = document.getElementById('psychologistSearch').value;
+        const gender = document.getElementById('psychologistGenderFilter').value;
+        
+        fetch(`/dashboard/admin/psychologists/data?search=${encodeURIComponent(search)}&sort=${currentPsychologistSort}&order=${currentPsychologistOrder}&gender=${gender}`)
+            .then(response => response.json())
+            .then(data => {
+                updatePsychologistsTable(data.psychologists);
+            })
+            .catch(error => console.error('Error:', error));
+    }
+    
+    // Update Patients Table
+    function updatePatientsTable(patients) {
+        const tbody = document.getElementById('patientsTableBody');
+        
+        if (patients.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4">No patients found</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = patients.map(patient => `
+            <tr>
+                <td>${patient.id}</td>
+                <td><strong>${escapeHtml(patient.firstname)} ${escapeHtml(patient.lastname)}</strong></td>
+                <td>${escapeHtml(patient.email)}</td>
+                <td>${escapeHtml(patient.phone)}</td>
+                <td>${patient.dateofbirth}</td>
+                <td>${patient.age} years</td>
+                <td>${getGenderBadge(patient.gender)}</td>
+                <td>${patient.createdAt.split(' ')[0]}</td>
+                <td>
+                    <a href="/dashboard/admin/user/${patient.id}/edit" class="btn btn-sm btn-warning me-1" title="Edit">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <form method="post" action="/dashboard/admin/user/${patient.id}/delete" style="display: inline-block;">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete') }}">
+                        <button class="btn btn-sm btn-danger" onclick="return confirm('Delete this patient permanently?')" title="Delete">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        `).join('');
+    }
+    
+    // Update Psychologists Table
+    function updatePsychologistsTable(psychologists) {
+        const tbody = document.getElementById('psychologistsTableBody');
+        
+        if (psychologists.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4">No psychologists found</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = psychologists.map(psych => `
+            <tr>
+                <td>${psych.id}</td>
+                <td><strong>${escapeHtml(psych.firstname)} ${escapeHtml(psych.lastname)}</strong></td>
+                <td>${escapeHtml(psych.email)}</td>
+                <td>${escapeHtml(psych.phone)}</td>
+                <td>${psych.dateofbirth}</td>
+                <td>${psych.age} years</td>
+                <td>${getGenderBadge(psych.gender)}</td>
+                <td>${psych.createdAt.split(' ')[0]}</td>
+                <td>
+                    <a href="/dashboard/admin/user/${psych.id}/edit" class="btn btn-sm btn-warning me-1" title="Edit">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <form method="post" action="/dashboard/admin/user/${psych.id}/delete" style="display: inline-block;">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete') }}">
+                        <button class="btn btn-sm btn-danger" onclick="return confirm('Delete this psychologist permanently?')" title="Delete">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        `).join('');
+    }
+    
+    // Update Patient Statistics
+    function updatePatientStats(stats) {
+        document.getElementById('patientTotal').innerText = stats.total;
+        document.getElementById('patientAvgAge').innerText = stats.averageAge;
+        document.getElementById('patientAgeRange').innerHTML = `${stats.minAge} - ${stats.maxAge}`;
+        document.getElementById('patientGenderRatio').innerHTML = `👨 ${stats.gender.male} | 👩 ${stats.gender.female}`;
+    }
+    
+    // Update Patient Age Chart
+    function updatePatientChart(ageGroups) {
+        const ctx = document.getElementById('patientAgeChart').getContext('2d');
+        
+        if (patientChart) {
+            patientChart.destroy();
+        }
+        
+        patientChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['0-18', '19-30', '31-45', '46-60', '60+'],
+                datasets: [{
+                    label: 'Number of Patients',
+                    data: [ageGroups['0-18'], ageGroups['19-30'], ageGroups['31-45'], ageGroups['46-60'], ageGroups['60+']],
+                    backgroundColor: '#50C878',
+                    borderColor: '#3a9b5e',
+                    borderWidth: 1,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: { legend: { position: 'top' } },
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+            }
+        });
+    }
+    
+    // Sort functions for Patients
+    function sortPatients(column) {
+        if (currentPatientSort === column) {
+            currentPatientOrder = currentPatientOrder === 'ASC' ? 'DESC' : 'ASC';
+        } else {
+            currentPatientSort = column;
+            currentPatientOrder = 'ASC';
+        }
+        loadPatients();
+    }
+    
+    // Sort functions for Psychologists
+    function sortPsychologists(column) {
+        if (currentPsychologistSort === column) {
+            currentPsychologistOrder = currentPsychologistOrder === 'ASC' ? 'DESC' : 'ASC';
+        } else {
+            currentPsychologistSort = column;
+            currentPsychologistOrder = 'ASC';
+        }
+        loadPsychologists();
+    }
+    
+    // Reset filters
+    function resetPatientFilters() {
+        document.getElementById('patientSearch').value = '';
+        document.getElementById('patientGenderFilter').value = '';
+        document.getElementById('patientAgeFilter').value = '';
+        currentPatientSort = 'id';
+        currentPatientOrder = 'DESC';
+        loadPatients();
+    }
+    
+    function resetPsychologistFilters() {
+        document.getElementById('psychologistSearch').value = '';
+        document.getElementById('psychologistGenderFilter').value = '';
+        currentPsychologistSort = 'id';
+        currentPsychologistOrder = 'DESC';
+        loadPsychologists();
+    }
+    
+    // Helper functions
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    function getGenderBadge(gender) {
+        if (gender === 'male') {
+            return '<span class="badge-grade" style="background: #d4f5e8; color: #2d6a4f;">👨 Male</span>';
+        } else if (gender === 'female') {
+            return '<span class="badge-grade" style="background: #fce4e4; color: #c92a2a;">👩 Female</span>';
+        } else {
+            return '<span class="badge-grade" style="background: #e9ecef; color: #6c757d;">👤 Other</span>';
+        }
+    }
+</script>
+{% endblock %}
+{% endblock %}

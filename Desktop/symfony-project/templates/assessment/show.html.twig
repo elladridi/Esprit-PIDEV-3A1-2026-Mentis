@@ -1,0 +1,221 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ assessment.title }} - Mentis{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    {# Back Button #}
+    <div class="mb-4">
+        <a href="{{ path('assessment_index') }}" 
+           class="text-decoration-none d-inline-flex align-items-center" style="color: #50C878;">
+            <i class="fas fa-arrow-left me-2"></i> Back to Assessments
+        </a>
+    </div>
+
+    <div class="row g-5">
+        {# Left Panel - Details #}
+        <div class="col-lg-8" data-aos="fade-up">
+            <div class="card shadow-lg border-0 rounded-4 h-100 overflow-hidden">
+                {# Header #}
+                <div class="card-header bg-gradient text-white py-5 px-5 position-relative overflow-hidden" 
+                     style="background: linear-gradient(135deg, #2E7D32 0%, #50C878 100%);">
+                    <div class="position-absolute top-0 end-0 p-3">
+                        <span class="badge rounded-pill px-4 py-2 fw-semibold fs-6
+                            {% if assessment.status == 'Active' %}bg-success
+                            {% elseif assessment.status == 'Inactive' %}bg-danger
+                            {% else %}bg-warning text-dark{% endif %}">
+                            {{ assessment.status }}
+                        </span>
+                    </div>
+                    <div class="row align-items-center">
+                        <div class="col-md-3 text-center">
+                            {% if assessment.imagePath %}
+                                <img src="{{ asset(assessment.imagePath) }}" 
+                                     class="rounded-circle shadow-lg" 
+                                     alt="{{ assessment.title }}"
+                                     style="width: 140px; height: 140px; object-fit: cover; border: 5px solid rgba(255,255,255,0.3);">
+                            {% else %}
+                                <div class="rounded-circle bg-white d-flex align-items-center justify-content-center shadow-lg" 
+                                     style="width: 140px; height: 140px; font-size: 48px; color: #50C878;">
+                                    <i class="fas fa-brain"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-9 ps-4">
+                            <h1 class="display-4 fw-bold mb-2 lh-1" style="color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                                {{ assessment.title }}
+                            </h1>
+                            <h4 class="fw-bold mb-1" style="color: rgba(255,255,255,0.95);">
+                                <i class="fas fa-tag me-2"></i>{{ assessment.type }}
+                            </h4>
+                            {% if assessment.description %}
+                                <p class="lead mb-0" style="color: rgba(255,255,255,0.85); font-size: 18px;">
+                                    {{ assessment.description }}
+                                </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-5">
+                    {# Stats Row #}
+                    <div class="row g-4 mb-5">
+                        <div class="col-md-3 text-center">
+                            <div class="h3 fw-bold mb-1" style="color: #50C878;">{{ assessment.questions|length }}</div>
+                            <small class="text-muted text-uppercase fw-semibold">Questions</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="h3 fw-bold mb-1" style="color: #2E7D32;">{{ assessment.createdAt|date('MMM dd, yyyy') }}</div>
+                            <small class="text-muted text-uppercase fw-semibold">Created</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="h3 fw-bold mb-1" style="color: #28a745;">{{ assessment.status }}</div>
+                            <small class="text-muted text-uppercase fw-semibold">Status</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            {% set activeCount = 0 %}
+                            {% for q in assessment.questions %}
+                                {% if q is defined %}{% set activeCount = activeCount + 1 %}{% endif %}
+                            {% endfor %}
+                            <div class="h3 fw-bold mb-1" style="color: #17a2b8;">{{ activeCount }}</div>
+                            <small class="text-muted text-uppercase fw-semibold">Active Questions</small>
+                        </div>
+                    </div>
+
+                    {# Quick Actions #}
+                    <div class="row g-3 mb-5">
+                        <div class="col-md-3">
+                            <a href="{{ path('take_assessment_start', {id: assessment.assessmentId}) }}" 
+                               class="btn btn-success btn-lg w-100 rounded-pill py-3 {% if assessment.status != 'Active' %}disabled{% endif %}">
+                                {% if assessment.status == 'Active' %}
+                                    <i class="fas fa-play-circle me-2"></i>Take Test Now
+                                {% else %}
+                                    <i class="fas fa-lock me-2"></i>Inactive
+                                {% endif %}
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ path('assessment_edit', {id: assessment.assessmentId}) }}" 
+                               class="btn btn-outline-primary btn-lg w-100 rounded-pill py-3">
+                                <i class="fas fa-edit me-2"></i>Edit Details
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ path('question_by_assessment', {assessmentId: assessment.assessmentId}) }}" 
+                               class="btn btn-outline-info btn-lg w-100 rounded-pill py-3">
+                                <i class="fas fa-question-circle me-2"></i>Manage Questions
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <form method="post" action="{{ path('assessment_toggle_status', {id: assessment.assessmentId}) }}" 
+                                  style="display: contents;" onsubmit="return confirm('Toggle status? {{ assessment.status == 'Active' ? 'Deactivate' : 'Activate' }} this assessment?')">
+                                <button type="submit" class="btn btn-outline-warning btn-lg w-100 rounded-pill py-3">
+                                    <i class="fas fa-toggle-{{ assessment.status == 'Active' ? 'off' : 'on' }} me-2"></i>
+                                    {{ assessment.status == 'Active' ? 'Deactivate' : 'Activate' }}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    {# Danger Zone #}
+                    <div class="card border-0 bg-danger-subtle rounded-3 p-4 mt-5">
+                        <div class="row align-items-center">
+                            <div class="col-md-2 text-center">
+                                <i class="fas fa-exclamation-triangle fa-3x text-danger"></i>
+                            </div>
+                            <div class="col-md-7">
+                                <h5 class="fw-bold mb-2 text-danger">Danger Zone</h5>
+                                <p class="mb-0 text-danger-emphasis">Delete this assessment and all its questions permanently.</p>
+                            </div>
+                            <div class="col-md-3 text-end">
+                                <form method="post" action="{{ path('assessment_delete', {id: assessment.assessmentId}) }}" 
+                                      onsubmit="return confirm('⚠️ PERMANENTLY DELETE this assessment and all {{ assessment.questions|length }} questions? This cannot be undone.')" 
+                                      style="display: inline;">
+                                    <button type="submit" class="btn btn-danger rounded-pill px-4 py-2">
+                                        <i class="fas fa-trash me-1"></i>Delete Forever
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Right Panel - Questions Preview #}
+        <div class="col-lg-4" data-aos="fade-up" data-aos-delay="200">
+            <div class="card shadow-lg border-0 h-100 rounded-4 overflow-hidden">
+                <div class="card-header bg-light border-0 py-4 px-4">
+                    <h5 class="mb-0 fw-bold" style="color: #2E7D32;">
+                        <i class="fas fa-question-circle me-2"></i>Questions Preview
+                        <span class="badge bg-secondary ms-2">{{ assessment.questions|length }}</span>
+                    </h5>
+                </div>
+                <div class="card-body p-4" style="max-height: 600px; overflow-y: auto;">
+                    {% if assessment.questions|length > 0 %}
+                        {% for question in assessment.questions|slice(0, 8) %}
+                        <div class="border rounded-3 p-3 mb-3" style="background: #f8f9fa;">
+                            <div class="fw-bold small mb-1" style="color: #495057;">Q{{ loop.index }}. {{ question.text|slice(0, 80) }}{% if question.text|length > 80 %}...{% endif %}</div>
+                            <small class="text-muted">{{ question.scale }}</small>
+                        </div>
+                        {% endfor %}
+                        {% if assessment.questions|length > 8 %}
+                            <small class="text-muted text-center d-block mt-2">+{{ assessment.questions|length - 8 }} more questions</small>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-question fa-3x text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No questions yet</p>
+                            <small class="text-muted d-block mt-2">
+                                Add questions to get started
+                            </small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<style>
+.btn-primary-custom {
+    background: linear-gradient(135deg, #50C878 0%, #3A9B5E 100%);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+.btn-primary-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(80, 200, 120, 0.4);
+    color: white !important;
+}
+.bg-gradient {
+    position: relative;
+}
+.bg-gradient::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(46,125,50,0.1) 0%, rgba(80,200,120,0.2) 100%);
+    z-index: 1;
+}
+.card {
+    border-radius: 28px;
+}
+.btn-lg {
+    font-size: 15px;
+}
+</style>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>AOS.init({ duration: 1000, once: true });</script>
+{% endblock %}

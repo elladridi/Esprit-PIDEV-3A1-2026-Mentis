@@ -1,0 +1,157 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Create Assessment - Mentis{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="mb-4">
+        <a href="{{ path('assessment_index') }}"
+           class="text-decoration-none d-inline-flex align-items-center" style="color: #50C878;">
+            <i class="fas fa-arrow-left me-2"></i> Back to Assessments
+        </a>
+    </div>
+
+    <div class="text-center mb-5" data-aos="fade-up">
+        <h1 class="display-5 fw-bold mb-3" style="color: #2E7D32;">
+            <i class="fas fa-plus-circle me-2"></i>Create New Assessment
+        </h1>
+        <p class="lead text-muted">Build a new mental health assessment</p>
+    </div>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show rounded-pill mb-4 d-flex align-items-center" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger alert-dismissible fade show rounded-pill mb-4 d-flex align-items-center" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden" data-aos="fade-up" data-aos-delay="100">
+                <div class="card-header text-white py-4 text-center"
+                     style="background: linear-gradient(135deg, #50C878 0%, #2E7D32 100%);">
+                    <h3 class="mb-0 fw-bold">
+                        <i class="fas fa-clipboard-list me-2"></i>New Assessment Details
+                    </h3>
+                </div>
+                <div class="card-body p-5">
+
+                    {{ form_start(form, {attr: {enctype: 'multipart/form-data', novalidate: 'novalidate'}}) }}
+
+                    {# Title #}
+                    <div class="mb-4">
+                        <label class="form-label fw-bold mb-2" style="color: #2E7D32; font-size: 16px;">
+                            <i class="fas fa-heading me-1"></i>
+                            {{ form_label(form.title) }}
+                            <span class="text-danger">*</span>
+                        </label>
+                        {{ form_widget(form.title) }}
+                        {{ form_errors(form.title) }}
+                    </div>
+
+                    {# Type & Status #}
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold mb-2" style="color: #2E7D32; font-size: 16px;">
+                                <i class="fas fa-tag me-1"></i>
+                                {{ form_label(form.type) }}
+                            </label>
+                            {{ form_widget(form.type) }}
+                            {{ form_errors(form.type) }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold mb-2" style="color: #2E7D32; font-size: 16px;">
+                                <i class="fas fa-toggle-on me-1"></i>
+                                {{ form_label(form.status) }}
+                            </label>
+                            {{ form_widget(form.status) }}
+                            {{ form_errors(form.status) }}
+                        </div>
+                    </div>
+
+                    {# Description #}
+                    <div class="mb-4">
+                        <label class="form-label fw-bold mb-2" style="color: #2E7D32; font-size: 16px;">
+                            <i class="fas fa-align-left me-1"></i>
+                            {{ form_label(form.description) }}
+                        </label>
+                        {{ form_widget(form.description) }}
+                        {{ form_errors(form.description) }}
+                    </div>
+
+                    {# Image #}
+                    <div class="mb-5">
+                        <label class="form-label fw-bold mb-2" style="color: #2E7D32; font-size: 16px;">
+                            <i class="fas fa-image me-1"></i>
+                            {{ form_label(form.imageFile) }}
+                        </label>
+                        <div class="p-4 rounded-4 text-center border border-2 border-dashed mb-3"
+                             style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-color: #50C878 !important;">
+                            <i class="fas fa-cloud-upload-alt fa-3x mb-2 text-muted"></i>
+                            <p class="text-muted small mb-2">JPG, PNG, WebP — Max 5MB — Recommended: 800×500px</p>
+                            {{ form_widget(form.imageFile) }}
+                        </div>
+                        {{ form_errors(form.imageFile) }}
+                    </div>
+
+                    {# Buttons #}
+                    <div class="d-flex gap-3 justify-content-end pt-4 border-top">
+                        <a href="{{ path('assessment_index') }}"
+                           class="btn btn-outline-secondary rounded-pill px-5 py-2">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <button type="submit"
+                                class="btn rounded-pill px-5 py-2 fw-bold text-white"
+                                style="background: linear-gradient(135deg, #50C878 0%, #2E7D32 100%);">
+                            <i class="fas fa-save me-2"></i>Create Assessment
+                        </button>
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+
+            {# Tips #}
+            <div class="card border-0 mt-4 bg-light rounded-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-2 text-center">
+                            <i class="fas fa-lightbulb fa-3x text-warning"></i>
+                        </div>
+                        <div class="col-10">
+                            <h6 class="fw-bold mb-2" style="color: #2E7D32;">Quick Tips</h6>
+                            <ul class="mb-0 text-muted small">
+                                <li>Set to "Draft" until questions are added</li>
+                                <li>Use high-quality images (800×500px recommended)</li>
+                                <li>Add 10–20 questions for best results</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+.form-control:focus, .form-select:focus {
+    border-color: #50C878 !important;
+    box-shadow: 0 0 0 0.25rem rgba(80, 200, 120, 0.25) !important;
+}
+.card { border-radius: 24px; }
+.border-dashed { border-style: dashed !important; }
+</style>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>AOS.init({ duration: 1000, once: true });</script>
+{% endblock %}

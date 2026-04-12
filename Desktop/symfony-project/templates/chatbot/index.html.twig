@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}AI Chatbot - Mentis{% endblock %}
+
+{% block body %}
+<div class="container py-5" style="max-width: 900px;">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-gradient-primary text-white">
+            <h2 class="card-title mb-0"><i class="bi bi-chat-dots me-2"></i>AI Mental Health Assistant</h2>
+        </div>
+        <div class="card-body">
+            {% for message in app.flashes('danger') %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>{{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+
+            <p class="text-muted mb-4">Ask your AI assistant questions about mental health, content navigation, or workflow setup. All conversations are private and secure.</p>
+
+            <form method="post" class="mb-4">
+                <div class="mb-3">
+                    <label for="prompt" class="form-label fw-bold">Your Question</label>
+                    <textarea id="prompt" name="prompt" class="form-control" rows="4" placeholder="Type your question here... (e.g., 'How can I manage anxiety?', 'What content should I review today?')" required>{{ prompt|default('') }}</textarea>
+                </div>
+                <button type="submit" class="btn btn-modern">
+                    <i class="bi bi-send me-2"></i>Send to AI Assistant
+                </button>
+            </form>
+
+            {% if answer is not null %}
+                <div class="card border-success mb-3">
+                    <div class="card-header bg-success text-white">
+                        <i class="bi bi-robot me-2"></i>AI Response
+                    </div>
+                    <div class="card-body bg-light">
+                        <div style="white-space: pre-wrap; word-break: break-word; line-height: 1.6;">
+                            {{ answer }}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong>Privacy Notice:</strong> This uses Z.ai LLM API for mental health assistance. All conversations are private and secure.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

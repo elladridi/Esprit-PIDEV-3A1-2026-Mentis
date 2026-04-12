@@ -1,0 +1,63 @@
+
+###> symfony/framework-bundle ###
+/.env.local
+/.env.local.php
+/.env.*.local
+/config/secrets/prod/prod.decrypt.private.php
+/public/bundles/
+/var/
+/vendor/
+###< symfony/framework-bundle ###
+
+# Node.js dependencies and logs
+/node_modules/
+/package-lock.json
+zai-service.log
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+/tmp/
+/temp/
+
+# Logs
+*.log
+
+# Database files
+*.sqlite
+*.db
+
+# Upload directories
+/public/uploads/
+/web/uploads/
+
+# Build files
+/build/
+/public/build/
+
+# Tests
+/phpunit.xml
+/tests/
+
+# Documentation
+/docs/
+
+# Composer
+composer.lock
+
+# Z.ai configuration
+.z-ai-config
