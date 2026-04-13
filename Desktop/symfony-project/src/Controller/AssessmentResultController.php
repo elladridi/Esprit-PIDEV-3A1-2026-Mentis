@@ -54,11 +54,48 @@ class AssessmentResultController extends AbstractController
         $this->meditationService = $meditationService;
     }
 
-    // ── LIST ALL RESULTS ──────────────────────────────────
+    // ── Helper: get the currently logged-in User entity ──
+    // Returns the typed User entity (not just UserInterface)
+    // This removes ALL IntelliSense warnings about getType/getId
+    private function getCurrentUser(): ?User
+    {
+        $user = $this->getUser();
+        if ($user instanceof User) {
+            return $user;
+        }
+        return null;
+    }
+
+    // ── Helper: check if current user is a Patient ────────
+    private function isPatient(): bool
+    {
+        $user = $this->getCurrentUser();
+        return $user !== null && $user->getType() === 'Patient';
+    }
+
+    // ── Helper: check if a result belongs to current user ─
+    private function resultBelongsToCurrentUser(AssessmentResult $result): bool
+    {
+        $user = $this->getCurrentUser();
+        if ($user === null) return false;
+        return $result->getUser()?->getId() === $user->getId();
+    }
+
+    // ── LIST RESULTS ──────────────────────────────────────
+    // Psychologists see ALL results
+    // Patients see ONLY their own results
     #[Route('/', name: 'result_index', methods: ['GET'])]
     public function index(): Response
     {
-        $results = $this->resultRepo->findAllOrderedByDate();
+        $currentUser = $this->getCurrentUser();
+
+        if ($this->isPatient() && $currentUser !== null) {
+            // Patient sees only their own results
+            $results = $this->resultRepo->findByUser($currentUser->getId());
+        } else {
+            // Psychologist or admin sees everything
+            $results = $this->resultRepo->findAllOrderedByDate();
+        }
 
         $users = [];
         foreach ($results as $result) {
@@ -78,6 +115,16 @@ class AssessmentResultController extends AbstractController
     #[Route('/user/{userId}', name: 'result_by_user', methods: ['GET'])]
     public function byUser(int $userId, UserRepository $userRepo): Response
     {
+        $currentUser = $this->getCurrentUser();
+
+        // Security: Patients can only view their own results
+        if ($this->isPatient() && $currentUser !== null
+            && $currentUser->getId() !== $userId) {
+
+            $this->addFlash('error', 'You can only view your own results.');
+            return $this->redirectToRoute('result_index');
+        }
+
         $results = $this->resultRepo->findByUser($userId);
         $user    = $userRepo->find($userId);
 
@@ -134,7 +181,6 @@ class AssessmentResultController extends AbstractController
             try {
                 $sentimentData = $this->groqService->analyzeSentiment($freeText);
 
-                // Elevate risk if crisis detected
                 if (!empty($sentimentData['crisis_detected'])) {
                     $suggestSession = true;
                     if (!in_array(strtolower($riskLevel), ['high', 'severe'])) {
@@ -185,6 +231,16 @@ class AssessmentResultController extends AbstractController
     #[Route('/stats/{userId}', name: 'result_stats', methods: ['GET'])]
     public function stats(int $userId, UserRepository $userRepo): Response
     {
+        $currentUser = $this->getCurrentUser();
+
+        // Security: Patients can only see their own stats
+        if ($this->isPatient() && $currentUser !== null
+            && $currentUser->getId() !== $userId) {
+
+            $this->addFlash('error', 'You can only view your own statistics.');
+            return $this->redirectToRoute('result_index');
+        }
+
         $results = $this->resultRepo->findByUser($userId);
         $user    = $userRepo->find($userId);
 
@@ -250,6 +306,12 @@ class AssessmentResultController extends AbstractController
             throw $this->createNotFoundException('Result not found');
         }
 
+        // Security: Patients can only export their own results
+        if ($this->isPatient() && !$this->resultBelongsToCurrentUser($result)) {
+            $this->addFlash('error', 'You can only export your own results.');
+            return $this->redirectToRoute('result_index');
+        }
+
         $user        = $result->getUser();
         $assessment  = $result->getAssessment();
         $aiAnalysis  = $result->getInterpretation() ?? '';
@@ -277,6 +339,12 @@ class AssessmentResultController extends AbstractController
             throw $this->createNotFoundException('Result not found');
         }
 
+        // Security: Patients can only delete their own results
+        if ($this->isPatient() && !$this->resultBelongsToCurrentUser($result)) {
+            $this->addFlash('error', 'You can only delete your own results.');
+            return $this->redirectToRoute('result_index');
+        }
+
         $this->em->remove($result);
         $this->em->flush();
 
@@ -292,6 +360,12 @@ class AssessmentResultController extends AbstractController
 
         if (!$result) {
             throw $this->createNotFoundException('Result not found');
+        }
+
+        // Security: Patients can only view their own results
+        if ($this->isPatient() && !$this->resultBelongsToCurrentUser($result)) {
+            $this->addFlash('error', 'You can only view your own results.');
+            return $this->redirectToRoute('result_index');
         }
 
         $user        = $result->getUser();
