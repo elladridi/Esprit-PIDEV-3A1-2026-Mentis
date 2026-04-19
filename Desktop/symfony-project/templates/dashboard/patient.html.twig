@@ -11,6 +11,30 @@
         </div>
     </div>
 
+    <!-- Face ID Registration Alert (if not enabled) -->
+    {% if not user.faceEnabled %}
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px; padding: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <div style="font-size: 24px; margin-bottom: 5px;">🔐</div>
+            <h3 style="color: white; margin: 0 0 5px 0;">Enhance Your Account Security</h3>
+            <p style="color: rgba(255,255,255,0.9); margin: 0;">Enable Face ID login for faster and more secure access to your dashboard</p>
+        </div>
+        <button id="enableFaceIdBtn" class="btn btn-light" style="padding: 12px 30px; font-weight: 600; border-radius: 8px;">
+            <i class="fas fa-face-smile me-2"></i> Enable Face ID Login
+        </button>
+    </div>
+    {% else %}
+    <div style="background: linear-gradient(135deg, #50C878 0%, #3A9B5E 100%); border-radius: 10px; padding: 15px 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <span style="font-size: 20px;">✅</span>
+            <strong style="color: white; margin-left: 10px;">Face ID is enabled on your account</strong>
+        </div>
+        <button id="disableFaceIdBtn" class="btn btn-light btn-sm" style="padding: 5px 15px;">
+            <i class="fas fa-trash me-1"></i> Disable
+        </button>
+    </div>
+    {% endif %}
+
     {# Assessment Quick Access Section #}
     <div class="row mb-4">
         <div class="col-12">
@@ -20,7 +44,30 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        
+                        <div class="col-md-4 mb-3">
+                            <a href="{{ path('take_assessment_index') }}" class="text-decoration-none">
+                                <div class="p-3 border rounded-3 text-center" style="transition: all 0.3s; background: #f8f9fa;">
+                                    <i class="fas fa-clipboard-list" style="font-size: 32px; color: #50C878;"></i>
+                                    <h6 class="mt-2 mb-0" style="color: #2d3748;">Take Assessment</h6>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="{{ path('result_stats', {userId: user.id}) }}" class="text-decoration-none">
+                                <div class="p-3 border rounded-3 text-center" style="transition: all 0.3s; background: #f8f9fa;">
+                                    <i class="fas fa-chart-line" style="font-size: 32px; color: #50C878;"></i>
+                                    <h6 class="mt-2 mb-0" style="color: #2d3748;">View Progress</h6>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="{{ path('app_chatbot') }}" class="text-decoration-none">
+                                <div class="p-3 border rounded-3 text-center" style="transition: all 0.3s; background: #f8f9fa;">
+                                    <i class="fas fa-robot" style="font-size: 32px; color: #50C878;"></i>
+                                    <h6 class="mt-2 mb-0" style="color: #2d3748;">AI Chatbot</h6>
+                                </div>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -35,7 +82,7 @@
                     <tr><th width="35%">Full Name:</th><td>{{ user.firstname }} {{ user.lastname }}</td></tr>
                     <tr><th>Email:</th><td>{{ user.email }}</td></tr>
                     <tr><th>Phone:</th><td>{{ user.phone }}</td></tr>
-                    <tr><th>Date of Birth:</th><td>{{ user.dateofbirth }}</td></tr>
+<tr><th>Date of Birth:</th><td>{{ user.dateofbirth ? user.dateofbirth|date('d/m/Y') : 'N/A' }}</td></tr>
                     <tr><th>Age:</th><td>{{ user.age }} years</td></tr>
                     <tr><th>Gender:</th><td>
                         {% if user.gender == 'male' %}
@@ -119,6 +166,33 @@
     </div>
     {% endif %}
 </div>
+
+<!-- Face ID Registration Modal -->
+<div id="faceIdModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 20px; padding: 20px; width: 90%; max-width: 500px;">
+        <div class="text-center mb-3">
+            <h4 style="color: #2E7D32;">Register Face ID</h4>
+            <p class="text-muted">Position your face in front of the camera</p>
+        </div>
+        <div style="position: relative;">
+            <video id="faceVideo" autoplay muted style="width: 100%; border-radius: 10px; background: #000;"></video>
+            <canvas id="faceCanvas" style="display: none;"></canvas>
+            <div id="faceOverlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 3px solid #50C878; border-radius: 10px; pointer-events: none;"></div>
+        </div>
+        <div class="text-center mt-3">
+            <p id="faceStatus" class="text-muted">Initializing camera...</p>
+            <div class="progress mb-2" style="height: 5px;">
+                <div id="faceProgress" class="progress-bar bg-success" style="width: 0%"></div>
+            </div>
+            <button id="captureFaceBtn" class="btn btn-primary-custom px-4" disabled>
+    📸 Capture Sample 1 of 3
+</button>
+            <button id="closeFaceModalBtn" class="btn btn-secondary px-4 ms-2">
+                <i class="fas fa-times me-2"></i> Cancel
+            </button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block stylesheets %}
@@ -137,5 +211,183 @@
         transform: translateY(-2px);
         box-shadow: 0 5px 15px rgba(80, 200, 120, 0.3);
     }
+    .btn-light {
+        background-color: white;
+        color: #50C878;
+        border: none;
+    }
+    .btn-light:hover {
+        background-color: #f8f9fa;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .btn-primary-custom {
+        background: linear-gradient(135deg, #50C878 0%, #3A9B5E 100%);
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: transform 0.3s, box-shadow 0.3s;
+        color: white;
+    }
+    .btn-primary-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(80,200,120,0.4);
+        color: white;
+    }
 </style>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+// Face ID Registration
+let faceStream = null;
+let isProcessing = false;
+let sampleCount = 0;
+const REQUIRED_SAMPLES = 3;
+
+const instructions = [
+    'Look straight at the camera',
+    'Turn your head slightly left',
+    'Turn your head slightly right'
+];
+
+const enableFaceIdBtn = document.getElementById('enableFaceIdBtn');
+const disableFaceIdBtn = document.getElementById('disableFaceIdBtn');
+const faceModal = document.getElementById('faceIdModal');
+const closeFaceBtn = document.getElementById('closeFaceModalBtn');
+const captureFaceBtn = document.getElementById('captureFaceBtn');
+const faceVideo = document.getElementById('faceVideo');
+const faceCanvas = document.getElementById('faceCanvas');
+const faceStatus = document.getElementById('faceStatus');
+const faceProgress = document.getElementById('faceProgress');
+
+if (enableFaceIdBtn) {
+    enableFaceIdBtn.addEventListener('click', startFaceRegistration);
+}
+
+if (closeFaceBtn) {
+    closeFaceBtn.addEventListener('click', stopFaceRegistration);
+}
+
+if (disableFaceIdBtn) {
+    disableFaceIdBtn.addEventListener('click', async () => {
+        if (confirm('Are you sure you want to disable Face ID login?')) {
+            try {
+                const response = await fetch('/face/api/disable/{{ user.id }}', {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                if (result.success) {
+                    location.reload();
+                } else {
+                    alert('Failed to disable Face ID: ' + result.message);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+    });
+}
+
+function startFaceRegistration() {
+    sampleCount = 0;
+    isProcessing = false;
+    faceModal.style.display = 'block';
+    updateUI();
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+            faceStream = stream;
+            faceVideo.srcObject = stream;
+            captureFaceBtn.disabled = false;
+        })
+        .catch(err => {
+            faceStatus.textContent = '❌ Cannot access camera: ' + err.message;
+        });
+}
+
+function stopFaceRegistration() {
+    if (faceStream) {
+        faceStream.getTracks().forEach(track => track.stop());
+        faceStream = null;
+    }
+    faceModal.style.display = 'none';
+    faceVideo.srcObject = null;
+    sampleCount = 0;
+    isProcessing = false;
+}
+
+function updateUI() {
+    const progress = (sampleCount / REQUIRED_SAMPLES) * 100;
+    faceProgress.style.width = progress + '%';
+    faceStatus.textContent = instructions[sampleCount] || 'Almost done...';
+    captureFaceBtn.textContent = `📸 Capture Sample ${sampleCount + 1} of ${REQUIRED_SAMPLES}`;
+    captureFaceBtn.disabled = true; // re-enabled after camera starts
+}
+
+if (captureFaceBtn) {
+    captureFaceBtn.addEventListener('click', async () => {
+        if (isProcessing) return;
+        isProcessing = true;
+        captureFaceBtn.disabled = true;
+
+        // Capture frame
+        const ctx = faceCanvas.getContext('2d');
+        faceCanvas.width = faceVideo.videoWidth;
+        faceCanvas.height = faceVideo.videoHeight;
+        ctx.drawImage(faceVideo, 0, 0);
+
+        faceCanvas.toBlob(async (blob) => {
+            const formData = new FormData();
+            formData.append('image', blob, 'face.jpg');
+
+            faceStatus.textContent = `⏳ Processing sample ${sampleCount + 1}...`;
+
+            try {
+                const response = await fetch('/face/api/register/{{ user.id }}', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    sampleCount = result.sample_count;
+
+                    if (result.completed) {
+                        // All 3 samples done
+                        faceProgress.style.width = '100%';
+                        faceStatus.innerHTML = '✅ Face ID registered successfully! Reloading...';
+                        captureFaceBtn.disabled = true;
+                        setTimeout(() => {
+                            stopFaceRegistration();
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        // More samples needed
+                        faceStatus.innerHTML = `✅ Sample ${sampleCount} saved! ${result.remaining} more needed.`;
+                        updateUI();
+                        captureFaceBtn.disabled = false;
+                        isProcessing = false;
+                    }
+                } else {
+                    // Detection failed (no face, blurry, etc.)
+                    faceStatus.innerHTML = `❌ ${result.message} — Please try again.`;
+                    captureFaceBtn.disabled = false;
+                    isProcessing = false;
+                }
+            } catch (error) {
+                faceStatus.innerHTML = '❌ Error: ' + error.message;
+                captureFaceBtn.disabled = false;
+                isProcessing = false;
+            }
+        }, 'image/jpeg');
+    });
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && faceModal && faceModal.style.display === 'block') {
+        stopFaceRegistration();
+    }
+});</script>
 {% endblock %}

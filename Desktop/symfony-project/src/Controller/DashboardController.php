@@ -4,7 +4,9 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Entity\ContentNode;
+use App\Entity\LoginAttempt;
 use App\Form\UserType;
+use App\Repository\LoginAttemptRepository;
 use App\Repository\UserRepository;
 use App\Repository\ContentNodeRepository;
 use App\Repository\AssessmentResultRepository;
@@ -102,8 +104,11 @@ class DashboardController extends AbstractController
     // ==================== ADMIN DASHBOARD ====================
     
     #[Route('/admin', name: 'app_dashboard_admin')]
-    public function adminDashboard(UserRepository $userRepository, ContentPathRepository $logRepo): Response
-    {
+    public function adminDashboard(
+        UserRepository $userRepository, 
+        ContentPathRepository $logRepo,
+        LoginAttemptRepository $loginAttemptRepo
+    ): Response {
         /** @var User $user */
         $user = $this->getUser();
         
@@ -121,6 +126,25 @@ class DashboardController extends AbstractController
         // Fetch logs
         $logs = $logRepo->findBy([], ['accessedAt' => 'DESC'], 50);
         
+        // Get security stats
+        $totalAttempts = $loginAttemptRepo->createQueryBuilder('la')
+            ->select('COUNT(la.id)')
+            ->getQuery()
+            ->getSingleScalarResult() ?? 0;
+        
+        $failedAttempts = $loginAttemptRepo->createQueryBuilder('la')
+            ->select('COUNT(la.id)')
+            ->where('la.wasSuccessful = false')
+            ->getQuery()
+            ->getSingleScalarResult() ?? 0;
+        
+        $securityStats = [
+            'total_attempts' => (int) $totalAttempts,
+            'failed_attempts' => (int) $failedAttempts,
+        ];
+        
+        $bannedUsers = $userRepository->findBy(['isBanned' => true]);
+        
         return $this->render('dashboard/admin.html.twig', [
             'user' => $user,
             'patients' => $patients,
@@ -129,6 +153,8 @@ class DashboardController extends AbstractController
             'patientStats' => $patientStats,
             'psychologistStats' => $psychologistStats,
             'logs' => $logs,
+            'stats' => $securityStats,
+            'bannedUsers' => $bannedUsers,
         ]);
     }
 

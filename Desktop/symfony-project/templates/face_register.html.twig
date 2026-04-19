@@ -1,0 +1,102 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div class="container mt-5">
+    <h1>Face Registration Test</h1>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Register Face for User ID: {{ userId }}</h3>
+                </div>
+                <div class="card-body">
+                    <video id="video" autoplay style="width: 100%; border: 1px solid #ccc;"></video>
+                    <canvas id="canvas" style="display: none;"></canvas>
+                    
+                    <button id="captureBtn" class="btn btn-primary mt-3">Capture Face</button>
+                    <button id="registerBtn" class="btn btn-success mt-3" disabled>Register Face</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Result</h3>
+                </div>
+                <div class="card-body">
+                    <pre id="result"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let stream = null;
+    let capturedImage = null;
+    
+    // Start camera
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function(s) {
+            stream = s;
+            document.getElementById('video').srcObject = stream;
+        })
+        .catch(function(err) {
+            alert('Camera error: ' + err.message);
+        });
+    
+    // Capture face
+    document.getElementById('captureBtn').onclick = function() {
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        capturedImage = canvas.toDataURL('image/jpeg');
+        document.getElementById('registerBtn').disabled = false;
+        document.getElementById('result').innerHTML = 'Face captured! Click Register.';
+    };
+    
+    // Register face
+    document.getElementById('registerBtn').onclick = async function() {
+        if (!capturedImage) {
+            alert('Please capture a face first');
+            return;
+        }
+        
+        document.getElementById('result').innerHTML = 'Registering...';
+        
+        const formData = new FormData();
+        formData.append('image', capturedImage);
+        
+        try {
+            const response = await fetch('/face/api/register/{{ userId }}', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            document.getElementById('result').innerHTML = JSON.stringify(result, null, 2);
+            
+            if (result.success) {
+                alert('Face registered successfully!');
+            }
+        } catch (err) {
+            document.getElementById('result').innerHTML = 'Error: ' + err.message;
+        }
+    };
+    
+    // Cleanup on page unload
+    window.onbeforeunload = function() {
+        if (stream) {
+            stream.getTracks().forEach(function(track) {
+                track.stop();
+            });
+        }
+    };
+</script>
+{% endblock %}

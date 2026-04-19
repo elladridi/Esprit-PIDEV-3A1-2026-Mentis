@@ -1,0 +1,504 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Security Dashboard - Admin{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h2 mb-3">
+                <i class="fas fa-shield-alt me-2" style="color: #50C878;"></i>
+                Security Dashboard
+            </h1>
+            <p class="text-muted">Monitor login attempts, suspicious activities, and manage user bans</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Total Attempts</h6>
+                            <h2 class="mb-0" id="totalAttempts">{{ stats.total_attempts }}</h2>
+                        </div>
+                        <div class="rounded-circle p-3" style="background: #e3f2fd;">
+                            <i class="fas fa-sign-in-alt fa-2x" style="color: #1976d2;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Failed Attempts</h6>
+                            <h2 class="mb-0 text-danger" id="failedAttempts">{{ stats.failed_attempts }}</h2>
+                        </div>
+                        <div class="rounded-circle p-3" style="background: #ffebee;">
+                            <i class="fas fa-times-circle fa-2x" style="color: #d32f2f;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Failed (24h)</h6>
+                            <h2 class="mb-0 text-warning" id="failedLast24h">{{ stats.failed_last_24h }}</h2>
+                        </div>
+                        <div class="rounded-circle p-3" style="background: #fff3e0;">
+                            <i class="fas fa-clock fa-2x" style="color: #f57c00;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Unique IPs</h6>
+                            <h2 class="mb-0" id="uniqueIps">{{ stats.unique_ips }}</h2>
+                        </div>
+                        <div class="rounded-circle p-3" style="background: #e8f5e9;">
+                            <i class="fas fa-network-wired fa-2x" style="color: #388e3c;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Suspicious Accounts -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-exclamation-triangle me-2" style="color: #f57c00;"></i>
+                Suspicious Accounts (3+ Failed Attempts in 24h)
+            </h5>
+            <button class="btn btn-sm btn-outline-secondary" id="refreshSuspiciousBtn">
+                <i class="fas fa-sync-alt me-1"></i> Refresh
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>Failed Attempts</th>
+                            <th>Last Attempt</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="suspiciousTableBody">
+                        {% for account in suspiciousAccounts %}
+                        <tr>
+                            <td>{{ account.email }}ↄ
+                            <td><span class="badge bg-danger">{{ account.failed_count }}</span>ↄ
+                            <td>{{ account.last_attempt }}ↄ
+                            <td>
+                                <button class="btn btn-danger btn-sm ban-suspicious-btn" 
+                                        data-email="{{ account.email }}"
+                                        data-attempts="{{ account.failed_count }}">
+                                    <i class="fas fa-gavel me-1"></i> Ban
+                                </button>
+                            ↄ
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center py-3 text-muted">No suspicious accounts detectedↄ
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Login Attempts -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-history me-2" style="color: #50C878;"></i>
+                Recent Login Attempts (Last 50)
+            </h5>
+            <div>
+                <button class="btn btn-sm btn-outline-secondary me-2" id="refreshAttemptsBtn">
+                    <i class="fas fa-sync-alt me-1"></i> Refresh
+                </button>
+                <button class="btn btn-sm btn-outline-danger" id="clearOldAttemptsBtn">
+                    <i class="fas fa-trash me-1"></i> Clear Old (30+ days)
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>IP Address</th>
+                            <th>Status</th>
+                            <th>Attempted At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attemptsTableBody">
+                        {% for attempt in recentAttempts %}
+                        <tr class="{{ attempt.wasSuccessful ? 'table-success' : 'table-danger' }}">
+                            <td>{{ attempt.email }}ↄ
+                            <td><code>{{ attempt.ipAddress }}</code>ↄ
+                            <td>
+                                {% if attempt.wasSuccessful %}
+                                    <span class="badge bg-success">Success</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Failed</span>
+                                {% endif %}
+                            ↄ
+                            <td>{{ attempt.attemptedAt }}ↄ
+                            <td>
+                                <button class="btn btn-warning btn-sm ban-from-attempt" data-email="{{ attempt.email }}">
+                                    <i class="fas fa-gavel me-1"></i> Ban
+                                </button>
+                            ↄ
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-3 text-muted">No login attempts recordedↄ
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Banned Users Section -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="fas fa-ban me-2" style="color: #dc3545;"></i>
+            Banned Users
+            <span class="badge bg-danger ms-2">{{ bannedUsers|length }}</span>
+        </h5>
+        <button class="btn btn-sm btn-outline-secondary" id="refreshBannedBtn">
+            <i class="fas fa-sync-alt me-1"></i> Refresh
+        </button>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Banned At</th>
+                        <th>Banned Until</th>
+                        <th>Reason</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="bannedTableBody">
+                    {% for user in bannedUsers %}
+                    <tr>
+                        <td>{{ user.fullName }}ↄ
+                        <td>{{ user.email }}ↄ
+                        <td>{{ user.bannedAt ? user.bannedAt|date('Y-m-d H:i') : 'N/A' }}ↄ
+                        <td>
+                            {% if user.bannedUntil %}
+                                <span class="badge bg-warning">{{ user.bannedUntil|date('Y-m-d H:i') }}</span>
+                            {% else %}
+                                <span class="badge bg-danger">Permanent</span>
+                            {% endif %}
+                        ↄ
+                        <td>{{ user.banReason|slice(0, 50) }}...ↄ
+                        <td>
+                            <button class="btn btn-success btn-sm unban-btn" 
+                                    data-user-id="{{ user.id }}"
+                                    data-user-name="{{ user.fullName }}">
+                                <i class="fas fa-check-circle me-1"></i> Unban
+                            </button>
+                        ↄ
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-3 text-muted">No banned usersↄ
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Ban Confirmation Modal -->
+<div class="modal fade" id="banConfirmModal" tabindex="-1" aria-labelledby="banConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="banConfirmModalLabel">Confirm Ban</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to ban <strong id="banEmail"></strong>?</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Reason: Suspicious activity detected with <strong id="banAttempts"></strong> failed login attempts.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmBanBtn">Confirm Ban</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let currentBanEmail = '';
+    
+    function refreshStats() {
+        fetch('/admin/security/stats')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('totalAttempts').innerText = data.total_attempts || 0;
+                    document.getElementById('failedAttempts').innerText = data.failed_attempts || 0;
+                    document.getElementById('failedLast24h').innerText = data.failed_last_24h || 0;
+                    document.getElementById('uniqueIps').innerText = data.unique_ips || 0;
+                }
+            })
+            .catch(error => console.error('Error refreshing stats:', error));
+    }
+    
+    function refreshSuspicious() {
+        fetch('/admin/security/suspicious')
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('suspiciousTableBody');
+                if (!data.success || !data.data || data.data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3 text-muted">No suspicious accounts detected</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = data.data.map(account => `
+                    <tr>
+                        <td>${escapeHtml(account.email)}</td>
+                        <td><span class="badge bg-danger">${account.failed_count}</span></td>
+                        <td>${new Date(account.last_attempt).toLocaleString()}</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm ban-suspicious-btn" 
+                                    data-email="${escapeHtml(account.email)}"
+                                    data-attempts="${account.failed_count}">
+                                <i class="fas fa-gavel me-1"></i> Ban
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+                attachBanEvents();
+            })
+            .catch(error => console.error('Error refreshing suspicious:', error));
+    }
+    
+    function refreshRecentAttempts() {
+        fetch('/admin/security/recent-attempts')
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('attemptsTableBody');
+                if (!data.success || !data.data || data.data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-muted">No login attempts recorded</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = data.data.map(attempt => `
+                    <tr class="${attempt.wasSuccessful ? 'table-success' : 'table-danger'}">
+                        <td>${escapeHtml(attempt.email)}</td>
+                        <td><code>${escapeHtml(attempt.ipAddress)}</code></td>
+                        <td>${attempt.wasSuccessful ? '<span class="badge bg-success">Success</span>' : '<span class="badge bg-danger">Failed</span>'}</td>
+                        <td>${new Date(attempt.attemptedAt).toLocaleString()}</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm ban-from-attempt" data-email="${escapeHtml(attempt.email)}">
+                                <i class="fas fa-gavel me-1"></i> Ban
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+                attachBanEvents();
+            })
+            .catch(error => console.error('Error refreshing recent:', error));
+    }
+    
+    function attachBanEvents() {
+        document.querySelectorAll('.ban-suspicious-btn, .ban-from-attempt').forEach(btn => {
+            btn.removeEventListener('click', handleBanClick);
+            btn.addEventListener('click', handleBanClick);
+        });
+    }
+    
+    function handleBanClick(e) {
+        const btn = e.currentTarget;
+        currentBanEmail = btn.dataset.email;
+        const attempts = btn.dataset.attempts || 'multiple';
+        document.getElementById('banEmail').textContent = currentBanEmail;
+        document.getElementById('banAttempts').textContent = attempts;
+        const modal = new bootstrap.Modal(document.getElementById('banConfirmModal'));
+        modal.show();
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    // Event Listeners
+    document.getElementById('refreshSuspiciousBtn')?.addEventListener('click', refreshSuspicious);
+    document.getElementById('refreshAttemptsBtn')?.addEventListener('click', refreshRecentAttempts);
+    
+    document.getElementById('clearOldAttemptsBtn')?.addEventListener('click', function() {
+        if (confirm('Are you sure you want to delete all login attempts older than 30 days? This action cannot be undone.')) {
+            fetch('/admin/security/clear-old-attempts', { method: 'POST' })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        alert('✅ ' + result.message);
+                        refreshRecentAttempts();
+                        refreshStats();
+                    } else {
+                        alert('❌ Error: ' + result.message);
+                    }
+                })
+                .catch(error => alert('❌ Error: ' + error.message));
+        }
+    });
+    
+    // Confirm ban button
+    document.getElementById('confirmBanBtn')?.addEventListener('click', function() {
+        if (!currentBanEmail) return;
+        
+        const modal = bootstrap.Modal.getInstance(document.getElementById('banConfirmModal'));
+        
+        fetch('/admin/security/ban-user', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ email: currentBanEmail })
+        })
+        .then(function(response) {
+            if (!response.ok) {
+                return response.text().then(function(text) {
+                    throw new Error('HTTP ' + response.status + ': ' + text);
+                });
+            }
+            return response.json();
+        })
+        .then(function(result) {
+            if (result.success) {
+                alert('✅ ' + (result.user_name || currentBanEmail) + ' has been banned successfully!');
+                location.reload();
+            } else {
+                alert('❌ Error: ' + result.message);
+            }
+            if (modal) modal.hide();
+        })
+        .catch(function(error) {
+            console.error('Ban error:', error);
+            alert('❌ Error: ' + error.message);
+        });
+    });
+    // Function to refresh banned users list
+function refreshBannedUsers() {
+    fetch('/admin/security/banned-users')
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.getElementById('bannedTableBody');
+            if (!data.success || !data.data || data.data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-3 text-muted">No banned users</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.data.map(user => `
+                <tr>
+                    <td>${escapeHtml(user.fullName)}</td>
+                    <td>${escapeHtml(user.email)}</td>
+                    <td>${user.bannedAt}</td>
+                    <td><span class="badge bg-warning">${user.bannedUntil}</span></td>
+                    <td>${escapeHtml(user.banReason).substring(0, 50)}...</td>
+                    <td>
+                        <button class="btn btn-success btn-sm unban-btn" 
+                                data-user-id="${user.id}"
+                                data-user-name="${escapeHtml(user.fullName)}">
+                            <i class="fas fa-check-circle me-1"></i> Unban
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            attachUnbanEvents();
+        })
+        .catch(error => console.error('Error refreshing banned users:', error));
+}
+
+// Attach unban events
+function attachUnbanEvents() {
+    document.querySelectorAll('.unban-btn').forEach(btn => {
+        btn.removeEventListener('click', handleUnbanClick);
+        btn.addEventListener('click', handleUnbanClick);
+    });
+}
+
+// Handle unban click
+function handleUnbanClick(e) {
+    const btn = e.currentTarget;
+    const userId = btn.dataset.userId;
+    const userName = btn.dataset.userName;
+    
+    if (confirm(`Are you sure you want to unban ${userName}?`)) {
+        fetch(`/admin/security/unban/${userId}`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                alert(`✅ ${result.user_name} has been unbanned successfully!`);
+                refreshBannedUsers();
+                refreshStats();
+            } else {
+                alert('❌ Error: ' + result.message);
+            }
+        })
+        .catch(error => alert('❌ Error: ' + error.message));
+    }
+}
+
+// Add refresh button listener
+document.getElementById('refreshBannedBtn')?.addEventListener('click', refreshBannedUsers);
+    
+    // Initial load
+    refreshStats();
+    refreshSuspicious();
+    refreshRecentAttempts();
+    attachBanEvents();
+});
+</script>
+{% endblock %}

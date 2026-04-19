@@ -31,6 +31,11 @@ security:
                 secret: '%kernel.secret%'
                 lifetime: 604800  # 1 week
                 path: /
+            login_throttling:
+                max_attempts: 3                # <--- User is blocked after 3 failed attempts
+                interval: '15 minutes'   
+            user_checker: App\Security\BannedUserChecker
+
 
     # Role Hierarchy - Defines inheritance
     role_hierarchy:

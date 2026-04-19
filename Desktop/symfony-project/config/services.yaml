@@ -12,6 +12,8 @@ services:
     _defaults:
         autowire: true
         autoconfigure: true
+        public: false
+
 
     App\:
         resource: '../src/'
@@ -35,3 +37,7 @@ services:
     App\Service\AIChatService:
         arguments:
             $httpClient: '@http_client'
+            
+    App\Service\FaceRecognitionService:
+        arguments:
+            $projectDir: '%kernel.project_dir%'

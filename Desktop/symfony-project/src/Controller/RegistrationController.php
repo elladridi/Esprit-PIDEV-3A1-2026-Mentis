@@ -12,9 +12,14 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Smalot\PdfParser\Parser;
+use App\Service\FaceRecognitionService;
+use App\Service\CVSummarizationService;
 
 class RegistrationController extends AbstractController
 {
+    private const FACES_DIR = 'uploads/faces/';
+    private const REQUIRED_SAMPLES = 1;
+
     #[Route('/register', name: 'app_register')]
     public function register(
         Request $request,
@@ -26,30 +31,34 @@ class RegistrationController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            
-            // CV ANALYSIS FOR PSYCHOLOGISTS
+
+            // ── STEP 1: Hash password FIRST ───────────────────────────────
+            $user->setPassword(
+                $userPasswordHasher->hashPassword(
+                    $user,
+                    $form->get('plainPassword')->getData()
+                )
+            );
+
+            // ── STEP 2: CV analysis for psychologists ─────────────────────
             $cvFile = $form->get('cvFile')->getData();
-            
+
             if ($cvFile && $user->getType() === 'Psychologist') {
                 try {
-                    // Create temporary folder
                     $tempDir = $this->getParameter('kernel.project_dir') . '/var/temp_cvs/';
                     if (!is_dir($tempDir)) {
                         mkdir($tempDir, 0777, true);
                     }
-                    
-                    // Save CV temporarily
+
                     $tempFileName = uniqid() . '.pdf';
                     $cvFile->move($tempDir, $tempFileName);
                     $tempFilePath = $tempDir . $tempFileName;
-                    
-                    // Extract text from PDF
-                    $cvText = $this->extractTextFromPDF($tempFilePath);
-                    
-                    // Analyze CV
+
+                    $cvText  = $this->extractTextFromPDF($tempFilePath);
                     $analysis = $this->analyzeCVWithZai($cvText);
-                    
-                    // Auto-fill fields with extracted CV data
+
+                    @unlink($tempFilePath);
+
                     if (!empty($analysis['firstname']) && empty($user->getFirstname())) {
                         $user->setFirstname($analysis['firstname']);
                     }
@@ -68,66 +77,118 @@ class RegistrationController extends AbstractController
                     if (!empty($analysis['gender']) && empty($user->getGender())) {
                         $user->setGender($analysis['gender']);
                     }
-                    
-                    // Store complete analysis in session
+
                     $session = $request->getSession();
                     $session->set('cv_analysis_' . $user->getEmail(), [
-                        'firstname' => $analysis['firstname'],
-                        'lastname' => $analysis['lastname'],
-                        'email' => $analysis['email'],
-                        'phone' => $analysis['phone'],
-                        'dateofbirth' => $analysis['dateofbirth'],
-                        'gender' => $analysis['gender'],
-                        'score' => $analysis['score'] ?? 0,
-                        'is_valid' => $analysis['is_valid'] ?? false,
-                        'degree_found' => $analysis['degree_found'] ?? false,
-                        'experience_years' => $analysis['experience_years'] ?? 0,
-                        'specializations' => $analysis['specializations'] ?? [],
+                        'firstname'            => $analysis['firstname'],
+                        'lastname'             => $analysis['lastname'],
+                        'email'                => $analysis['email'],
+                        'phone'                => $analysis['phone'],
+                        'dateofbirth'          => $analysis['dateofbirth'],
+                        'gender'               => $analysis['gender'],
+                        'score'                => $analysis['score'] ?? 0,
+                        'is_valid'             => $analysis['is_valid'] ?? false,
+                        'degree_found'         => $analysis['degree_found'] ?? false,
+                        'experience_years'     => $analysis['experience_years'] ?? 0,
+                        'specializations'      => $analysis['specializations'] ?? [],
                         'missing_requirements' => $analysis['missing_requirements'] ?? [],
-                        'analysis_date' => date('Y-m-d H:i:s')
+                        'analysis_date'        => date('Y-m-d H:i:s'),
                     ]);
-                    
-                    // Delete temporary file
-                    unlink($tempFilePath);
-                    
-                    // Display analysis summary
-                    $this->addFlash('info', '📄 CV Analysis: ' . 
+
+                    $this->addFlash('info',
+                        '📄 CV Analysis: ' .
                         'Name: ' . ($analysis['firstname'] ?: 'Not found') . ' ' . ($analysis['lastname'] ?: '') . ', ' .
                         'Email: ' . ($analysis['email'] ?: 'Not found') . ', ' .
                         'Phone: ' . ($analysis['phone'] ?: 'Not found') . ', ' .
                         'Experience: ' . $analysis['experience_years'] . ' years, ' .
                         'Score: ' . $analysis['score'] . '%'
                     );
-                    
-                    // Validation flash message
+
                     if ($analysis['is_valid'] ?? false) {
                         $this->addFlash('success', '✓ CV validated! Welcome to Mentis.');
                     } else {
                         $this->addFlash('warning', '⚠️ Your CV is under review. Missing: ' . implode(', ', $analysis['missing_requirements']));
                     }
-                    
+
                 } catch (\Exception $e) {
                     $this->addFlash('error', 'CV analysis failed: ' . $e->getMessage());
                 }
             }
-            
-            // Password hashing
-            $user->setPassword(
-                $userPasswordHasher->hashPassword(
-                    $user,
-                    $form->get('plainPassword')->getData()
-                )
-            );
 
+            // ── STEP 3: Persist user (need ID before face processing) ─────
             $entityManager->persist($user);
-            
-            try {
-                $entityManager->flush();
-                $this->addFlash('success', 'Registration successful! Please login.');
-                return $this->redirectToRoute('app_login');
-            } catch (\Exception $e) {
-                $this->addFlash('error', 'Database error: ' . $e->getMessage());
+            $entityManager->flush();
+
+            // ── STEP 4: Face ID (optional) ────────────────────────────────
+            $faceSamplesJson = $request->request->get('face_samples');
+
+            if ($faceSamplesJson && !empty($faceSamplesJson)) {
+                $samples = json_decode($faceSamplesJson, true);
+
+                if (is_array($samples) && count($samples) >= 3) {
+
+                    $projectDir = $this->getParameter('kernel.project_dir');
+                    $facesDir   = $projectDir . DIRECTORY_SEPARATOR . 'public'
+                                . DIRECTORY_SEPARATOR . 'uploads'
+                                . DIRECTORY_SEPARATOR . 'faces'
+                                . DIRECTORY_SEPARATOR;
+
+                    $userDir = $facesDir . $user->getId() . DIRECTORY_SEPARATOR;
+                    if (!is_dir($userDir)) {
+                        mkdir($userDir, 0755, true);
+                    }
+
+                    $savedCount = 0;
+                    foreach ($samples as $sampleData) {
+                        if (str_contains($sampleData, 'base64,')) {
+                            $sampleData = explode('base64,', $sampleData)[1];
+                        }
+
+                        $imageData = base64_decode($sampleData);
+                        if (!$imageData || strlen($imageData) < 1000) continue;
+
+                        $tempName = 'reg_tmp_' . uniqid() . '.jpg';
+                        $tempPath = $facesDir . $tempName;
+                        file_put_contents($tempPath, $imageData);
+
+                        $scriptPath  = $projectDir . DIRECTORY_SEPARATOR . 'scripts' . DIRECTORY_SEPARATOR . 'face.py';
+                        $cascadePath = $projectDir . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'haarcascade_frontalface_default.xml';
+                        $python      = 'C:\\Users\\DELL\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe';
+
+                        $cmd    = sprintf('"%s" "%s" detect "%s" "%s" 2>&1', $python, $scriptPath, $tempPath, $cascadePath);
+                        $output = shell_exec($cmd);
+                        @unlink($tempPath);
+
+                        if (!$output) continue;
+
+                        $lines     = array_filter(array_map('trim', explode("\n", $output)));
+                        $detection = json_decode(end($lines), true);
+
+                        if (!($detection['face_detected'] ?? false)) continue;
+
+                        $processedPath = $detection['processed_path'] ?? '';
+                        if (!file_exists($processedPath)) continue;
+
+                        rename($processedPath, $userDir . 'sample_' . $savedCount . '.jpg');
+                        $savedCount++;
+                    }
+
+                    if ($savedCount >= 3) {
+                        $user->setFaceEnabled(true);
+                        if (method_exists($user, 'setFaceRegisteredAt')) {
+                            $user->setFaceRegisteredAt(new \DateTime());
+                        }
+                        $entityManager->flush();
+                        $this->addFlash('success', '✓ Face ID registered successfully!');
+                    } else {
+                        $this->addFlash('warning', "Only $savedCount face samples were valid. Face ID not enabled.");
+                    }
+                }
             }
+
+            // ── STEP 5: Always redirect from one place ────────────────────
+            $this->addFlash('success', 'Registration successful! Please login.');
+            return $this->redirectToRoute('app_login');
         }
 
         return $this->render('registration/register.html.twig', [
@@ -136,300 +197,280 @@ class RegistrationController extends AbstractController
     }
 
     #[Route('/analyze-cv', name: 'app_analyze_cv', methods: ['POST'])]
-    public function analyzeCv(Request $request): JsonResponse
+    public function analyzeCv(Request $request, CVSummarizationService $cvService): JsonResponse
     {
         $cvFile = $request->files->get('cv');
-        
+
         if (!$cvFile) {
             return $this->json(['error' => 'No file uploaded'], 400);
         }
-        
+
         try {
-            // Create temporary folder
             $tempDir = $this->getParameter('kernel.project_dir') . '/var/temp_cvs/';
             if (!is_dir($tempDir)) {
                 mkdir($tempDir, 0777, true);
             }
-            
-            // Save file temporarily
+
             $tempFileName = uniqid() . '.pdf';
             $cvFile->move($tempDir, $tempFileName);
             $tempFilePath = $tempDir . $tempFileName;
-            
-            // Extract and analyze
-            $cvText = $this->extractTextFromPDF($tempFilePath);
+
+            $cvText  = $this->extractTextFromPDF($tempFilePath);
             $analysis = $this->analyzeCVWithZai($cvText);
-            
-            // Delete temporary file
-            unlink($tempFilePath);
-            
+
+            @unlink($tempFilePath);
+
             return $this->json([
-                'success' => true,
-                'firstname' => $analysis['firstname'],
-                'lastname' => $analysis['lastname'],
-                'email' => $analysis['email'],
-                'phone' => $analysis['phone'],
+                'success'     => true,
+                'firstname'   => $analysis['firstname'],
+                'lastname'    => $analysis['lastname'],
+                'email'       => $analysis['email'],
+                'phone'       => $analysis['phone'],
                 'dateofbirth' => $analysis['dateofbirth'],
-                'gender' => $analysis['gender'],
-                'score' => $analysis['score'],
-                'is_valid' => $analysis['is_valid'],
-                'experience_years' => $analysis['experience_years'],
-                'specializations' => $analysis['specializations'],
-                'missing_requirements' => $analysis['missing_requirements']
             ]);
-            
+
         } catch (\Exception $e) {
             return $this->json(['error' => $e->getMessage()], 500);
         }
     }
 
-   private function extractTextFromPDF(string $pdfPath): string
-{
-    // Method 1: Use smalot/pdfparser (recommended)
-    if (class_exists('Smalot\PdfParser\Parser')) {
-        try {
-            $parser = new Parser();
-            $pdf = $parser->parseFile($pdfPath);
-            $text = $pdf->getText();
-            
-            // Clean the text
-            $text = preg_replace('/\s+/', ' ', $text);
-            $text = trim($text);
-            
-            if ($text && strlen($text) > 50) {
-                return substr($text, 0, 5000);
+    private function extractTextFromPDF(string $pdfPath): string
+    {
+        // Strategy 1: smalot/pdf-parser (preserves line breaks — important for name extraction)
+        if (class_exists('Smalot\PdfParser\Parser')) {
+            try {
+                $parser = new Parser();
+                $pdf    = $parser->parseFile($pdfPath);
+                $pages  = $pdf->getPages();
+                $text   = '';
+                foreach ($pages as $page) {
+                    $text .= $page->getText() . "\n";
+                }
+                $text = trim($text);
+                if ($text && strlen($text) > 50) {
+                    return substr($text, 0, 5000);
+                }
+            } catch (\Exception $e) {
+                // fall through
             }
-        } catch (\Exception $e) {
-            // Fallback to next method
         }
+
+        // Strategy 2: pdftotext CLI (best quality, preserves layout)
+        if (function_exists('shell_exec')) {
+            $commands = [
+                'pdftotext -layout ' . escapeshellarg($pdfPath) . ' - 2>/dev/null',
+                '"C:\\Program Files\\poppler\\bin\\pdftotext.exe" -layout ' . escapeshellarg($pdfPath) . ' - 2>nul',
+            ];
+            foreach ($commands as $command) {
+                $output = shell_exec($command);
+                if ($output && strlen($output) > 100 && !str_contains($output, 'ERROR')) {
+                    return substr($output, 0, 5000);
+                }
+            }
+        }
+
+        // Strategy 3: raw PDF string extraction (last resort)
+        $content = file_get_contents($pdfPath);
+        if ($content) {
+            preg_match_all('/\(([^)]+)\)/', $content, $matches);
+            if (!empty($matches[1])) {
+                $text = implode("\n", $matches[1]);
+                $text = preg_replace('/[^\x20-\x7E\n]/', ' ', $text);
+                $text = preg_replace('/\s+/', ' ', $text);
+                $text = trim($text);
+                if (strlen($text) > 100) {
+                    return substr($text, 0, 5000);
+                }
+            }
+        }
+
+        return '';
     }
-    
-    // Method 2: Use pdftotext (if installed on server)
-    if (function_exists('shell_exec')) {
-        // Try different pdftotext commands
-        $commands = [
-            'pdftotext ' . escapeshellarg($pdfPath) . ' - 2>/dev/null',
-            'C:\Program Files\poppler\bin\pdftotext.exe ' . escapeshellarg($pdfPath) . ' - 2>nul',
-        ];
-        
-        foreach ($commands as $command) {
-            $output = shell_exec($command);
-            if ($output && strlen($output) > 100 && !str_contains($output, 'ERROR')) {
-                return substr($output, 0, 5000);
-            }
-        }
-    }
-    
-    // Method 3: Try to decode PDF content
-    $content = file_get_contents($pdfPath);
-    if ($content) {
-        // Look for text strings in PDF
-        // Texts in PDF are often between parentheses
-        preg_match_all('/\(([^)]+)\)/', $content, $matches);
-        if (!empty($matches[1])) {
-            $text = implode(' ', $matches[1]);
-            $text = preg_replace('/[^\x20-\x7E]/', ' ', $text);
-            $text = preg_replace('/\s+/', ' ', $text);
-            $text = trim($text);
-            
-            if (strlen($text) > 100) {
-                return substr($text, 0, 5000);
-            }
-        }
-        
-        // Look for hexadecimal encoded strings
-        preg_match_all('/<([0-9A-Fa-f]{2,})>/', $content, $hexMatches);
-        if (!empty($hexMatches[1])) {
-            $hexText = '';
-            foreach ($hexMatches[1] as $hex) {
-                $hexText .= hex2bin($hex);
-            }
-            $hexText = preg_replace('/[^\x20-\x7E]/', ' ', $hexText);
-            $hexText = preg_replace('/\s+/', ' ', $hexText);
-            $hexText = trim($hexText);
-            
-            if (strlen($hexText) > 100) {
-                return substr($hexText, 0, 5000);
-            }
-        }
-    }
-    
-    return '';
-}
 
     private function analyzeCVWithZai(string $cvText): array
     {
-        // Local analysis without external API
-        $cvLower = strtolower($cvText);
-        
-        // ========== 1. PERSONAL INFORMATION EXTRACTION ==========
-        
-        // 1.1 Email
-        $email = '';
-        if (preg_match('/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/', $cvText, $emailMatches)) {
-            $email = $emailMatches[0];
+        // ── CLEAN: strip PDF font garbage (cid:xxx) injected by smalot ───
+        $text      = preg_replace('/\(cid:\d+\)\s*/i', '', $cvText);
+        $lines     = array_values(array_filter(array_map('trim', explode("\n", $text))));
+        $textLower = mb_strtolower($text);
+
+        // ── EMAIL ─────────────────────────────────────────────────────────
+        $email    = '';
+        $emailPat = '/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/';
+
+        // 1. Labeled: "Email: x@y.com"
+        if (preg_match('/(?:email|e-mail|courriel)\s*[:\s]\s*(' . substr($emailPat, 1, -1) . ')/i', $text, $m)) {
+            $email = $m[1];
         }
-        
-        // 1.2 Phone
-        $phone = '';
-        if (preg_match('/\+?[0-9]{1,3}[-.\s]?[0-9]{2,4}[-.\s]?[0-9]{3,4}[-.\s]?[0-9]{3,4}/', $cvText, $phoneMatches)) {
-            $phone = $phoneMatches[0];
-        } elseif (preg_match('/[0-9]{2,4}[-.\s]?[0-9]{2,4}[-.\s]?[0-9]{2,4}[-.\s]?[0-9]{2,4}/', $cvText, $phoneMatches)) {
-            $phone = $phoneMatches[0];
-        }
-        
-        // 1.3 First Name and Last Name
-        $firstName = '';
-        $lastName = '';
-        
-        if (preg_match('/name[:\\s]+([A-Z][a-z]+)\\s+([A-Z][a-z]+)/', $cvText, $nameMatches)) {
-            $firstName = $nameMatches[1];
-            $lastName = $nameMatches[2];
-        } elseif (preg_match('/first\\s*name[:\\s]+([A-Z][a-z]+)/i', $cvText, $nameMatches)) {
-            $firstName = $nameMatches[1];
-        } elseif (preg_match('/last\\s*name[:\\s]+([A-Z][a-z]+)/i', $cvText, $nameMatches)) {
-            $lastName = $nameMatches[1];
-        } elseif (preg_match('/prénom[:\\s]+([A-Z][a-z]+)/i', $cvText, $nameMatches)) {
-            $firstName = $nameMatches[1];
-        } elseif (preg_match('/nom[:\\s]+([A-Z][a-z]+)/i', $cvText, $nameMatches)) {
-            $lastName = $nameMatches[1];
-        }
-        
-        if (empty($firstName) && empty($lastName)) {
-            $words = preg_split('/\s+/', trim($cvText), 5);
-            if (count($words) >= 2) {
-                $firstName = ucfirst(strtolower($words[0]));
-                $lastName = ucfirst(strtolower($words[1]));
+        // 2. Line-by-line, split on | , ; — strip spaces per part (fixes smalot corruption)
+        if (empty($email)) {
+            foreach ($lines as $line) {
+                foreach (preg_split('/[|,;]/', $line) as $part) {
+                    $partNoSpace = preg_replace('/\s+/', '', ltrim($part, '# '));
+                    if (preg_match($emailPat, $partNoSpace, $m)) {
+                        $candidate = $m[0];
+                        if (strpos($candidate, '..') === false && strlen($candidate) < 80) {
+                            $email = $candidate;
+                            break 2;
+                        }
+                    }
+                }
             }
         }
-        
-        // 1.4 Date de naissance
+        // 3. Bare fallback
+        if (empty($email) && preg_match($emailPat, $text, $m)) {
+            $email = $m[0];
+        }
+
+        // ── PHONE ─────────────────────────────────────────────────────────
+        $phone = '';
+        if (preg_match('/\+\d[\d\s\-\.()]{6,18}\d/', $text, $m)) {
+            $phone = trim(preg_replace('/\s+/', ' ', $m[0]));
+        }
+        if (empty($phone) && preg_match('/(?:tel|phone|t[eé]l|mobile|gsm)\s*[:\s]\s*([\d\s\-\.()]{8,20})/i', $text, $m)) {
+            $phone = trim($m[1]);
+        }
+        if (empty($phone) && preg_match('/\b(\d{8,15})\b/', $text, $m)) {
+            $phone = $m[1];
+        }
+
+        // ── NAME ──────────────────────────────────────────────────────────
+        $firstName = '';
+        $lastName  = '';
+
+        $skipWords = [
+            'curriculum','vitae','resume','cv','profile','profil','summary',
+            'about','contact','education','formation','experience','skills',
+            'competence','objective','languages','projects','certifications',
+            'references','interests','awards','achievements','langues',
+            'projets','parcours',
+        ];
+
+        $onlyAlphaHyphen = function (string $s): bool {
+            foreach (mb_str_split($s) as $c) {
+                if (!ctype_alpha($c) && $c !== ' ' && $c !== '-') return false;
+            }
+            return true;
+        };
+
+        foreach (array_slice($lines, 0, 8) as $line) {
+            $cl    = trim(preg_replace('/^(dr\.?|mr\.?|mrs\.?|ms\.?|prof\.?)\s+/i', '', $line));
+            $words = preg_split('/\s+/', $cl);
+
+            if (count($words) < 2 || count($words) > 4) continue;
+            if (preg_match('/\d/', $cl)) continue;
+            if (str_contains($cl, '@') || str_contains(strtolower($cl), 'http')) continue;
+
+            $hasSkip = false;
+            foreach ($words as $w) {
+                if (in_array(rtrim(strtolower($w), 's'), $skipWords)) { $hasSkip = true; break; }
+            }
+            if ($hasSkip) continue;
+            if (!$onlyAlphaHyphen($cl)) continue;
+
+            // ALL CAPS
+            if ($cl === mb_strtoupper($cl)) {
+                $firstName = mb_convert_case($words[0], MB_CASE_TITLE, 'UTF-8');
+                $lastName  = implode(' ', array_map(fn($w) => mb_convert_case($w, MB_CASE_TITLE, 'UTF-8'), array_slice($words, 1)));
+                break;
+            }
+            // Title Case
+            if (mb_strtoupper($cl[0]) === $cl[0]) {
+                $firstName = $words[0];
+                $lastName  = implode(' ', array_slice($words, 1));
+                break;
+            }
+            // lowercase
+            if ($cl === mb_strtolower($cl)) {
+                $firstName = mb_convert_case($words[0], MB_CASE_TITLE, 'UTF-8');
+                $lastName  = implode(' ', array_map(fn($w) => mb_convert_case($w, MB_CASE_TITLE, 'UTF-8'), array_slice($words, 1)));
+                break;
+            }
+        }
+
+        // Labeled fallback: "Name: First Last"
+        if (empty($firstName)) {
+            if (preg_match('/(?:name|full\s*name|nom(?:\s*complet)?)\s*[:\s]\s*(\S+)\s+(\S+)/i', $text, $m)) {
+                if ($onlyAlphaHyphen($m[1] . $m[2])) {
+                    $firstName = mb_convert_case($m[1], MB_CASE_TITLE, 'UTF-8');
+                    $lastName  = mb_convert_case($m[2], MB_CASE_TITLE, 'UTF-8');
+                }
+            }
+        }
+
+        // ── DATE OF BIRTH ─────────────────────────────────────────────────
         $dateOfBirth = '';
         $dobPatterns = [
-            '/birth[:\\s]+([0-9]{2}[-\\/][0-9]{2}[-\\/][0-9]{4})/i',
-            '/born[:\\s]+([0-9]{2}[-\\/][0-9]{2}[-\\/][0-9]{4})/i',
-            '/date\\s*of\\s*birth[:\\s]+([0-9]{2}[-\\/][0-9]{2}[-\\/][0-9]{4})/i',
-            '/naissance[:\\s]+([0-9]{2}[-\\/][0-9]{2}[-\\/][0-9]{4})/i',
-            '/([0-9]{4}-[0-9]{2}-[0-9]{2})/',
-            '/([0-9]{2}\\/[0-9]{2}\\/[0-9]{4})/'
+            '/(?:born|birth|dob|n[ée]\s*le|date\s*of\s*birth)\s*[:\s]\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i',
+            '/(?:born|birth|dob|n[ée]\s*le|date\s*of\s*birth)\s*[:\s]\s*(\d{4}[\/\-]\d{2}[\/\-]\d{2})/i',
+            '/\b(\d{4}-\d{2}-\d{2})\b/',
+            '/\b(\d{2}[\/\-]\d{2}[\/\-]\d{4})\b/',
         ];
-        
-        foreach ($dobPatterns as $pattern) {
-            if (preg_match($pattern, $cvText, $dobMatches)) {
-                $dateOfBirth = $dobMatches[1];
+        foreach ($dobPatterns as $pat) {
+            if (preg_match($pat, $text, $m)) {
+                $candidate = $m[1];
+                if (preg_match('/^(\d{4})/', $candidate, $yr)) {
+                    $year = (int)$yr[1];
+                    if ($year < 1940 || $year > 2010) continue;
+                }
+                $dateOfBirth = str_replace(['.', '/'], '-', $candidate);
                 break;
             }
         }
-        
-        // 1.5 Genre
-        $gender = '';
-        $genderKeywords = [
-            'male' => 'male',
-            'masculin' => 'male',
-            'homme' => 'male',
-            'female' => 'female',
-            'feminin' => 'female',
-            'femme' => 'female'
+
+        // ── GENDER ────────────────────────────────────────────────────────
+        $gender    = '';
+        $genderMap = [
+            'female' => 'female', 'femme' => 'female', 'féminin' => 'female',
+            ' male ' => 'male', 'masculin' => 'male', ' homme ' => 'male',
         ];
-        
-        foreach ($genderKeywords as $keyword => $value) {
-            if (strpos($cvLower, $keyword) !== false) {
-                $gender = $value;
-                break;
-            }
+        foreach ($genderMap as $keyword => $value) {
+            if (str_contains($textLower, $keyword)) { $gender = $value; break; }
         }
-        
-        // ========== 2. ANALYSE DES QUALIFICATIONS ==========
-        
-        // 2.1 Degree verification
-        $degreeFound = false;
-        $degreeType = 'None';
-        $degreeKeywords = ['master', 'phd', 'doctorate', 'doctorat', 'master\'s', 'masters', 'maîtrise', 'doctor', 'm.sc', 'm.a', 'msc', 'ma'];
-        
-        foreach ($degreeKeywords as $keyword) {
-            if (strpos($cvLower, $keyword) !== false) {
-                $degreeFound = true;
-                $degreeType = 'Master/PhD';
-                break;
-            }
+
+        // ── PSYCHOLOGY VALIDATION ─────────────────────────────────────────
+        $degreeKeywords = ['master', 'phd', 'doctorate', 'doctorat', "master's", 'masters', 'maîtrise', 'doctor'];
+        $degreeFound    = false;
+        foreach ($degreeKeywords as $kw) {
+            if (str_contains($textLower, $kw)) { $degreeFound = true; break; }
         }
-        
-        // 2.2 Experience years extraction
+
         $experienceYears = 0;
-        $patterns = [
-            '/([0-9]+)\s*(?:years?|ans)/i',
-            '/experience[\s:]+([0-9]+)/i',
-            '/([0-9]+)\s*(?:years?|ans)\s*(?:of|d\')?/i'
-        ];
-        
-        foreach ($patterns as $pattern) {
-            if (preg_match($pattern, $cvLower, $matches)) {
-                $experienceYears = intval($matches[1]);
-                break;
-            }
+        if (preg_match('/(\d+)\s*(?:years?|ans?\b)/i', $textLower, $m)) {
+            $experienceYears = (int)$m[1];
         }
-        
-        // 2.3 Specializations detection
+
+        $specKeywords    = ['cbt' => 'CBT', 'clinical' => 'Clinical', 'therapy' => 'Therapy'];
         $specializations = [];
-        $specKeywords = [
-            'cbt' => 'CBT',
-            'cognitive behavioral' => 'Cognitive Behavioral Therapy',
-            'clinical' => 'Clinical Psychology',
-            'counseling' => 'Counseling',
-            'therapy' => 'Therapy',
-            'psychotherapy' => 'Psychotherapy',
-            'child' => 'Child Psychology',
-            'adolescent' => 'Adolescent Psychology',
-            'family' => 'Family Therapy',
-            'couple' => 'Couples Therapy',
-            'trauma' => 'Trauma Therapy',
-            'anxiety' => 'Anxiety Treatment',
-            'depression' => 'Depression Treatment'
-        ];
-        
-        foreach ($specKeywords as $keyword => $label) {
-            if (strpos($cvLower, $keyword) !== false) {
-                $specializations[] = $label;
-            }
+        foreach ($specKeywords as $kw => $label) {
+            if (str_contains($textLower, $kw)) $specializations[] = $label;
         }
         $specializations = array_unique($specializations);
-        
-        // 2.4 Validation
-        $minExperienceRequired = 2;
-        $isValid = $degreeFound && ($experienceYears >= $minExperienceRequired);
-        
-        // 2.5 Calcul du score (0-100)
-        $score = 0;
-        if ($degreeFound) $score += 50;
-        $score += min($experienceYears * 10, 40);
-        $score += min(count($specializations) * 5, 10);
-        $score = min($score, 100);
-        
-        // 2.6 Missing requirements
-        $missingRequirements = [];
-        if (!$degreeFound) {
-            $missingRequirements[] = 'Master or PhD degree in Psychology';
-        }
-        if ($experienceYears < $minExperienceRequired) {
-            $missingRequirements[] = "Minimum {$minExperienceRequired} years of experience (found: {$experienceYears})";
-        }
-        
+
+        $minExp  = 2;
+        $isValid = $degreeFound && ($experienceYears >= $minExp);
+        $score   = min(
+            ($degreeFound ? 50 : 0) + min($experienceYears * 10, 40) + min(count($specializations) * 5, 10),
+            100
+        );
+
+        $missing = [];
+        if (!$degreeFound)              $missing[] = 'Master or PhD degree in Psychology';
+        if ($experienceYears < $minExp) $missing[] = "Minimum {$minExp} years experience (found: {$experienceYears})";
+
         return [
-            'firstname' => $firstName,
-            'lastname' => $lastName,
-            'email' => $email,
-            'phone' => $phone,
-            'dateofbirth' => $dateOfBirth,
-            'gender' => $gender,
-            'degree_found' => $degreeFound,
-            'degree_type' => $degreeType,
-            'experience_years' => $experienceYears,
-            'specializations' => $specializations,
-            'is_valid' => $isValid,
-            'score' => $score,
-            'missing_requirements' => $missingRequirements,
-            'analysis_method' => 'local',
-            'analysis_date' => date('Y-m-d H:i:s')
+            'firstname'            => $firstName,
+            'lastname'             => $lastName,
+            'email'                => $email,
+            'phone'                => $phone,
+            'dateofbirth'          => $dateOfBirth,
+            'gender'               => $gender,
+            'degree_found'         => $degreeFound,
+            'experience_years'     => $experienceYears,
+            'specializations'      => $specializations,
+            'is_valid'             => $isValid,
+            'score'                => $score,
+            'missing_requirements' => $missing,
         ];
     }
 }

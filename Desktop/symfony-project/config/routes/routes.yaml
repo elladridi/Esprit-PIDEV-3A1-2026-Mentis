@@ -3,6 +3,7 @@ controllers:
     resource: '../../src/Controller/'
     type: attribute
 
+# Routes Forgot Password
 app_forgot_password:
     path: /forgot-password
     controller: App\Controller\ForgotPasswordController::forgotPassword
@@ -12,3 +13,29 @@ app_reset_password:
     path: /reset-password/{token}
     controller: App\Controller\ForgotPasswordController::resetPassword
     methods: [GET, POST]
+
+# Routes Face ID
+face_register:
+    path: /face/register/{id}
+    controller: App\Controller\FaceIDController::registerFacePage
+    methods: [GET]
+
+face_verify:
+    path: /face/verify
+    controller: App\Controller\FaceIDController::verifyFacePage
+    methods: [GET]
+
+api_face_register:
+    path: /face/api/register/{id}
+    controller: App\Controller\FaceIDController::registerFaceSample
+    methods: [POST]
+
+api_face_verify:
+    path: /face/api/verify
+    controller: App\Controller\FaceIDController::verifyFace
+    methods: [POST]
+
+api_face_disable:
+    path: /face/api/disable/{id}
+    controller: App\Controller\FaceIDController::disableFace
+    methods: [POST]
