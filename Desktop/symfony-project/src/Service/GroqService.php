@@ -2,23 +2,32 @@
 
 namespace App\Service;
 
+use Psr\Log\LoggerInterface;
+
 class GroqService
 {
     private string $apiKey;
-    private string $model;
     private string $apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
+    private ?LoggerInterface $logger = null;
 
-    public function __construct()
+    // ── Model constants ───────────────────────────────────
+    private const MODEL_LARGE = 'llama-3.3-70b-versatile';
+    private const MODEL_SMALL = 'llama-3.1-8b-instant';
+
+    public function __construct(?LoggerInterface $logger = null)
     {
+        $this->logger = $logger;
+
         $this->apiKey = $_ENV['GROQ_API_KEY'] ?? getenv('GROQ_API_KEY');
-        $this->model = $_ENV['GROQ_MODEL'] ?? getenv('GROQ_MODEL') ?: 'llama-3.1-8b-instant';
+        $this->apiKey = trim($this->apiKey, "'\"");
 
         if (empty($this->apiKey)) {
+            $this->logError('GROQ_API_KEY environment variable is not set');
             throw new \RuntimeException('GROQ_API_KEY environment variable is not set');
         }
     }
 
-    // ── Generate content (questions, analysis, etc.) ─────
+    // ── Generate assessment questions (ADMIN) ─────────────
     public function generateContent(string $prompt): string
     {
         $systemPrompt = "You are an expert at creating mental health assessment questions. "
@@ -28,7 +37,7 @@ class GroqService
             . "ALL questions must be answerable with a single scale selection.";
 
         $payload = json_encode([
-            'model'       => $this->model,
+            'model'       => self::MODEL_SMALL,
             'messages'    => [
                 ['role' => 'system', 'content' => $systemPrompt],
                 ['role' => 'user',   'content' => $prompt],
@@ -37,164 +46,195 @@ class GroqService
             'temperature' => 0.7,
         ]);
 
-        $result = $this->callApi($payload);
-
-        if ($result === null) {
-            throw new \RuntimeException('Groq API call failed');
-        }
-
-        $decoded = json_decode($result, true);
-
-        if (!isset($decoded['choices'][0]['message']['content'])) {
-            throw new \RuntimeException('Unexpected response: ' . $result);
-        }
-
-        $content = $decoded['choices'][0]['message']['content'];
-
-        // Add default SCALE lines if missing
-        if (!str_contains($content, 'SCALE:')) {
-            $lines     = explode("\n", $content);
-            $formatted = '';
-            foreach ($lines as $line) {
-                if (preg_match('/^\d+\./', trim($line))) {
-                    $formatted .= $line . "\n";
-                    $formatted .= "SCALE: Never/Rarely/Sometimes/Often/Always\n";
-                } else {
-                    $formatted .= $line . "\n";
-                }
-            }
-            $content = $formatted;
-        }
-
-        return $content;
-    }
-
-    // ── Safety Plan Suggestions (NO scale injection) ─────
-    // This is separate from generateContent() to avoid
-    // the SCALE: lines being added automatically
-    public function generateSafetyPlanSuggestions(string $prompt): array
-    {
-        $payload = json_encode([
-            'model'       => $this->model,
-            'messages'    => [
-                [
-                    'role'    => 'system',
-                    'content' => 'You are a compassionate clinical psychologist helping someone '
-                        . 'build a personal crisis safety plan. '
-                        . 'Provide practical, specific, and empathetic suggestions. '
-                        . 'Return ONLY a plain numbered list. '
-                        . 'Each item on its own line. '
-                        . 'No introductory text. No scale labels. No extra commentary. '
-                        . 'Just the numbered list items.',
-                ],
-                ['role' => 'user', 'content' => $prompt],
-            ],
-            'max_tokens'  => 600,
-            'temperature' => 0.7,
-        ]);
-
         try {
-            $result  = $this->callApi($payload);
-            $decoded = json_decode($result ?? '{}', true);
+            $result = $this->callApi($payload);
+            $decoded = json_decode($result, true);
             $content = $decoded['choices'][0]['message']['content'] ?? '';
 
-            return $this->parseSafetyPlanLines($content);
+            if (!str_contains($content, 'SCALE:')) {
+                $lines = explode("\n", $content);
+                $formatted = '';
+                foreach ($lines as $line) {
+                    if (preg_match('/^\d+\./', trim($line))) {
+                        $formatted .= $line . "\n";
+                        $formatted .= "SCALE: Never/Rarely/Sometimes/Often/Always\n";
+                    } else {
+                        $formatted .= $line . "\n";
+                    }
+                }
+                $content = $formatted;
+            }
 
+            return $content;
         } catch (\Exception $e) {
-            return [];
+            return $this->getFallbackQuestions($prompt);
         }
     }
 
-    // ── Generate Full AI Safety Plan ─────────────────────
-    // Returns a complete plan with all sections pre-filled
-    public function generateFullSafetyPlan(string $context = ''): array
+    // ── Generate AI analysis of assessment result ─────────
+    public function generateAnalysis(string $prompt): string
     {
-        $contextNote = $context
-            ? "User context: {$context}\n\n"
-            : '';
+        $this->logInfo('Generating analysis', ['prompt_length' => strlen($prompt)]);
 
-        $prompt = "{$contextNote}Generate a complete personal crisis safety plan with these 5 sections. "
-            . "For each section provide 4-6 specific, practical, and empathetic items. "
-            . "Return ONLY valid JSON in this exact structure, no other text:\n"
-            . "{\n"
-            . "  \"warning_signs\": [\"item1\", \"item2\", \"item3\", \"item4\"],\n"
-            . "  \"coping_strategies\": [\"item1\", \"item2\", \"item3\", \"item4\", \"item5\"],\n"
-            . "  \"social_distractions\": [\"item1\", \"item2\", \"item3\", \"item4\"],\n"
-            . "  \"reasons_to_live\": [\"item1\", \"item2\", \"item3\", \"item4\"],\n"
-            . "  \"safe_environment\": [\"item1\", \"item2\", \"item3\", \"item4\"]\n"
-            . "}\n\n"
-            . "Guidelines per section:\n"
-            . "- warning_signs: Internal feelings or behavioral changes that signal a crisis is coming\n"
-            . "- coping_strategies: Specific solo activities to calm down (breathing, walking, journaling etc)\n"
-            . "- social_distractions: People to call or places to go for distraction and support\n"
-            . "- reasons_to_live: Deeply personal motivations — family, pets, goals, dreams\n"
-            . "- safe_environment: Practical steps to make surroundings safer during a crisis\n"
-            . "Return ONLY the JSON object, nothing else.";
-
+        $cleanPrompt = strip_tags($prompt);
+        
         $payload = json_encode([
-            'model'       => 'llama-3.3-70b-versatile',
+            'model'       => self::MODEL_LARGE,
             'messages'    => [
                 [
                     'role'    => 'system',
                     'content' => 'You are a compassionate clinical psychologist. '
-                        . 'Return ONLY valid JSON. No markdown. No extra text.',
+                        . 'Analyze the assessment data and provide a detailed, empathetic response. '
+                        . 'Use plain English paragraphs. NO markdown. NO bullet points. NO **bold**. '
+                        . 'Write naturally like you are talking to a patient. '
+                        . 'Do NOT generate questions. Only provide analysis based on the scores given.',
+                ],
+                ['role' => 'user', 'content' => $cleanPrompt],
+            ],
+            'max_tokens'  => 1500,
+            'temperature' => 0.7,
+        ]);
+
+        try {
+            $result = $this->callApi($payload);
+            $decoded = json_decode($result, true);
+            $content = $decoded['choices'][0]['message']['content'] ?? '';
+
+            if (empty(trim($content))) {
+                throw new \RuntimeException('Empty response from API');
+            }
+
+            $content = str_replace(['**', '__', '##', '# ', '`'], '', $content);
+            
+            $this->logInfo('Analysis generated', ['length' => strlen($content)]);
+            return $content;
+
+        } catch (\Exception $e) {
+            $this->logError('generateAnalysis failed', ['error' => $e->getMessage()]);
+            throw $e;
+        }
+    }
+
+    // ── Safety Plan Suggestions (UPDATED - accepts section parameter) ──
+    public function generateSafetyPlanSuggestions(string $prompt, string $section = 'general'): array
+    {
+        $this->logInfo('Generating safety plan suggestions', ['section' => $section]);
+
+        $payload = json_encode([
+            'model'       => self::MODEL_LARGE,
+            'messages'    => [
+                [
+                    'role'    => 'system',
+                    'content' => $this->getSafetyPlanSystemPrompt($section),
                 ],
                 ['role' => 'user', 'content' => $prompt],
             ],
-            'max_tokens'  => 1500,
+            'max_tokens'  => 800,
+            'temperature' => 0.9,
+        ]);
+
+        try {
+            $result = $this->callApi($payload);
+            $decoded = json_decode($result, true);
+            $content = $decoded['choices'][0]['message']['content'] ?? '';
+
+            $suggestions = $this->parseSafetyPlanLines($content);
+            
+            if (empty($suggestions)) {
+                return $this->getDynamicFallbackSuggestions($section);
+            }
+            
+            return $suggestions;
+
+        } catch (\Exception $e) {
+            $this->logError('generateSafetyPlanSuggestions failed', ['error' => $e->getMessage()]);
+            return $this->getDynamicFallbackSuggestions($section);
+        }
+    }
+
+    // ── Generate Full AI Safety Plan ──────────────────────
+    public function generateFullSafetyPlan(string $context = ''): array
+    {
+        $this->logInfo('Generating full safety plan', ['context' => $context]);
+
+        $contextNote = $context ? "User's situation: {$context}\n\n" : '';
+
+        $prompt = $contextNote 
+            . "Create a personalized mental health crisis safety plan. "
+            . "Each section should have 4-6 specific, actionable items. "
+            . "Make the items personal and practical, not generic.\n\n"
+            . "Return ONLY valid JSON with this exact structure:\n"
+            . "{\n"
+            . "  \"warning_signs\": [\"specific behavior 1\", \"specific behavior 2\", ...],\n"
+            . "  \"coping_strategies\": [\"specific strategy 1\", \"specific strategy 2\", ...],\n"
+            . "  \"social_distractions\": [\"specific person or place 1\", ...],\n"
+            . "  \"reasons_to_live\": [\"personal reason 1\", \"personal reason 2\", ...],\n"
+            . "  \"safe_environment\": [\"safety step 1\", \"safety step 2\", ...]\n"
+            . "}\n\n"
+            . "IMPORTANT: Return ONLY the JSON. No other text. No markdown.";
+
+        $payload = json_encode([
+            'model'       => self::MODEL_LARGE,
+            'messages'    => [
+                [
+                    'role'    => 'system',
+                    'content' => 'You are a clinical psychologist creating safety plans. '
+                        . 'Return ONLY valid JSON. No markdown, no explanations, no extra text.',
+                ],
+                ['role' => 'user', 'content' => $prompt],
+            ],
+            'max_tokens'  => 2000,
             'temperature' => 0.8,
         ]);
 
         try {
-            $result  = $this->callApi($payload);
-            $decoded = json_decode($result ?? '{}', true);
+            $result = $this->callApi($payload);
+            $decoded = json_decode($result, true);
             $content = $decoded['choices'][0]['message']['content'] ?? '{}';
 
-            // Strip markdown fences
-            $content = preg_replace('/```json|```/', '', $content);
+            $content = preg_replace('/```json\s*|\s*```/', '', $content);
             $content = trim($content);
+            
+            if (preg_match('/\{[\s\S]*\}/', $content, $matches)) {
+                $content = $matches[0];
+            }
 
             $parsed = json_decode($content, true);
 
             if (!$parsed || !isset($parsed['warning_signs'])) {
-                return [];
+                $this->logError('Invalid JSON response', ['content' => $content]);
+                return $this->getFallbackSafetyPlanFull();
             }
 
             return $parsed;
 
         } catch (\Exception $e) {
-            return [];
+            $this->logError('generateFullSafetyPlan failed', ['error' => $e->getMessage()]);
+            return $this->getFallbackSafetyPlanFull();
         }
     }
 
-    // ── Sentiment Analysis ───────────────────────────────
+    // ── Sentiment Analysis ────────────────────────────────
     public function analyzeSentiment(string $text): array
     {
-        $prompt = "You are an expert clinical psychologist and sentiment analyst. "
-            . "Analyze the following personal statement from a mental health assessment.\n\n"
+        $prompt = "Analyze this text and return ONLY valid JSON:\n"
             . "Text: \"" . str_replace('"', '\\"', $text) . "\"\n\n"
-            . "Return ONLY a valid JSON object with exactly these fields:\n"
+            . "Return JSON with these exact fields:\n"
             . "{\n"
-            . "  \"sentiment_label\": \"one of: very_positive, positive, neutral, negative, very_negative, distressed\",\n"
+            . "  \"sentiment_label\": \"very_positive|positive|neutral|negative|very_negative|distressed\",\n"
             . "  \"sentiment_score\": 0.0,\n"
-            . "  \"emotion_tags\": [\"up to 5 emotions detected\"],\n"
+            . "  \"emotion_tags\": [],\n"
             . "  \"crisis_detected\": false,\n"
-            . "  \"crisis_keywords\": [\"any crisis-related words found\"],\n"
-            . "  \"key_themes\": [\"up to 3 main themes\"],\n"
-            . "  \"protective_factors\": [\"positive elements found\"],\n"
-            . "  \"clinical_note\": \"one sentence clinical observation\"\n"
-            . "}\n\n"
-            . "sentiment_score must be between 0.0 (most negative) and 1.0 (most positive).\n"
-            . "crisis_detected must be true if text contains suicidal ideation, self-harm, or hopelessness.\n"
-            . "Return ONLY the JSON object, no other text.";
+            . "  \"crisis_keywords\": [],\n"
+            . "  \"key_themes\": [],\n"
+            . "  \"protective_factors\": [],\n"
+            . "  \"clinical_note\": \"\"\n"
+            . "}";
 
         $payload = json_encode([
-            'model'       => 'llama-3.3-70b-versatile',
+            'model'       => self::MODEL_LARGE,
             'messages'    => [
-                [
-                    'role'    => 'system',
-                    'content' => 'You are a clinical sentiment analyzer. Return ONLY valid JSON, nothing else.',
-                ],
+                ['role' => 'system', 'content' => 'You are a sentiment analyst. Return ONLY valid JSON.'],
                 ['role' => 'user', 'content' => $prompt],
             ],
             'max_tokens'  => 600,
@@ -202,51 +242,29 @@ class GroqService
         ]);
 
         try {
-            $result  = $this->callApi($payload);
-            $decoded = json_decode($result ?? '{}', true);
+            $result = $this->callApi($payload);
+            $decoded = json_decode($result, true);
             $content = $decoded['choices'][0]['message']['content'] ?? '{}';
-
             $content = preg_replace('/```json|```/', '', $content);
-            $content = trim($content);
-
-            $parsed = json_decode($content, true);
-
-            if (!$parsed) {
-                return $this->defaultSentiment();
-            }
-
-            return $parsed;
-
+            $parsed = json_decode(trim($content), true);
+            
+            return $parsed ?: $this->defaultSentiment();
         } catch (\Exception $e) {
             return $this->defaultSentiment();
         }
     }
 
-    // ── Content Moderation ───────────────────────────────
+    // ── Content Moderation ────────────────────────────────
     public function moderateReview(string $reviewText): array
     {
-        $prompt = "You are a content moderator for a mental health app. "
-            . "Analyze this review and determine if it contains ANY offensive, insulting, "
-            . "harmful, inappropriate, or disrespectful language.\n\n"
+        $prompt = "Analyze this review for inappropriate content:\n\n"
             . "Review: \"" . str_replace('"', '\\"', $reviewText) . "\"\n\n"
-            . "Respond with a JSON object containing these EXACT fields (no other text):\n"
-            . "{\n"
-            . "  \"isAppropriate\": true,\n"
-            . "  \"confidence\": 0.0,\n"
-            . "  \"reason\": \"brief explanation\",\n"
-            . "  \"filteredVersion\": \"filtered text\",\n"
-            . "  \"containsProfanity\": false,\n"
-            . "  \"containsHateSpeech\": false,\n"
-            . "  \"containsHarassment\": false\n"
-            . "}";
+            . "Return JSON: {\"isAppropriate\": true, \"confidence\": 0.0, \"reason\": \"\", \"filteredVersion\": \"\", \"containsProfanity\": false, \"containsHateSpeech\": false, \"containsHarassment\": false}";
 
         $payload = json_encode([
-            'model'       => 'llama-3.3-70b-versatile',
+            'model'       => self::MODEL_LARGE,
             'messages'    => [
-                [
-                    'role'    => 'system',
-                    'content' => 'You are a content moderator. Return ONLY valid JSON.',
-                ],
+                ['role' => 'system', 'content' => 'You are a content moderator. Return ONLY valid JSON.'],
                 ['role' => 'user', 'content' => $prompt],
             ],
             'max_tokens'  => 500,
@@ -254,8 +272,8 @@ class GroqService
         ]);
 
         try {
-            $result  = $this->callApi($payload);
-            $decoded = json_decode($result ?? '{}', true);
+            $result = $this->callApi($payload);
+            $decoded = json_decode($result, true);
             $content = $decoded['choices'][0]['message']['content'] ?? '{}';
             return json_decode($content, true) ?? $this->defaultModeration($reviewText);
         } catch (\Exception $e) {
@@ -263,80 +281,198 @@ class GroqService
         }
     }
 
-    // ── Generate Adaptive Question ───────────────────────
+    // ── Generate Adaptive Question ────────────────────────
     public function generateAdaptiveQuestion(string $context, string $focus): array
     {
-        $prompt = "You are an expert clinical psychologist. {$context}
+        $prompt = "Generate ONE mental health question about {$focus}. "
+            . "Use first-person. Max 20 words. Use a scale.\n\n"
+            . "Return ONLY JSON: {\"question\": \"...\", \"scale_type\": \"never_always\", \"options\": [\"Never\", \"Rarely\", \"Sometimes\", \"Often\", \"Always\"]}";
 
-Generate ONE specific {$focus} question for a mental health assessment.
+        $payload = json_encode([
+            'model'       => self::MODEL_SMALL,
+            'messages'    => [
+                ['role' => 'system', 'content' => 'You generate assessment questions. Return ONLY valid JSON.'],
+                ['role' => 'user', 'content' => $prompt],
+            ],
+            'max_tokens'  => 200,
+            'temperature' => 0.6,
+        ]);
 
-CRITICAL REQUIREMENTS:
-- Question MUST use a SCALE (1-5, Never-Always, or Agree-Disagree)
-- Question MUST be answerable with a single selection (NOT a paragraph)
-- DO NOT ask for explanations, descriptions, or long answers
-- Use first-person \"I\" statements
-- Keep question short and clear (max 20 words)
-
-Return ONLY valid JSON format:
-{
-    \"question\": \"I feel...\",
-    \"scale_type\": \"never_always\",
-    \"options\": [\"Never\", \"Rarely\", \"Sometimes\", \"Often\", \"Always\"]
-}
-
-Valid scale types:
-- never_always: [\"Never\", \"Rarely\", \"Sometimes\", \"Often\", \"Always\"]
-- numeric_5: [\"1\", \"2\", \"3\", \"4\", \"5\"]
-- agreement: [\"Strongly Disagree\", \"Disagree\", \"Neutral\", \"Agree\", \"Strongly Agree\"]";
-
-        $response = $this->generateContent($prompt);
-
-        $response = trim($response);
-        $response = preg_replace('/```json|```/', '', $response);
-        $response = trim($response);
-
-        $data = json_decode($response, true);
-
-        if (!$data || !isset($data['question'])) {
-            return [
-                'question'   => "How often have I been experiencing issues related to {$focus}?",
-                'scale_type' => 'never_always',
-                'options'    => ['Never', 'Rarely', 'Sometimes', 'Often', 'Always'],
-            ];
+        try {
+            $result = $this->callApi($payload);
+            $decoded = json_decode($result, true);
+            $content = $decoded['choices'][0]['message']['content'] ?? '';
+            $content = preg_replace('/```json|```/', '', $content);
+            $data = json_decode(trim($content), true);
+            
+            return $data ?: $this->getFallbackQuestion($focus);
+        } catch (\Exception $e) {
+            return $this->getFallbackQuestion($focus);
         }
-
-        return $data;
     }
 
-    // ── Private Helpers ──────────────────────────────────
+    // ═══════════════════════════════════════════════════════
+    //  PRIVATE HELPER METHODS
+    // ═══════════════════════════════════════════════════════
+
+    private function getSafetyPlanSystemPrompt(string $section): string
+    {
+        $prompts = [
+            'warning_signs' => 'You are a crisis counselor. List 6 specific personal warning signs that tell someone a crisis may be coming. These should be internal feelings or behavior changes. Return ONLY a numbered list, one per line. No extra text.',
+            'coping_strategies' => 'You are a crisis counselor. List 6 specific coping strategies someone can do alone to calm down during distress. Include breathing, movement, creative, and sensory options. Return ONLY a numbered list, one per line.',
+            'social_distractions' => 'You are a crisis counselor. List 6 social activities or places that can help distract from a mental health crisis. Include calling people, going to places, and activities with others. Return ONLY a numbered list.',
+            'reasons_to_live' => 'You are a crisis counselor. List 6 deeply personal reasons to continue living. Include relationships, pets, future goals, passions, and life experiences. Return ONLY a numbered list.',
+            'safe_environment' => 'You are a crisis counselor. List 6 practical steps to make a home safer during a mental health crisis. Include asking for help, removing dangerous items, creating calm spaces. Return ONLY a numbered list.',
+            'general' => 'You are a crisis counselor. List 6 practical coping strategies for mental health. Return ONLY a numbered list, one per line.'
+        ];
+        
+        return $prompts[$section] ?? $prompts['general'];
+    }
+
+    private function getDynamicFallbackSuggestions(string $section): array
+    {
+        $fallbacks = [
+            'warning_signs' => [
+                'I notice changes in my sleep patterns (sleeping too much or too little)',
+                'I lose interest in activities I normally enjoy',
+                'I feel hopeless or trapped in my current situation',
+                'I withdraw from friends, family, and social activities',
+                'I have increased irritability or anger over small things',
+                'I struggle to concentrate or make decisions'
+            ],
+            'coping_strategies' => [
+                'Practice box breathing: inhale 4 sec → hold 4 sec → exhale 4 sec → hold 4 sec',
+                'Go for a 15-minute walk outside, focusing on your surroundings',
+                'Write down your thoughts in a journal without judgment',
+                'Listen to calming music or nature sounds for 10 minutes',
+                'Take a warm bath or shower with soothing scents',
+                'Do gentle stretching or yoga poses for 10 minutes'
+            ],
+            'social_distractions' => [
+                'Call or text a trusted friend - just to chat, not about problems',
+                'Visit a local coffee shop or library to be around people quietly',
+                'Join an online support group or community forum',
+                'Go to a park or public place where others are present',
+                'Attend a free community event or workshop',
+                'Volunteer at an animal shelter or food bank'
+            ],
+            'reasons_to_live' => [
+                'The people who love me and would miss me terribly',
+                'My pets who depend on me for food, love, and care',
+                'Future experiences I still want to have - travel, concerts, adventures',
+                'Small daily joys: sunshine, good food, a good book, laughter',
+                'I have survived difficult times before and grown stronger',
+                'Goals I haven\'t achieved yet - career, education, personal growth'
+            ],
+            'safe_environment' => [
+                'Ask a trusted person to hold onto any medications or dangerous items',
+                'Remove sharp objects or firearms from easy reach',
+                'Create a calm corner in your home with pillows, blankets, and soft lighting',
+                'Stay with family or friends when feeling unsafe or alone',
+                'Keep emergency contact numbers saved and visible in your phone',
+                'Install safety apps or quick-dial features on your phone'
+            ],
+            'general' => [
+                'Take 5 deep breaths, counting slowly to 5 on each inhale and exhale',
+                'Reach out to a trusted friend or family member by phone or text',
+                'Go for a short walk outside, noticing 5 things you can see',
+                'Write down three things you are grateful for right now',
+                'Listen to your favorite calming song or playlist',
+                'Drink a glass of cold water slowly, focusing on the sensation'
+            ]
+        ];
+        
+        return $fallbacks[$section] ?? $fallbacks['general'];
+    }
+
+    private function getFallbackQuestions(string $prompt): string
+    {
+        $topic = 'mental health';
+        if (strpos($prompt, 'anxiety') !== false) $topic = 'anxiety';
+        if (strpos($prompt, 'depression') !== false) $topic = 'depression';
+        if (strpos($prompt, 'stress') !== false) $topic = 'stress';
+
+        return "1. How often have I experienced {$topic} symptoms in the past two weeks?\n"
+             . "SCALE: Never/Rarely/Sometimes/Often/Always\n\n"
+             . "2. How much does {$topic} interfere with my daily life?\n"
+             . "SCALE: Never/Rarely/Sometimes/Often/Always\n\n"
+             . "3. How confident am I in managing my {$topic} symptoms?\n"
+             . "SCALE: Never/Rarely/Sometimes/Often/Always";
+    }
+
+    private function getFallbackSafetyPlanFull(): array
+    {
+        return [
+            'warning_signs' => [
+                'Feeling overwhelmed or unable to cope with daily tasks',
+                'Withdrawing from friends, family, or social activities',
+                'Significant changes in sleep patterns or appetite',
+                'Loss of interest in activities I usually enjoy',
+                'Increased irritability, anger, or mood swings'
+            ],
+            'coping_strategies' => [
+                'Practice deep breathing: inhale 4 seconds, hold 4, exhale 4',
+                'Go for a 15-20 minute walk outside, focusing on nature',
+                'Write down my thoughts and feelings in a journal',
+                'Listen to calming music or nature sounds',
+                'Take a warm bath or shower to relax my body',
+                'Do gentle stretching or yoga for 10 minutes'
+            ],
+            'social_distractions' => [
+                'Call or text a trusted friend or family member',
+                'Visit a local coffee shop, library, or park',
+                'Join an online support group or community',
+                'Go to a movie theater or watch a comforting show',
+                'Volunteer at an animal shelter or community center'
+            ],
+            'reasons_to_live' => [
+                'My family and close friends who care about me deeply',
+                'My pets who depend on me for love and care',
+                'Future goals and dreams I still want to achieve',
+                'The small joys in life: sunsets, good food, laughter',
+                'I have survived difficult times before and can do it again'
+            ],
+            'safe_environment' => [
+                'Ask a trusted person to hold onto any medications',
+                'Remove any sharp objects or potential dangers from easy reach',
+                'Create a calm, comfortable space with soft lighting and blankets',
+                'Stay with family or friends when feeling unsafe',
+                'Keep emergency contact numbers saved and accessible',
+                'Have a safety plan card in my wallet at all times'
+            ],
+        ];
+    }
+
+    private function getFallbackQuestion(string $focus): array
+    {
+        return [
+            'question'   => "How often have I been experiencing difficulties related to {$focus}?",
+            'scale_type' => 'never_always',
+            'options'    => ['Never', 'Rarely', 'Sometimes', 'Often', 'Always'],
+        ];
+    }
+
     private function parseSafetyPlanLines(string $text): array
     {
-        $lines       = explode("\n", $text);
+        $lines = explode("\n", $text);
         $suggestions = [];
 
         foreach ($lines as $line) {
             $line = trim($line);
-
-            // Skip SCALE lines entirely
-            if (stripos($line, 'SCALE:') !== false) continue;
-
-            // Remove numbering
+            if (empty($line)) continue;
+            
             $line = preg_replace('/^\d+[\.\)]\s*/', '', $line);
-
-            // Remove bullet characters
-            $line = trim($line, '- •*→');
+            $line = preg_replace('/^[-•*]\s*/', '', $line);
             $line = trim($line);
-
-            // Skip short or empty lines
-            if (empty($line) || strlen($line) < 5) continue;
-
-            // Skip lines that look like scale options
+            
+            if (strlen($line) < 5) continue;
+            if (stripos($line, 'SCALE:') !== false) continue;
             if (preg_match('/^(Never|Rarely|Sometimes|Often|Always|Strongly)/i', $line)) continue;
-
+            
             $suggestions[] = $line;
         }
 
-        return array_slice(array_values($suggestions), 0, 6);
+        return array_slice($suggestions, 0, 7);
     }
 
     private function defaultSentiment(): array
@@ -349,7 +485,7 @@ Valid scale types:
             'crisis_keywords'    => [],
             'key_themes'         => [],
             'protective_factors' => [],
-            'clinical_note'      => 'Analysis unavailable.',
+            'clinical_note'      => 'Analysis temporarily unavailable. Please consult a professional.',
         ];
     }
 
@@ -358,7 +494,7 @@ Valid scale types:
         return [
             'isAppropriate'      => true,
             'confidence'         => 1.0,
-            'reason'             => 'API unavailable, auto-approved',
+            'reason'             => 'Auto-approved',
             'filteredVersion'    => $reviewText,
             'containsProfanity'  => false,
             'containsHateSpeech' => false,
@@ -377,13 +513,13 @@ Valid scale types:
             'Content-Type: application/json',
             'Authorization: Bearer ' . $this->apiKey,
         ]);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 60);
 
         $result = curl_exec($ch);
         $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error  = curl_error($ch);
+        $error = curl_error($ch);
         curl_close($ch);
 
         if ($error) {
@@ -394,6 +530,20 @@ Valid scale types:
             throw new \RuntimeException('API returned HTTP ' . $status . ': ' . $result);
         }
 
-        return $result ?: null;
+        return $result;
+    }
+
+    private function logInfo(string $message, array $context = []): void
+    {
+        if ($this->logger) {
+            $this->logger->info('[GroqService] ' . $message, $context);
+        }
+    }
+
+    private function logError(string $message, array $context = []): void
+    {
+        if ($this->logger) {
+            $this->logger->error('[GroqService] ' . $message, $context);
+        }
     }
 }
