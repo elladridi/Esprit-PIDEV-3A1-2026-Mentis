@@ -12,8 +12,12 @@
         "doctrine/orm": "^3.6",
         "dompdf/dompdf": "^3.1",
         "endroid/qr-code": "^6.0",
+        "knplabs/knp-paginator-bundle": "^6.10",
+        "knplabs/knp-snappy-bundle": "^1.10",
+        "league/commonmark": "^2.8",
         "smalot/pdfparser": "^2.12",
         "symfony/asset": "7.4.*",
+        "symfony/cache": "7.4.*",
         "symfony/console": "7.4.*",
         "symfony/dotenv": "7.4.*",
         "symfony/filesystem": "7.4.*",
@@ -27,11 +31,15 @@
         "symfony/rate-limiter": "7.4.*",
         "symfony/runtime": "7.4.*",
         "symfony/security-bundle": "^7.4",
+        "symfony/translation": "7.4.*",
         "symfony/twig-bundle": "7.4.*",
         "symfony/uid": "7.4.*",
         "symfony/validator": "7.4.*",
         "symfony/yaml": "7.4.*",
-        "twig/string-extra": "^3.24"
+        "twig/extra-bundle": "^3.24",
+        "twig/markdown-extra": "^3.24",
+        "twig/string-extra": "^3.24",
+        "vich/uploader-bundle": "^2.9"
     },
     "config": {
         "allow-plugins": {

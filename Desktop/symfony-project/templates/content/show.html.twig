@@ -30,13 +30,13 @@
                     <div class="col-lg-8">
                         <div class="p-3 bg-light rounded-3 mb-3">
                             <h5 class="mb-2">Description</h5>
-                            <p class="mb-0">{{ contentNode.description|default('No description for this item yet.') }}</p>
+                            <div class="prose mb-0">{{ contentNode.description|default('No description for this item yet.')|markdown_to_html }}</div>
                         </div>
 
                         {% if contentNode.pdfPath is not empty %}
                             <div class="p-3 bg-white rounded-3 border mb-3">
                                 <h5 class="mb-2">PDF Resource</h5>
-                                <a class="btn btn-outline-primary" href="{{ asset(contentNode.pdfPath) }}" target="_blank"><i class="bi bi-file-earmark-pdf"></i> Open PDF</a>
+                                <a class="btn btn-outline-primary" href="{{ asset(contentNode.pdfPublicPath) }}" target="_blank"><i class="bi bi-file-earmark-pdf"></i> Open PDF</a>
                             </div>
                         {% endif %}
 
@@ -157,6 +157,28 @@
     .chat-messages {
         display: flex;
         flex-direction: column;
+    }
+
+    .prose h3 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 1rem 0 0.5rem;
+        color: #212529;
+    }
+
+    .prose p {
+        margin-bottom: 0.75rem;
+        line-height: 1.7;
+        color: #495057;
+    }
+
+    .prose ul {
+        margin: 0.75rem 0 0.75rem 1.25rem;
+        padding-left: 0.75rem;
+    }
+
+    .prose li {
+        margin-bottom: 0.4rem;
     }
 
     .chat-message {
@@ -419,7 +441,7 @@
             addLoadingMessage();
 
             try {
-                const response = await fetch(`/content/${contentId}/chat`, {
+                const response = await fetch('{{ path('content_ai_chat') }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -462,7 +484,7 @@
             generateBtn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
 
             try {
-                const response = await fetch('/api/generate-content', {
+                const response = await fetch('{{ path('content_generate_content') }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -470,7 +492,7 @@
                     },
                     body: JSON.stringify({ 
                         topic: topic,
-                        type: type
+                        contentType: type
                     })
                 });
 

@@ -48,12 +48,12 @@
                         <label class="form-label fw-semibold">PDF File</label>
                         {% if contentNode.pdfPath %}
                             <div class="mb-2">
-                                <small class="text-muted">Current PDF: <a href="{{ asset(contentNode.pdfPath) }}" target="_blank" class="text-primary text-decoration-none"><i class="bi bi-file-pdf"></i> {{ contentNode.pdfPath|split('/')|last }}</a></small>
+                                <small class="text-muted">Current PDF: <a href="{{ asset(contentNode.pdfPublicPath) }}" target="_blank" class="text-primary text-decoration-none"><i class="bi bi-file-pdf"></i> {{ contentNode.pdfPath|split('/')|last }}</a></small>
                             </div>
                         {% endif %}
-                        {{ form_widget(form.pdfPath, {attr: {class: 'form-control', style: 'border-radius: 10px; padding: 12px;'}}) }}
+                        {{ form_widget(form.pdfFile, {attr: {class: 'form-control', style: 'border-radius: 10px; padding: 12px;'}}) }}
                         <small class="form-text text-muted">Leave empty to keep current PDF, or upload a new one to replace it.</small>
-                        {{ form_errors(form.pdfPath) }}
+                        {{ form_errors(form.pdfFile) }}
                     </div>
 
                     <div class="col-12">

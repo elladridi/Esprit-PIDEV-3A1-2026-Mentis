@@ -7,7 +7,6 @@ use App\Entity\User;
 use App\Repository\UserRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Validator\Constraints\File;
@@ -15,6 +14,7 @@ use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Vich\UploaderBundle\Form\Type\VichFileType;
 
 class ContentNodeType extends AbstractType
 {
@@ -41,10 +41,11 @@ class ContentNodeType extends AbstractType
                     'placeholder' => 'Describe the content purpose and takeaway',
                 ],
             ])
-            ->add('pdfPath', FileType::class, [
+            ->add('pdfFile', VichFileType::class, [
                 'label' => 'PDF File',
                 'required' => false,
-                'mapped' => false,
+                'allow_delete' => false,
+                'download_uri' => false,
                 'attr' => [
                     'class' => 'form-control',
                     'accept' => '.pdf',
