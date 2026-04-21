@@ -1,9 +1,11 @@
 <?php
+// src/Controller/AssessmentResultController.php
 
 namespace App\Controller;
 
 use App\Entity\AssessmentResult;
 use App\Entity\User;
+use App\Service\CrisisAlertService;
 use App\Repository\AssessmentRepository;
 use App\Repository\AssessmentResultRepository;
 use App\Repository\QuestionRepository;
@@ -31,6 +33,7 @@ class AssessmentResultController extends AbstractController
     private PdfExportService $pdfExportService;
     private SpotifyService $spotifyService;
     private MeditationService $meditationService;
+    private CrisisAlertService $crisisAlertService;
 
     public function __construct(
         EntityManagerInterface $em,
@@ -41,22 +44,21 @@ class AssessmentResultController extends AbstractController
         YouTubeService $youtubeService,
         PdfExportService $pdfExportService,
         SpotifyService $spotifyService,
-        MeditationService $meditationService
+        MeditationService $meditationService,
+        CrisisAlertService $crisisAlertService
     ) {
-        $this->em                = $em;
-        $this->resultRepo        = $resultRepo;
-        $this->assessmentRepo    = $assessmentRepo;
-        $this->questionRepo      = $questionRepo;
-        $this->groqService       = $groqService;
-        $this->youtubeService    = $youtubeService;
-        $this->pdfExportService  = $pdfExportService;
-        $this->spotifyService    = $spotifyService;
+        $this->em = $em;
+        $this->resultRepo = $resultRepo;
+        $this->assessmentRepo = $assessmentRepo;
+        $this->questionRepo = $questionRepo;
+        $this->groqService = $groqService;
+        $this->youtubeService = $youtubeService;
+        $this->pdfExportService = $pdfExportService;
+        $this->spotifyService = $spotifyService;
         $this->meditationService = $meditationService;
+        $this->crisisAlertService = $crisisAlertService;
     }
 
-    // ── Helper: get the currently logged-in User entity ──
-    // Returns the typed User entity (not just UserInterface)
-    // This removes ALL IntelliSense warnings about getType/getId
     private function getCurrentUser(): ?User
     {
         $user = $this->getUser();
@@ -66,14 +68,12 @@ class AssessmentResultController extends AbstractController
         return null;
     }
 
-    // ── Helper: check if current user is a Patient ────────
     private function isPatient(): bool
     {
         $user = $this->getCurrentUser();
         return $user !== null && $user->getType() === 'Patient';
     }
 
-    // ── Helper: check if a result belongs to current user ─
     private function resultBelongsToCurrentUser(AssessmentResult $result): bool
     {
         $user = $this->getCurrentUser();
@@ -81,19 +81,14 @@ class AssessmentResultController extends AbstractController
         return $result->getUser()?->getId() === $user->getId();
     }
 
-    // ── LIST RESULTS ──────────────────────────────────────
-    // Psychologists see ALL results
-    // Patients see ONLY their own results
     #[Route('/', name: 'result_index', methods: ['GET'])]
     public function index(): Response
     {
         $currentUser = $this->getCurrentUser();
 
         if ($this->isPatient() && $currentUser !== null) {
-            // Patient sees only their own results
             $results = $this->resultRepo->findByUser($currentUser->getId());
         } else {
-            // Psychologist or admin sees everything
             $results = $this->resultRepo->findAllOrderedByDate();
         }
 
@@ -111,13 +106,11 @@ class AssessmentResultController extends AbstractController
         ]);
     }
 
-    // ── USER RESULTS ──────────────────────────────────────
     #[Route('/user/{userId}', name: 'result_by_user', methods: ['GET'])]
     public function byUser(int $userId, UserRepository $userRepo): Response
     {
         $currentUser = $this->getCurrentUser();
 
-        // Security: Patients can only view their own results
         if ($this->isPatient() && $currentUser !== null
             && $currentUser->getId() !== $userId) {
 
@@ -140,7 +133,6 @@ class AssessmentResultController extends AbstractController
         ]);
     }
 
-    // ── SUBMIT ASSESSMENT ─────────────────────────────────
     #[Route('/submit', name: 'result_submit', methods: ['POST'])]
     public function submit(Request $request, UserRepository $userRepo): Response
     {
@@ -175,7 +167,6 @@ class AssessmentResultController extends AbstractController
         $interpretation = $this->generateInterpretation($riskLevel);
         $suggestSession = $this->shouldSuggestSession($riskLevel, $aiAnalysis);
 
-        // ── Sentiment Analysis ────────────────────────────
         $sentimentData = [];
         if (!empty($freeText)) {
             try {
@@ -194,7 +185,6 @@ class AssessmentResultController extends AbstractController
 
         $recommendedContent = $this->generateRecommendedContent($riskLevel, $aiAnalysis);
 
-        // ── Save Result ───────────────────────────────────
         $result = new AssessmentResult();
         $user   = $this->em->getRepository(User::class)->find((int)$userId);
         $result->setUser($user);
@@ -209,7 +199,11 @@ class AssessmentResultController extends AbstractController
         $this->em->persist($result);
         $this->em->flush();
 
-        // ── Fetch Resources ───────────────────────────────
+        // ── ADD CRISIS ALERT IF HIGH RISK ─────────────────
+        if (in_array(strtolower($riskLevel), ['high', 'severe', 'critical'])) {
+            $this->crisisAlertService->addCrisisAlert($result);
+        }
+
         $videos      = $this->youtubeService->fetchVideos($assessment->getType() ?? 'general', $riskLevel);
         $playlists   = $this->spotifyService->fetchPlaylists($assessment->getType() ?? 'general', $riskLevel);
         $meditations = $this->meditationService->getSessions($assessment->getType() ?? 'general', $riskLevel);
@@ -227,13 +221,11 @@ class AssessmentResultController extends AbstractController
         ]);
     }
 
-    // ── USER STATISTICS ───────────────────────────────────
     #[Route('/stats/{userId}', name: 'result_stats', methods: ['GET'])]
     public function stats(int $userId, UserRepository $userRepo): Response
     {
         $currentUser = $this->getCurrentUser();
 
-        // Security: Patients can only see their own stats
         if ($this->isPatient() && $currentUser !== null
             && $currentUser->getId() !== $userId) {
 
@@ -296,7 +288,6 @@ class AssessmentResultController extends AbstractController
         ]);
     }
 
-    // ── EXPORT PDF ────────────────────────────────────────
     #[Route('/{id}/export-pdf', name: 'result_export_pdf', methods: ['GET'])]
     public function exportPdf(int $id): Response
     {
@@ -306,7 +297,6 @@ class AssessmentResultController extends AbstractController
             throw $this->createNotFoundException('Result not found');
         }
 
-        // Security: Patients can only export their own results
         if ($this->isPatient() && !$this->resultBelongsToCurrentUser($result)) {
             $this->addFlash('error', 'You can only export your own results.');
             return $this->redirectToRoute('result_index');
@@ -329,7 +319,6 @@ class AssessmentResultController extends AbstractController
         ]);
     }
 
-    // ── DELETE ────────────────────────────────────────────
     #[Route('/{id}/delete', name: 'result_delete', methods: ['POST'])]
     public function delete(int $id): Response
     {
@@ -339,7 +328,6 @@ class AssessmentResultController extends AbstractController
             throw $this->createNotFoundException('Result not found');
         }
 
-        // Security: Patients can only delete their own results
         if ($this->isPatient() && !$this->resultBelongsToCurrentUser($result)) {
             $this->addFlash('error', 'You can only delete your own results.');
             return $this->redirectToRoute('result_index');
@@ -352,7 +340,6 @@ class AssessmentResultController extends AbstractController
         return $this->redirectToRoute('result_index');
     }
 
-    // ── VIEW SINGLE RESULT ────────────────────────────────
     #[Route('/{id}', name: 'result_show', methods: ['GET'])]
     public function show(int $id): Response
     {
@@ -362,7 +349,6 @@ class AssessmentResultController extends AbstractController
             throw $this->createNotFoundException('Result not found');
         }
 
-        // Security: Patients can only view their own results
         if ($this->isPatient() && !$this->resultBelongsToCurrentUser($result)) {
             $this->addFlash('error', 'You can only view your own results.');
             return $this->redirectToRoute('result_index');
@@ -395,14 +381,15 @@ class AssessmentResultController extends AbstractController
     // ═══════════════════════════════════════════════════
 
     private function generateAIAnalysis(array $questions, array $scores, array $originalAnswers, int $totalScore, string $riskLevel): string
-    {
-        try {
-            $prompt = $this->buildGroqPrompt($questions, $scores, $originalAnswers, $totalScore, $riskLevel);
-            return $this->groqService->generateContent($prompt);
-        } catch (\Exception $e) {
-            return $this->generateRuleBasedAnalysis($questions, $scores, $originalAnswers, $totalScore, $riskLevel);
-        }
+{
+    try {
+        $prompt = $this->buildGroqPrompt($questions, $scores, $originalAnswers, $totalScore, $riskLevel);
+        // Use generateAnalysis() NOT generateContent()
+        return $this->groqService->generateAnalysis($prompt);
+    } catch (\Exception $e) {
+        return $this->generateRuleBasedAnalysis($questions, $scores, $originalAnswers, $totalScore, $riskLevel);
     }
+}
 
     private function buildGroqPrompt(array $questions, array $scores, array $originalAnswers, int $totalScore, string $riskLevel): string
     {

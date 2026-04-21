@@ -74,63 +74,54 @@ class SafetyPlanController extends AbstractController
     }
 
     // ── AI Suggest Single Section ────────────────────────
-    #[Route('/ai-suggest', name: 'safety_plan_ai_suggest', methods: ['POST'])]
-    public function aiSuggest(Request $request): Response
-    {
-        $section = $request->request->get('section', '');
-        $context = $request->request->get('context', '');
+    // In SafetyPlanController.php, update the aiSuggest method:
 
-        $prompts = [
-            'warning_signs' =>
-                "List 5 specific personal warning signs that tell someone a mental health crisis "
-                . "may be coming. These are internal feelings or noticeable behavior changes. "
-                . ($context ? "User's current notes: {$context}. " : '')
-                . "Be specific and practical. "
-                . "Return ONLY a plain numbered list, one item per line. "
-                . "No scale labels. No SCALE: text. Just the items.",
+#[Route('/ai-suggest', name: 'safety_plan_ai_suggest', methods: ['POST'])]
+public function aiSuggest(Request $request): Response
+{
+    $section = $request->request->get('section', '');
+    $context = $request->request->get('context', '');
 
-            'coping_strategies' =>
-                "List 6 specific coping strategies someone can do alone to calm down during "
-                . "emotional distress. Include breathing, movement, creative, and sensory options. "
-                . ($context ? "User's current notes: {$context}. " : '')
-                . "Be specific and practical. "
-                . "Return ONLY a plain numbered list, one item per line. "
-                . "No scale labels. No SCALE: text. Just the items.",
+    $prompts = [
+        'warning_signs' =>
+            "List 6 specific personal warning signs that tell someone a mental health crisis "
+            . "may be coming. These are internal feelings or noticeable behavior changes. "
+            . ($context ? "User's current notes: {$context}. " : '')
+            . "Be specific and practical. Return ONLY a plain numbered list, one item per line.",
+        'coping_strategies' =>
+            "List 6 specific coping strategies someone can do alone to calm down during "
+            . "emotional distress. Include breathing, movement, creative, and sensory options. "
+            . ($context ? "User's current notes: {$context}. " : '')
+            . "Return ONLY a plain numbered list, one item per line.",
+        'social_distractions' =>
+            "List 6 social activities or places that can help distract from a mental health crisis. "
+            . "Include calling people, going to places, and doing activities with others. "
+            . ($context ? "User's current notes: {$context}. " : '')
+            . "Return ONLY a plain numbered list, one item per line.",
+        'reasons_to_live' =>
+            "List 6 deeply meaningful and personal reasons to continue living. "
+            . "Include relationships, pets, future goals, passions, and life experiences. "
+            . ($context ? "User's current notes: {$context}. " : '')
+            . "Make them emotional and specific. Return ONLY a plain numbered list, one item per line.",
+        'safe_environment' =>
+            "List 6 practical steps to make a home safer during a mental health crisis. "
+            . "Include asking for help, removing dangerous items, creating calm spaces. "
+            . ($context ? "User's current notes: {$context}. " : '')
+            . "Return ONLY a plain numbered list, one item per line.",
+    ];
 
-            'social_distractions' =>
-                "List 5 social activities or places that can help distract from a mental health crisis. "
-                . "Include calling people, going to places, and doing activities with others. "
-                . ($context ? "User's current notes: {$context}. " : '')
-                . "Return ONLY a plain numbered list, one item per line. "
-                . "No scale labels. No SCALE: text. Just the items.",
-
-            'reasons_to_live' =>
-                "List 5 deeply meaningful and personal reasons to continue living. "
-                . "Include relationships, pets, future goals, passions, and life experiences. "
-                . ($context ? "User's current notes: {$context}. " : '')
-                . "Make them emotional and specific. "
-                . "Return ONLY a plain numbered list, one item per line. "
-                . "No scale labels. No SCALE: text. Just the items.",
-
-            'safe_environment' =>
-                "List 4 practical steps to make a home safer during a mental health crisis. "
-                . "Include asking for help, removing dangerous items, creating calm spaces. "
-                . ($context ? "User's current notes: {$context}. " : '')
-                . "Return ONLY a plain numbered list, one item per line. "
-                . "No scale labels. No SCALE: text. Just the items.",
-        ];
-
-        if (!isset($prompts[$section])) {
-            return $this->json(['error' => 'Invalid section'], 400);
-        }
-
-        try {
-            $suggestions = $this->groqService->generateSafetyPlanSuggestions($prompts[$section]);
-            return $this->json(['success' => true, 'suggestions' => $suggestions]);
-        } catch (\Exception $e) {
-            return $this->json(['success' => false, 'error' => $e->getMessage()]);
-        }
+    if (!isset($prompts[$section])) {
+        return $this->json(['error' => 'Invalid section'], 400);
     }
+
+    try {
+        // Pass the section to the service
+        $suggestions = $this->groqService->generateSafetyPlanSuggestions($prompts[$section], $section);
+        return $this->json(['success' => true, 'suggestions' => $suggestions]);
+    } catch (\Exception $e) {
+        return $this->json(['success' => false, 'error' => $e->getMessage()]);
+    }
+}
 
     // ── AI Generate Full Plan ────────────────────────────
     #[Route('/ai-generate-full', name: 'safety_plan_ai_full', methods: ['POST'])]

@@ -189,6 +189,80 @@ class AIChatService
     }
 
     /**
+     * Generate a concise summary for a content item.
+     *
+     * @return array ['success' => bool, 'summary' => string, 'error' => string|null]
+     */
+    public function summarizeContent(string $title, string $description): array
+    {
+        if (trim($title) === '' || trim($description) === '') {
+            return [
+                'success' => false,
+                'summary' => '',
+                'error' => 'Title and description are required'
+            ];
+        }
+
+        if (empty($this->groqApiKey)) {
+            return [
+                'success' => false,
+                'summary' => '',
+                'error' => 'Groq API key is missing'
+            ];
+        }
+
+        $systemPrompt = 'You are a mental health content summarizer. Write a concise 2-3 sentence summary in clear, supportive language. Focus on the main purpose, practical value, and key takeaways. Do not use markdown or bullet points.';
+        $userPrompt = "Title: {$title}\n\nDescription:\n{$description}\n\nReturn only the summary.";
+
+        try {
+            $response = $this->httpClient->request('POST', $this->groqUrl, [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->groqApiKey,
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => [
+                    'model' => $this->groqModel,
+                    'messages' => [
+                        [
+                            'role' => 'system',
+                            'content' => $systemPrompt
+                        ],
+                        [
+                            'role' => 'user',
+                            'content' => $userPrompt
+                        ]
+                    ],
+                    'temperature' => 0.3,
+                    'max_tokens' => 220,
+                ],
+                'timeout' => 30,
+            ]);
+
+            $data = $response->toArray();
+
+            if (isset($data['choices'][0]['message']['content'])) {
+                return [
+                    'success' => true,
+                    'summary' => trim($data['choices'][0]['message']['content']),
+                    'error' => null
+                ];
+            }
+
+            return [
+                'success' => false,
+                'summary' => '',
+                'error' => 'No valid response from Groq AI'
+            ];
+        } catch (TransportExceptionInterface | ClientExceptionInterface | ServerExceptionInterface | \JsonException $e) {
+            return [
+                'success' => false,
+                'summary' => '',
+                'error' => 'AI request failed: ' . $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
      * Build system prompt based on user type and context
      */
     private function buildSystemPrompt(string $userType, ?string $context = null): string

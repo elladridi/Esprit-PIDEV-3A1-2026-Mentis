@@ -61,6 +61,49 @@
         background: #50C878;
         color: white;
     }
+    .pagination {
+        justify-content: center;
+    }
+    .card-actions {
+        display: flex;
+        gap: 6px;
+    }
+    .btn-action {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        border: none;
+        transition: all 0.2s ease;
+        padding: 0;
+    }
+    .btn-action-edit {
+        background: #e8f5e9;
+        color: #3A9B5E;
+    }
+    .btn-action-edit:hover {
+        background: #50C878;
+        color: white;
+    }
+    .btn-action-delete {
+        background: #fdecea;
+        color: #dc3545;
+    }
+    .btn-action-delete:hover {
+        background: #dc3545;
+        color: white;
+    }
+    .btn-action-view {
+        background: #e3f2fd;
+        color: #1976d2;
+    }
+    .btn-action-view:hover {
+        background: #1976d2;
+        color: white;
+    }
 </style>
 
 <div class="content-dashboard px-3 py-4">
@@ -152,7 +195,7 @@
                         </div>
                     </div>
                     <div class="col-md-2 text-end">
-                        <span class="text-muted small" id="contentCount">{{ nodes|length }} items</span>
+                        <span class="text-muted small" id="contentCount">{{ nodes.getTotalItemCount }} items</span>
                     </div>
                 </div>
             </div>
@@ -162,28 +205,45 @@
                     <div class="col-sm-12 col-md-6 col-lg-4 content-item-wrapper" data-title="{{ node.title|lower }}" data-desc="{{ node.description|lower }}">
                         <div class="card h-100 shadow-sm border-0 content-card">
                             <div class="card-body d-flex flex-column p-4">
+
+                                {# ── Card Header: title + action buttons ── #}
                                 <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <h3 class="h5 card-title fw-bold text-dark mb-0">{{ node.title }}</h3>
-                                    <div class="dropdown">
-                                        <button class="btn btn-link text-muted p-0" type="button" data-bs-toggle="dropdown">
-                                            <i class="bi bi-three-dots-vertical"></i>
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
-                                            <li><a class="dropdown-item" href="{{ path('content_show', {id: node.id}) }}"><i class="bi bi-eye me-2"></i> View</a></li>
-                                            {% if is_granted_admin or node.createdBy.id == app.user.id %}
-                                                <li><a class="dropdown-item" href="{{ path('content_edit', {id: node.id}) }}"><i class="bi bi-pencil me-2"></i> Edit</a></li>
-                                                <li><hr class="dropdown-divider"></li>
-                                                <li>
-                                                    <form method="post" action="{{ path('content_delete', {id: node.id}) }}" onsubmit="return confirm('Are you sure you want to delete this content?');">
-                                                        <input type="hidden" name="_token" value="{{ csrf_token('delete-content' ~ node.id) }}">
-                                                        <button type="submit" class="dropdown-item text-danger"><i class="bi bi-trash me-2"></i> Delete</button>
-                                                    </form>
-                                                </li>
-                                            {% endif %}
-                                        </ul>
+                                    <h3 class="h5 card-title fw-bold text-dark mb-0 me-2" style="flex:1;">
+                                        {{ node.title }}
+                                    </h3>
+
+                                    {# Always visible action buttons — no hidden dropdown #}
+                                    <div class="card-actions flex-shrink-0">
+                                        {# View button — always visible to everyone #}
+                                        <a href="{{ path('content_show', {id: node.id}) }}"
+                                           class="btn-action btn-action-view"
+                                           title="View">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+
+                                        {# Edit & Delete — only for owner or admin #}
+                                        {% if is_granted_admin or node.createdBy.id == app.user.id %}
+                                            <a href="{{ path('content_edit', {id: node.id}) }}"
+                                               class="btn-action btn-action-edit"
+                                               title="Edit">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+
+                                            <form method="post"
+                                                  action="{{ path('content_delete', {id: node.id}) }}"
+                                                  style="display:inline;"
+                                                  onsubmit="return confirm('Are you sure you want to delete « {{ node.title|e('js') }} »?');">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete-content' ~ node.id) }}">
+                                                <button type="submit"
+                                                        class="btn-action btn-action-delete"
+                                                        title="Delete">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        {% endif %}
                                     </div>
                                 </div>
-                                
+
                                 {{ _self.renderParentTree(node) }}
 
                                 <p class="card-text text-muted small mb-4" style="height: 4.5em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">
@@ -204,6 +264,7 @@
                                         Read More <i class="bi bi-arrow-right ms-1"></i>
                                     </a>
                                 </div>
+
                             </div>
                         </div>
                     </div>
@@ -219,6 +280,9 @@
                         </div>
                     </div>
                 {% endfor %}
+            </div>
+            <div class="mt-4">
+                {{ knp_pagination_render(nodes) }}
             </div>
         </div>
 
@@ -313,10 +377,8 @@
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 const target = tab.getAttribute('data-target');
-                
                 tabs.forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
-                
                 sections.forEach(s => {
                     s.classList.remove('active');
                     if (s.id === target) s.classList.add('active');
@@ -333,21 +395,18 @@
         function updateLibrary() {
             const query = searchInput.value.trim().toLowerCase();
             let visibleCount = 0;
-
             wrappers.forEach(w => {
                 const title = w.getAttribute('data-title');
                 const desc = w.getAttribute('data-desc');
                 const matches = !query || title.includes(query) || desc.includes(query);
-                
                 w.style.display = matches ? 'block' : 'none';
                 if (matches) visibleCount++;
             });
-
             countSpan.textContent = `${visibleCount} item${visibleCount !== 1 ? 's' : ''}`;
         }
 
         if (searchInput) searchInput.addEventListener('input', updateLibrary);
-        
+
         if (sortSelect) {
             sortSelect.addEventListener('change', () => {
                 const url = new URL(window.location.href);
@@ -367,14 +426,13 @@
         const generateContentButton = document.getElementById('generateContentButton');
         const aiContentType = document.getElementById('aiContentType');
         const saveGeneratedButton = document.getElementById('saveGeneratedButton');
-        
+
         let lastGeneratedContent = null;
 
         function appendAiBubble(role, text) {
             const isUser = role === 'user';
             const bubble = document.createElement('div');
             bubble.className = `d-flex mb-4 ${isUser ? 'justify-content-end' : ''}`;
-            
             const content = `
                 <div class="d-flex ${isUser ? 'flex-row-reverse' : ''}">
                     <div class="bg-${isUser ? 'primary text-white' : 'white border'} p-3 rounded-4 shadow-sm" style="max-width: 85%;">
@@ -383,7 +441,6 @@
                     </div>
                 </div>
             `;
-            
             bubble.innerHTML = content;
             if (aiChatWindow.querySelector('.text-center.py-5')) {
                 aiChatWindow.innerHTML = '';
@@ -416,15 +473,12 @@
         async function handleChat() {
             const text = aiMessage.value.trim();
             if (!text) return;
-            
             appendAiBubble('user', text);
             aiMessage.value = '';
-            
             const result = await sendAiRequest('{{ path('content_ai_chat') }}', {
                 message: text,
                 topic: aiTopic.value
             });
-            
             if (result && result.success) {
                 appendAiBubble('ai', result.message);
             }
@@ -436,15 +490,12 @@
                 showAiError('Please enter a topic context first.');
                 return;
             }
-
             generateContentButton.disabled = true;
             generateContentButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generating...';
-            
             const result = await sendAiRequest('{{ path('content_generate_content') }}', {
                 topic: topic,
                 contentType: aiContentType.value
             });
-
             if (result && result.success) {
                 lastGeneratedContent = result.content;
                 aiGeneratedContent.innerHTML = `
@@ -459,14 +510,13 @@
                 generatedContentPanel.classList.remove('d-none');
                 generatedContentPanel.scrollIntoView({ behavior: 'smooth' });
             }
-
             generateContentButton.disabled = false;
             generateContentButton.innerHTML = '<i class="bi bi-magic me-1"></i> Generate Pro Content';
         }
 
         if (sendAiMessage) sendAiMessage.addEventListener('click', handleChat);
         if (generateContentButton) generateContentButton.addEventListener('click', handleGeneration);
-        
+
         if (saveGeneratedButton) {
             saveGeneratedButton.addEventListener('click', async () => {
                 if (!lastGeneratedContent) return;

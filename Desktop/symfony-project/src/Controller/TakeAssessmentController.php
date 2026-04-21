@@ -270,44 +270,64 @@ Return ONLY the JSON, no other text.";
 
     // ── AI QUESTION GENERATOR FOR ADMIN ───────────────────────────
     #[Route('/ai/generate-questions', name: 'take_assessment_generate_questions', methods: ['POST'])]
-    public function generateQuestions(Request $request): JsonResponse
-    {
-        $data    = json_decode($request->getContent(), true);
-        $count   = (int)($data['count'] ?? 5);
-        $focus   = $data['focus'] ?? 'General mental wellness';
-        $scale   = $data['scale'] ?? 'Never/Rarely/Sometimes/Often/Always';
-        $context = $data['context'] ?? '';
+public function generateQuestions(Request $request): JsonResponse
+{
+    $data    = json_decode($request->getContent(), true);
+    $count   = (int)($data['count'] ?? 5);
+    $focus   = $data['focus'] ?? 'General mental wellness';
+    $scale   = $data['scale'] ?? 'Never/Rarely/Sometimes/Often/Always';
+    $context = $data['context'] ?? '';
 
-        $prompt  = "You are an expert clinical psychologist and mental health assessment designer. ";
-        $prompt .= "Generate exactly {$count} original mental health assessment questions focused on: {$focus}. ";
+    // Log the request for debugging
+    error_log('=== GENERATE QUESTIONS REQUEST ===');
+    error_log('Count: ' . $count);
+    error_log('Focus: ' . $focus);
+    error_log('Scale: ' . $scale);
+    error_log('Context: ' . $context);
 
-        if ($context) {
-            $prompt .= "Additional context: {$context}. ";
-        }
+    $prompt  = "You are an expert clinical psychologist and mental health assessment designer. ";
+    $prompt .= "Generate exactly {$count} original mental health assessment questions focused on: {$focus}. ";
 
-        $prompt .= "Each question must use this answer scale: {$scale}.\n\n";
-        $prompt .= "CRITICAL FORMAT RULES:\n";
-        $prompt .= "- Number each question like: 1. [question text]\n";
-        $prompt .= "- After each question write: SCALE: {$scale}\n";
-        $prompt .= "- Questions MUST be answerable with a single scale selection\n";
-        $prompt .= "- DO NOT create questions that ask for explanations or descriptions\n";
-        $prompt .= "- Output ONLY the questions, nothing else.\n";
-        $prompt .= "- Questions should be in first-person.\n\n";
-        $prompt .= "Now generate {$count} questions:";
-
-        try {
-            $response  = $this->groqService->generateContent($prompt);
-            $questions = $this->parseGeneratedQuestions($response, $scale);
-
-            return $this->json([
-                'success'   => true,
-                'questions' => $questions,
-            ]);
-        } catch (\Exception $e) {
-            return $this->json(['success' => false, 'error' => $e->getMessage()]);
-        }
+    if ($context) {
+        $prompt .= "Additional context: {$context}. ";
     }
 
+    $prompt .= "Each question must use this answer scale: {$scale}.\n\n";
+    $prompt .= "CRITICAL FORMAT RULES:\n";
+    $prompt .= "- Number each question like: 1. [question text]\n";
+    $prompt .= "- After each question write: SCALE: {$scale}\n";
+    $prompt .= "- Questions MUST be answerable with a single scale selection\n";
+    $prompt .= "- DO NOT create questions that ask for explanations or descriptions\n";
+    $prompt .= "- Output ONLY the questions, nothing else.\n";
+    $prompt .= "- Questions should be in first-person.\n\n";
+    $prompt .= "Now generate {$count} questions:";
+
+    try {
+        error_log('Calling Groq API with generateContent()...');
+        
+        $response = $this->groqService->generateContent($prompt);
+        
+        // Log the raw response for debugging
+        error_log('Raw Groq Response: ' . substr($response, 0, 500));
+        
+        $questions = $this->parseGeneratedQuestions($response, $scale);
+        
+        error_log('Parsed ' . count($questions) . ' questions');
+
+        return $this->json([
+            'success'   => true,
+            'questions' => $questions,
+        ]);
+    } catch (\Exception $e) {
+        error_log('ERROR in generateQuestions: ' . $e->getMessage());
+        error_log('Stack trace: ' . $e->getTraceAsString());
+        
+        return $this->json([
+            'success' => false, 
+            'error' => $e->getMessage()
+        ]);
+    }
+}
     // ── SAVE AI GENERATED QUESTIONS ───────────────────────────────
     #[Route('/ai/save-questions/{assessmentId}', name: 'take_assessment_save_questions', methods: ['POST'])]
     public function saveGeneratedQuestions(Request $request, int $assessmentId): JsonResponse
