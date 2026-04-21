@@ -4,6 +4,7 @@
 
 {% block body %}
 <div class="container-lg py-4">
+
     <!-- Welcome Section -->
     <div class="app-hero mb-4">
         <div class="d-flex justify-content-between align-items-center">
@@ -54,7 +55,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- Animated progress bar -->
                 <div style="height: 4px; background: linear-gradient(90deg, #FFD700, #FFA500, #FFD700); background-size: 200% 100%; animation: shimmer 2s infinite;"></div>
             </div>
         </div>
@@ -64,13 +64,11 @@
     <div class="info-card p-0 bg-white overflow-hidden mb-4">
         <div class="p-3 border-bottom d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #f8f9fa, #e9ecef);">
             <h5 class="mb-0"><i class="bi bi-people me-2"></i> Patients Management</h5>
-            <div>
-                <a href="{{ path('app_admin_patient_new') }}" class="btn-modern btn-sm">
-                    <i class="bi bi-plus-circle me-1"></i> Add Patient
-                </a>
-            </div>
+            <a href="{{ path('app_admin_patient_new') }}" class="btn-modern btn-sm">
+                <i class="bi bi-plus-circle me-1"></i> Add Patient
+            </a>
         </div>
-        
+
         <!-- Search and Filter Bar -->
         <div class="p-3 bg-light border-bottom">
             <div class="row g-2">
@@ -102,8 +100,8 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Patient Statistics (dynamic) -->
+
+        <!-- Patient Statistics -->
         <div id="patientStats" class="row g-3 p-3 bg-light border-bottom">
             <div class="col-md-3">
                 <div class="chart-stat text-center">
@@ -130,12 +128,12 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Age Distribution Chart -->
         <div class="p-3 border-bottom">
             <canvas id="patientAgeChart" height="120"></canvas>
         </div>
-        
+
         <!-- Patients Table -->
         <div class="table-responsive">
             <table class="table table-hover mb-0">
@@ -163,19 +161,20 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Patient Pagination -->
+        <div id="patientPagination" class="d-flex justify-content-center py-3"></div>
     </div>
 
     <!-- Psychologists Section -->
     <div class="info-card p-0 bg-white overflow-hidden mb-4">
         <div class="p-3 border-bottom d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #f8f9fa, #e9ecef);">
             <h5 class="mb-0"><i class="bi bi-person-badge me-2"></i> Psychologists Management</h5>
-            <div>
-                <a href="{{ path('app_admin_psychologist_new') }}" class="btn-modern btn-sm">
-                    <i class="bi bi-plus-circle me-1"></i> Add Psychologist
-                </a>
-            </div>
+            <a href="{{ path('app_admin_psychologist_new') }}" class="btn-modern btn-sm">
+                <i class="bi bi-plus-circle me-1"></i> Add Psychologist
+            </a>
         </div>
-        
+
         <!-- Search and Filter Bar for Psychologists -->
         <div class="p-3 bg-light border-bottom">
             <div class="row g-2">
@@ -197,7 +196,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Psychologists Table -->
         <div class="table-responsive">
             <table class="table table-hover mb-0">
@@ -225,6 +224,9 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Psychologist Pagination -->
+        <div id="psychologistPagination" class="d-flex justify-content-center py-3"></div>
     </div>
 
     <!-- Access Logs Section -->
@@ -240,7 +242,7 @@
                 </a>
             </div>
         </div>
-        
+
         <div class="table-responsive">
             <table class="table table-hover mb-0">
                 <thead class="table-light">
@@ -254,179 +256,282 @@
                 </thead>
                 <tbody>
                     {% for log in logs %}
-                        <tr>
-                            <td>{{ log.id }}ↄ
-                            <td>
-                                <div><strong>{{ log.user.firstname }} {{ log.user.lastname }}</strong></div>
-                                <small class="text-muted">{{ log.user.email }}</small>
-                            ↄ
-                            <td>
-                                <span class="badge bg-light text-dark border">{{ log.contentNode.title }}</span>
-                            ↄ
-                            <td>
-                                <span class="text-muted"><i class="bi bi-calendar3 me-1"></i> {{ log.accessedAt|date('Y-m-d H:i:s') }}</span>
-                            ↄ
-                            <td class="text-end">
-                                <form method="post" action="{{ path('app_admin_log_delete', {id: log.id}) }}" style="display: inline-block;">
-                                    <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this log entry?')" title="Delete Log">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
-                            ↄ
-                        </tr>
+                    <tr>
+                        <td>{{ log.id }}</td>
+                        <td>
+                            <div><strong>{{ log.user.firstname }} {{ log.user.lastname }}</strong></div>
+                            <small class="text-muted">{{ log.user.email }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">{{ log.contentNode.title }}</span>
+                        </td>
+                        <td>
+                            <span class="text-muted">
+                                <i class="bi bi-calendar3 me-1"></i>
+                                {{ log.accessedAt|date('Y-m-d H:i:s') }}
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <form method="post" action="{{ path('app_admin_log_delete', {id: log.id}) }}" style="display: inline-block;">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete_log' ~ log.id) }}">
+                                <button class="btn btn-sm btn-outline-danger"
+                                    onclick="return confirm('Delete this log entry?')" title="Delete Log">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
                     {% else %}
-                        <tr>
-                            <td colspan="5" class="text-center py-4 text-muted">No access logs found.ↄ
-                        </tr>
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">No access logs found.</td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+
+        <!-- Logs Pagination -->
+        <div class="d-flex justify-content-center py-3">
+            {{ knp_pagination_render(logs) }}
+        </div>
     </div>
+
 </div>
 {% endblock %}
 
 {% block javascripts %}
+<style>
+    .pagination .page-item.active .page-link {
+        background-color: #50C878;
+        border-color: #50C878;
+        color: white;
+    }
+    .pagination .page-link {
+        color: #50C878;
+    }
+    .pagination .page-link:hover {
+        color: #3A9B5E;
+        background-color: #f0fff4;
+    }
+    .pagination .page-item.disabled .page-link {
+        color: #adb5bd;
+    }
+    @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+</style>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Global variables
+    // ==================== GLOBAL STATE ====================
     let patientChart = null;
-    let currentPatientSort = 'id';
-    let currentPatientOrder = 'DESC';
-    let currentPsychologistSort = 'id';
+    let currentPatientSort      = 'id';
+    let currentPatientOrder     = 'DESC';
+    let currentPsychologistSort  = 'id';
     let currentPsychologistOrder = 'DESC';
-    
-    // Load patients on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        loadPatients();
-        loadPsychologists();
-        
-        // Add event listeners for real-time search
-        const patientSearch = document.getElementById('patientSearch');
-        const patientGender = document.getElementById('patientGenderFilter');
-        const patientAge = document.getElementById('patientAgeFilter');
+    let currentPatientPage       = 1;
+    let currentPsychologistPage  = 1;
+    const ITEMS_PER_PAGE = 10;
+
+    // ==================== INIT ====================
+    document.addEventListener('DOMContentLoaded', function () {
+        loadPatients(1);
+        loadPsychologists(1);
+
+        const patientSearch      = document.getElementById('patientSearch');
+        const patientGender      = document.getElementById('patientGenderFilter');
+        const patientAge         = document.getElementById('patientAgeFilter');
         const psychologistSearch = document.getElementById('psychologistSearch');
         const psychologistGender = document.getElementById('psychologistGenderFilter');
-        
-        if (patientSearch) patientSearch.addEventListener('input', debounce(loadPatients, 500));
-        if (patientGender) patientGender.addEventListener('change', loadPatients);
-        if (patientAge) patientAge.addEventListener('change', loadPatients);
-        if (psychologistSearch) psychologistSearch.addEventListener('input', debounce(loadPsychologists, 500));
-        if (psychologistGender) psychologistGender.addEventListener('change', loadPsychologists);
+
+        if (patientSearch)      patientSearch.addEventListener('input', debounce(() => loadPatients(1), 500));
+        if (patientGender)      patientGender.addEventListener('change', () => loadPatients(1));
+        if (patientAge)         patientAge.addEventListener('change', () => loadPatients(1));
+        if (psychologistSearch) psychologistSearch.addEventListener('input', debounce(() => loadPsychologists(1), 500));
+        if (psychologistGender) psychologistGender.addEventListener('change', () => loadPsychologists(1));
     });
-    
+
     function debounce(func, delay) {
         let timeout;
-        return function() {
+        return function () {
             clearTimeout(timeout);
             timeout = setTimeout(() => func.apply(this, arguments), delay);
         };
     }
-    
-    function loadPatients() {
-        const search = document.getElementById('patientSearch')?.value || '';
-        const gender = document.getElementById('patientGenderFilter')?.value || '';
+
+    // ==================== LOAD DATA ====================
+    function loadPatients(page) {
+        page = page || 1;
+        currentPatientPage = page;
+        const search   = document.getElementById('patientSearch')?.value || '';
+        const gender   = document.getElementById('patientGenderFilter')?.value || '';
         const ageGroup = document.getElementById('patientAgeFilter')?.value || '';
-        
-        fetch(`/dashboard/admin/patients/data?search=${encodeURIComponent(search)}&sort=${currentPatientSort}&order=${currentPatientOrder}&gender=${gender}&ageGroup=${ageGroup}`)
-            .then(response => response.json())
+
+            fetch(`/dashboard/admin/patients/data?search=${encodeURIComponent(search)}&sortField=${currentPatientSort}&sortOrder=${currentPatientOrder}&gender=${encodeURIComponent(gender)}&ageGroup=${encodeURIComponent(ageGroup)}&page=${page}&limit=${ITEMS_PER_PAGE}`)
+            .then(r => {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            })
             .then(data => {
                 updatePatientsTable(data.patients);
-                updatePatientStats(data.stats);
-                updatePatientChart(data.stats.ageGroups);
+                if (data.stats) {
+                    updatePatientStats(data.stats);
+                    updatePatientChart(data.stats.ageGroups);
+                }
+                renderPagination('patientPagination', data.totalPages, data.currentPage, 'loadPatients');
             })
-            .catch(error => console.error('Error:', error));
+            .catch(err => {
+                console.error('Patients error:', err);
+                document.getElementById('patientsTableBody').innerHTML =
+                    '<tr><td colspan="9" class="text-center text-danger py-4">Failed to load patients. Please refresh.</td></tr>';
+            });
     }
-    
-    function loadPsychologists() {
+
+    function loadPsychologists(page) {
+        page = page || 1;
+        currentPsychologistPage = page;
         const search = document.getElementById('psychologistSearch')?.value || '';
         const gender = document.getElementById('psychologistGenderFilter')?.value || '';
-        
-        fetch(`/dashboard/admin/psychologists/data?search=${encodeURIComponent(search)}&sort=${currentPsychologistSort}&order=${currentPsychologistOrder}&gender=${gender}`)
-            .then(response => response.json())
+
+            fetch(`/dashboard/admin/psychologists/data?search=${encodeURIComponent(search)}&sortField=${currentPsychologistSort}&sortOrder=${currentPsychologistOrder}&gender=${encodeURIComponent(gender)}&page=${page}&limit=${ITEMS_PER_PAGE}`)
+            .then(r => {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            })
             .then(data => {
                 updatePsychologistsTable(data.psychologists);
+                renderPagination('psychologistPagination', data.totalPages, data.currentPage, 'loadPsychologists');
             })
-            .catch(error => console.error('Error:', error));
+            .catch(err => {
+                console.error('Psychologists error:', err);
+                document.getElementById('psychologistsTableBody').innerHTML =
+                    '<tr><td colspan="9" class="text-center text-danger py-4">Failed to load psychologists. Please refresh.</td></tr>';
+            });
     }
-    
+
+    // ==================== PAGINATION ====================
+    function renderPagination(containerId, totalPages, currentPage, fnName) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        if (!totalPages || totalPages <= 1) {
+            container.innerHTML = '';
+            return;
+        }
+
+        let html = '<nav aria-label="Page navigation"><ul class="pagination mb-0">';
+
+        // Previous
+        html += `<li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="event.preventDefault(); if(${currentPage} > 1) ${fnName}(${currentPage - 1})">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        </li>`;
+
+        // Page numbers with ellipsis
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="event.preventDefault(); ${fnName}(${i})">${i}</a>
+                </li>`;
+            } else if (i === currentPage - 2 || i === currentPage + 2) {
+                html += `<li class="page-item disabled"><span class="page-link">…</span></li>`;
+            }
+        }
+
+        // Next
+        html += `<li class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="event.preventDefault(); if(${currentPage} < ${totalPages}) ${fnName}(${currentPage + 1})">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>`;
+
+        html += '</ul></nav>';
+        container.innerHTML = html;
+    }
+
+    // ==================== TABLE UPDATES ====================
     function updatePatientsTable(patients) {
         const tbody = document.getElementById('patientsTableBody');
         if (!tbody) return;
+
         if (!patients || patients.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4">No patients foundↄↄ';
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-muted">No patients found.</td></tr>';
             return;
         }
+
         tbody.innerHTML = patients.map(patient => `
             <tr>
-                <td>${patient.id}ↄ
-                <td><strong>${escapeHtml(patient.firstname)} ${escapeHtml(patient.lastname)}</strong>ↄ
-                <td>${escapeHtml(patient.email)}ↄ
-                <td>${escapeHtml(patient.phone)}ↄ
-                <td>${patient.dateofbirth}ↄ
-                <td>${patient.age} yearsↄ
-                <td>${getGenderBadge(patient.gender)}ↄ
-                <td>${patient.createdAt ? patient.createdAt.split(' ')[0] : 'N/A'}ↄ
+                <td>${patient.id}</td>
+                <td><strong>${escapeHtml(patient.firstname)} ${escapeHtml(patient.lastname)}</strong></td>
+                <td>${escapeHtml(patient.email)}</td>
+                <td>${escapeHtml(patient.phone)}</td>
+                <td>${patient.dateofbirth || 'N/A'}</td>
+                <td>${patient.age !== null ? patient.age + ' yrs' : 'N/A'}</td>
+                <td>${getGenderBadge(patient.gender)}</td>
+                <td>${patient.createdAt ? patient.createdAt.split(' ')[0] : 'N/A'}</td>
                 <td>
                     <a href="/dashboard/admin/user/${patient.id}/edit" class="btn btn-sm btn-warning me-1" title="Edit">
                         <i class="bi bi-pencil"></i>
                     </a>
-                    <form method="post" action="/dashboard/admin/user/${patient.id}/delete" style="display: inline-block;">
+                    <form method="post" action="/dashboard/admin/user/${patient.id}/delete" style="display:inline-block;">
                         <input type="hidden" name="_token" value="{{ csrf_token('delete') }}">
                         <button class="btn btn-sm btn-danger" onclick="return confirm('Delete this patient permanently?')" title="Delete">
                             <i class="bi bi-trash"></i>
                         </button>
                     </form>
-                ↄ
+                </td>
             </tr>
         `).join('');
     }
-    
+
     function updatePsychologistsTable(psychologists) {
         const tbody = document.getElementById('psychologistsTableBody');
         if (!tbody) return;
+
         if (!psychologists || psychologists.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4">No psychologists foundↄↄ';
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-muted">No psychologists found.</td></tr>';
             return;
         }
+
         tbody.innerHTML = psychologists.map(psych => `
-            <td>
-                <td>${psych.id}ↄ
-                <td><strong>${escapeHtml(psych.firstname)} ${escapeHtml(psych.lastname)}</strong>ↄ
-                <td>${escapeHtml(psych.email)}ↄ
-                <td>${escapeHtml(psych.phone)}ↄ
-                <td>${psych.dateofbirth}ↄ
-                <td>${psych.age} yearsↄ
-                <td>${getGenderBadge(psych.gender)}ↄ
-                <td>${psych.createdAt ? psych.createdAt.split(' ')[0] : 'N/A'}ↄ
+            <tr>
+                <td>${psych.id}</td>
+                <td><strong>${escapeHtml(psych.firstname)} ${escapeHtml(psych.lastname)}</strong></td>
+                <td>${escapeHtml(psych.email)}</td>
+                <td>${escapeHtml(psych.phone)}</td>
+                <td>${psych.dateofbirth || 'N/A'}</td>
+                <td>${psych.age !== null ? psych.age + ' yrs' : 'N/A'}</td>
+                <td>${getGenderBadge(psych.gender)}</td>
+                <td>${psych.createdAt ? psych.createdAt.split(' ')[0] : 'N/A'}</td>
                 <td>
                     <a href="/dashboard/admin/user/${psych.id}/edit" class="btn btn-sm btn-warning me-1" title="Edit">
                         <i class="bi bi-pencil"></i>
                     </a>
-                    <form method="post" action="/dashboard/admin/user/${psych.id}/delete" style="display: inline-block;">
+                    <form method="post" action="/dashboard/admin/user/${psych.id}/delete" style="display:inline-block;">
                         <input type="hidden" name="_token" value="{{ csrf_token('delete') }}">
                         <button class="btn btn-sm btn-danger" onclick="return confirm('Delete this psychologist permanently?')" title="Delete">
                             <i class="bi bi-trash"></i>
                         </button>
                     </form>
-                ↄ
+                </td>
             </tr>
         `).join('');
     }
-    
+
+    // ==================== STATS & CHART ====================
     function updatePatientStats(stats) {
-        const totalEl = document.getElementById('patientTotal');
-        const avgAgeEl = document.getElementById('patientAvgAge');
-        const ageRangeEl = document.getElementById('patientAgeRange');
-        const genderRatioEl = document.getElementById('patientGenderRatio');
-        
-        if (totalEl) totalEl.innerText = stats.total || 0;
-        if (avgAgeEl) avgAgeEl.innerText = stats.averageAge || 0;
-        if (ageRangeEl) ageRangeEl.innerHTML = `${stats.minAge || 0} - ${stats.maxAge || 0}`;
-        if (genderRatioEl) genderRatioEl.innerHTML = `👨 ${stats.gender?.male || 0} | 👩 ${stats.gender?.female || 0}`;
+        const el = (id) => document.getElementById(id);
+        if (el('patientTotal'))       el('patientTotal').innerText    = stats.total || 0;
+        if (el('patientAvgAge'))      el('patientAvgAge').innerText   = stats.averageAge || 0;
+        if (el('patientAgeRange'))    el('patientAgeRange').innerHTML = `${stats.minAge || 0} - ${stats.maxAge || 0}`;
+        if (el('patientGenderRatio')) el('patientGenderRatio').innerHTML =
+            `👨 ${stats.gender?.male || 0} | 👩 ${stats.gender?.female || 0}`;
     }
-    
+
     function updatePatientChart(ageGroups) {
+        if (!ageGroups) return;
         const ctx = document.getElementById('patientAgeChart')?.getContext('2d');
         if (!ctx) return;
         if (patientChart) patientChart.destroy();
@@ -436,7 +541,13 @@
                 labels: ['0-18', '19-30', '31-45', '46-60', '60+'],
                 datasets: [{
                     label: 'Number of Patients',
-                    data: [ageGroups['0-18'] || 0, ageGroups['19-30'] || 0, ageGroups['31-45'] || 0, ageGroups['46-60'] || 0, ageGroups['60+'] || 0],
+                    data: [
+                        ageGroups['0-18']  || 0,
+                        ageGroups['19-30'] || 0,
+                        ageGroups['31-45'] || 0,
+                        ageGroups['46-60'] || 0,
+                        ageGroups['60+']   || 0
+                    ],
                     backgroundColor: '#50C878',
                     borderColor: '#3a9b5e',
                     borderWidth: 1,
@@ -451,75 +562,67 @@
             }
         });
     }
-    
+
+    // ==================== SORT ====================
     function sortPatients(column) {
         if (currentPatientSort === column) {
             currentPatientOrder = currentPatientOrder === 'ASC' ? 'DESC' : 'ASC';
         } else {
-            currentPatientSort = column;
+            currentPatientSort  = column;
             currentPatientOrder = 'ASC';
         }
-        loadPatients();
+        loadPatients(1);
     }
-    
+
     function sortPsychologists(column) {
         if (currentPsychologistSort === column) {
             currentPsychologistOrder = currentPsychologistOrder === 'ASC' ? 'DESC' : 'ASC';
         } else {
-            currentPsychologistSort = column;
+            currentPsychologistSort  = column;
             currentPsychologistOrder = 'ASC';
         }
-        loadPsychologists();
+        loadPsychologists(1);
     }
-    
+
+    // ==================== RESET FILTERS ====================
     function resetPatientFilters() {
-        const searchEl = document.getElementById('patientSearch');
-        const genderEl = document.getElementById('patientGenderFilter');
-        const ageEl = document.getElementById('patientAgeFilter');
-        
-        if (searchEl) searchEl.value = '';
-        if (genderEl) genderEl.value = '';
-        if (ageEl) ageEl.value = '';
-        currentPatientSort = 'id';
+        document.getElementById('patientSearch').value        = '';
+        document.getElementById('patientGenderFilter').value  = '';
+        document.getElementById('patientAgeFilter').value     = '';
+        currentPatientSort  = 'id';
         currentPatientOrder = 'DESC';
-        loadPatients();
+        loadPatients(1);
     }
-    
+
     function resetPsychologistFilters() {
-        const searchEl = document.getElementById('psychologistSearch');
-        const genderEl = document.getElementById('psychologistGenderFilter');
-        
-        if (searchEl) searchEl.value = '';
-        if (genderEl) genderEl.value = '';
-        currentPsychologistSort = 'id';
+        document.getElementById('psychologistSearch').value       = '';
+        document.getElementById('psychologistGenderFilter').value = '';
+        currentPsychologistSort  = 'id';
         currentPsychologistOrder = 'DESC';
-        loadPsychologists();
+        loadPsychologists(1);
     }
-    
+
+    // ==================== HELPERS ====================
     function escapeHtml(str) {
         if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
     }
-    
+
     function getGenderBadge(gender) {
-        if (gender === 'male') {
-            return '<span class="badge" style="background: #d4f5e8; color: #2d6a4f;">👨 Male</span>';
-        } else if (gender === 'female') {
-            return '<span class="badge" style="background: #fce4e4; color: #c92a2a;">👩 Female</span>';
-        } else {
-            return '<span class="badge" style="background: #e9ecef; color: #6c757d;">👤 Other</span>';
-        }
+        if (gender === 'male')   return '<span class="badge" style="background:#d4f5e8;color:#2d6a4f;">👨 Male</span>';
+        if (gender === 'female') return '<span class="badge" style="background:#fce4e4;color:#c92a2a;">👩 Female</span>';
+        return '<span class="badge" style="background:#e9ecef;color:#6c757d;">👤 Other</span>';
     }
-    
-    // Make functions available globally for onclick attributes
-    window.sortPatients = sortPatients;
-    window.sortPsychologists = sortPsychologists;
-    window.resetPatientFilters = resetPatientFilters;
+
+    // Expose to global scope for onclick attributes
+    window.sortPatients          = sortPatients;
+    window.sortPsychologists     = sortPsychologists;
+    window.resetPatientFilters   = resetPatientFilters;
     window.resetPsychologistFilters = resetPsychologistFilters;
+    window.loadPatients          = loadPatients;
+    window.loadPsychologists     = loadPsychologists;
 </script>
 {% endblock %}

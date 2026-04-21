@@ -42,7 +42,17 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             {{ form_label(form.dateofbirth) }}
-                            {{ form_widget(form.dateofbirth, {'attr': {'class': 'form-control', 'type': 'date'}}) }}
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="bi bi-calendar3" style="color: #50C878;"></i>
+                                </span>
+                                {{ form_widget(form.dateofbirth, {'attr': {
+                                    'class': 'form-control dob-picker',
+                                    'autocomplete': 'off',
+                                    'placeholder': 'Select date of birth',
+                                    'readonly': 'readonly'
+                                }}) }}
+                            </div>
                             {{ form_errors(form.dateofbirth) }}
                         </div>
                         <div class="col-md-6 mb-3">
@@ -59,7 +69,7 @@
                     </div>
                     
                     <button type="submit" class="btn btn-primary">Save {{ role|capitalize }}</button>
-                    <a href="{{ path('app_dashboard_' ~ role) }}" class="btn btn-secondary">Cancel</a>
+                    <a href="{{ path('app_dashboard_admin') }}" class="btn btn-secondary">Cancel</a>
                     
                     {{ form_end(form) }}
                 </div>
@@ -67,4 +77,83 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<style>
+    .flatpickr-calendar {
+        border-radius: 12px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        font-family: inherit;
+    }
+    .flatpickr-day.selected,
+    .flatpickr-day.selected:hover {
+        background: #50C878;
+        border-color: #50C878;
+    }
+    .flatpickr-day:hover {
+        background: #e8f8ee;
+        color: #2d6a4f;
+    }
+    .flatpickr-day.today {
+        border-color: #50C878;
+    }
+    .flatpickr-months .flatpickr-month {
+        background: #50C878;
+        color: white;
+        border-radius: 12px 12px 0 0;
+    }
+    .flatpickr-current-month .flatpickr-monthDropdown-months,
+    .flatpickr-current-month input.cur-year {
+        color: white;
+    }
+    .flatpickr-weekday {
+        color: #50C878;
+        font-weight: 600;
+    }
+    .flatpickr-prev-month svg,
+    .flatpickr-next-month svg {
+        fill: white;
+    }
+    .flatpickr-prev-month:hover svg,
+    .flatpickr-next-month:hover svg {
+        fill: #e0f5e8;
+    }
+    .numInputWrapper:hover {
+        background: transparent;
+    }
+    .dob-picker {
+        cursor: pointer;
+        background-color: white !important;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Use class selector — works regardless of what id Symfony generates
+    const input = document.querySelector('.dob-picker');
+
+    if (input) {
+        flatpickr(input, {
+            dateFormat: "Y-m-d",
+            maxDate: "today",
+            defaultDate: input.value || null,
+            allowInput: false,
+            disableMobile: true,
+            locale: {
+                firstDayOfWeek: 1
+            },
+            onReady: function(selectedDates, dateStr, instance) {
+                instance.calendarContainer.style.fontFamily = "inherit";
+            }
+        });
+    } else {
+        console.warn('Flatpickr: .dob-picker input not found');
+    }
+});
+</script>
 {% endblock %}

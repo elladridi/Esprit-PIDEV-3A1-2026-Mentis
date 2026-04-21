@@ -13,6 +13,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use App\Service\BanNotificationService;
+
 
 #[Route('/admin/security')]
 #[IsGranted('ROLE_ADMIN')]
@@ -204,108 +206,137 @@ class SecurityDashboardController extends AbstractController
     }
 
     #[Route('/ban/{email}', name: 'admin_ban_suspicious', methods: ['POST'])]
-    public function banSuspiciousAccount(string $email, UserRepository $userRepo, EntityManagerInterface $em): JsonResponse
-    {
-        try {
-            $email = urldecode($email);
-            $user = $userRepo->findOneBy(['email' => $email]);
-            
-            if (!$user) {
-                return $this->json(['success' => false, 'message' => 'User not found: ' . $email], 404);
-            }
-            
-            if (in_array('ROLE_ADMIN', $user->getRoles())) {
-                return $this->json(['success' => false, 'message' => 'Cannot ban another admin'], 403);
-            }
-            
-            // Set ban with expiration date (7 days from now)
-            $bannedUntil = new \DateTime('+7 days');
-            
-            $user->setIsBanned(true);
-            $user->setBannedAt(new \DateTime());
-            $user->setBannedUntil($bannedUntil);
-            $user->setBanReason('Suspicious activity detected - Multiple failed login attempts');
-            
-            $em->flush();
-            
-            return $this->json([
-                'success' => true,
-                'message' => 'User banned successfully until ' . $bannedUntil->format('Y-m-d H:i:s'),
-                'user_name' => $user->getFullName(),
-                'banned_until' => $bannedUntil->format('Y-m-d H:i:s')
-            ]);
-        } catch (\Exception $e) {
-            return $this->json(['success' => false, 'message' => $e->getMessage()], 500);
-        }
-    }
+public function banSuspiciousAccount(
+    string $email,
+    UserRepository $userRepo,
+    EntityManagerInterface $em,
+    BanNotificationService $banNotifier
+): JsonResponse {
+    try {
+        $email = urldecode($email);
+        $user  = $userRepo->findOneBy(['email' => $email]);
 
-    #[Route('/unban/{id}', name: 'admin_unban_user', methods: ['POST'])]
-    public function unbanUser(int $id, UserRepository $userRepo, EntityManagerInterface $em): JsonResponse
-    {
-        try {
-            $user = $userRepo->find($id);
-            
-            if (!$user) {
-                return $this->json(['success' => false, 'message' => 'User not found'], 404);
-            }
-            
-            $user->setIsBanned(false);
-            $user->setBannedUntil(null);
-            // Keep bannedAt for history
-            
-            $em->flush();
-            
-            return $this->json([
-                'success' => true,
-                'message' => 'User unbanned successfully',
-                'user_name' => $user->getFullName()
-            ]);
-        } catch (\Exception $e) {
-            return $this->json(['success' => false, 'message' => $e->getMessage()], 500);
+        if (!$user) {
+            return $this->json(['success' => false, 'message' => 'User not found: ' . $email], 404);
         }
+
+        if (in_array('ROLE_ADMIN', $user->getRoles())) {
+            return $this->json(['success' => false, 'message' => 'Cannot ban another admin'], 403);
+        }
+
+        $bannedUntil = new \DateTime('+7 days');
+        $reason      = 'Suspicious activity detected - Multiple failed login attempts';
+
+        $user->setIsBanned(true);
+        $user->setBannedAt(new \DateTime());
+        $user->setBannedUntil($bannedUntil);
+        $user->setBanReason($reason);
+        $em->flush();
+
+        // ✅ Send ban email
+        try {
+            $banNotifier->sendBanNotification($user, $reason, $bannedUntil);
+        } catch (\Exception $e) {
+            // Log but don't fail the ban if email fails
+            error_log('Ban email failed: ' . $e->getMessage());
+        }
+
+        return $this->json([
+            'success'      => true,
+            'message'      => 'User banned and notified by email until ' . $bannedUntil->format('Y-m-d H:i:s'),
+            'user_name'    => $user->getFullName(),
+            'banned_until' => $bannedUntil->format('Y-m-d H:i:s')
+        ]);
+    } catch (\Exception $e) {
+        return $this->json(['success' => false, 'message' => $e->getMessage()], 500);
     }
+}
+
+   #[Route('/unban/{id}', name: 'admin_unban_user', methods: ['POST'])]
+public function unbanUser(
+    int $id,
+    UserRepository $userRepo,
+    EntityManagerInterface $em,
+    BanNotificationService $banNotifier
+): JsonResponse {
+    try {
+        $user = $userRepo->find($id);
+
+        if (!$user) {
+            return $this->json(['success' => false, 'message' => 'User not found'], 404);
+        }
+
+        $user->setIsBanned(false);
+        $user->setBannedUntil(null);
+        $em->flush();
+
+        // ✅ Send unban email
+        try {
+            $banNotifier->sendUnbanNotification($user);
+        } catch (\Exception $e) {
+            error_log('Unban email failed: ' . $e->getMessage());
+        }
+
+        return $this->json([
+            'success'   => true,
+            'message'   => 'User unbanned and notified by email',
+            'user_name' => $user->getFullName()
+        ]);
+    } catch (\Exception $e) {
+        return $this->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }}
 
     #[Route('/ban-user', name: 'admin_ban_user', methods: ['POST'])]
-    public function banUser(Request $request, UserRepository $userRepo, EntityManagerInterface $em): JsonResponse
-    {
-        try {
-            $data = json_decode($request->getContent(), true);
-            $email = $data['email'] ?? $request->request->get('email');
-            
-            if (!$email) {
-                return $this->json(['success' => false, 'message' => 'Email is required'], 400);
-            }
-            
-            $user = $userRepo->findOneBy(['email' => $email]);
-            
-            if (!$user) {
-                return $this->json(['success' => false, 'message' => 'User not found: ' . $email], 404);
-            }
-            
-            if (in_array('ROLE_ADMIN', $user->getRoles())) {
-                return $this->json(['success' => false, 'message' => 'Cannot ban another admin'], 403);
-            }
-            
-            // Set ban with expiration date (7 days from now)
-            $bannedUntil = new \DateTime('+7 days');
-            
-            $user->setIsBanned(true);
-            $user->setBannedAt(new \DateTime());
-            $user->setBannedUntil($bannedUntil);
-            $user->setBanReason('Suspicious activity detected - Multiple failed login attempts');
-            
-            $em->flush();
-            
-            return $this->json([
-                'success' => true,
-                'message' => 'User banned successfully until ' . $bannedUntil->format('Y-m-d H:i:s'),
-                'user_name' => $user->getFullName(),
-                'banned_until' => $bannedUntil->format('Y-m-d H:i:s')
-            ]);
-        } catch (\Exception $e) {
-            return $this->json(['success' => false, 'message' => $e->getMessage()], 500);
+public function banUser(
+    Request $request,
+    UserRepository $userRepo,
+    EntityManagerInterface $em,
+    BanNotificationService $banNotifier
+): JsonResponse {
+    try {
+        $data  = json_decode($request->getContent(), true);
+        $email = $data['email'] ?? $request->request->get('email');
+
+        if (!$email) {
+            return $this->json(['success' => false, 'message' => 'Email is required'], 400);
         }
+
+        $user = $userRepo->findOneBy(['email' => $email]);
+
+        if (!$user) {
+            return $this->json(['success' => false, 'message' => 'User not found: ' . $email], 404);
+        }
+
+        if (in_array('ROLE_ADMIN', $user->getRoles())) {
+            return $this->json(['success' => false, 'message' => 'Cannot ban another admin'], 403);
+        }
+
+        $bannedUntil = new \DateTime('+7 days');
+        $reason      = 'Suspicious activity detected - Multiple failed login attempts';
+
+        $user->setIsBanned(true);
+        $user->setBannedAt(new \DateTime());
+        $user->setBannedUntil($bannedUntil);
+        $user->setBanReason($reason);
+        $em->flush();
+
+        // ✅ Send ban email
+        try {
+            $banNotifier->sendBanNotification($user, $reason, $bannedUntil);
+        } catch (\Exception $e) {
+            error_log('Ban email failed: ' . $e->getMessage());
+        }
+
+        return $this->json([
+            'success'      => true,
+            'message'      => 'User banned and notified by email until ' . $bannedUntil->format('Y-m-d H:i:s'),
+            'user_name'    => $user->getFullName(),
+            'banned_until' => $bannedUntil->format('Y-m-d H:i:s')
+        ]);
+    } catch (\Exception $e) {
+        return $this->json(['success' => false, 'message' => $e->getMessage()], 500);
     }
+}
 
     #[Route('/banned-users', name: 'admin_banned_users', methods: ['GET'])]
     public function getBannedUsers(UserRepository $userRepo): JsonResponse

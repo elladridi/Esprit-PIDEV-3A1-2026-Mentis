@@ -10,6 +10,7 @@ use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class UserType extends AbstractType
@@ -64,20 +65,19 @@ class UserType extends AbstractType
                     ])
                 ]
             ])
-            ->add('dateofbirth', TextType::class, [
-                'label' => 'Date of Birth',
-                'attr' => [
-                    'class' => 'form-control',
-                    'type' => 'date'
-                ],
-                'constraints' => [
-                    new Assert\NotBlank(['message' => 'Date of birth is required']),
-                    new Assert\Regex([
-                        'pattern' => '/^\d{4}-\d{2}-\d{2}$/',
-                        'message' => 'Please enter date in YYYY-MM-DD format'
-                    ])
-                ]
-            ])
+
+->add('dateofbirth', DateType::class, [
+    'widget' => 'single_text',  // renders as a single <input type="text">
+    'format' => 'yyyy-MM-dd',   // matches Flatpickr's "Y-m-d" output
+    'html5'  => false,          // disables browser native date picker so Flatpickr takes over
+    'label'  => 'Date of Birth',
+    'required' => false,
+    'attr' => [
+        'class'        => 'form-control',
+        'autocomplete' => 'off',
+        'placeholder'  => 'Select date of birth',
+    ],
+])
             ->add('gender', ChoiceType::class, [
                 'label' => 'Gender',
                 'choices' => [
