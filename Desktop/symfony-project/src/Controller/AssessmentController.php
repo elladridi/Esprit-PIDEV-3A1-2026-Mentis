@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Assessment;
-use App\Form\AssessmentType;
+use App\Entity\AssessmentType;
 use App\Repository\AssessmentRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

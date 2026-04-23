@@ -58,7 +58,6 @@
                                 <span class="text-danger">*</span>
                             </label>
                             {{ form_widget(form.sessionDate) }}
-                            <div class="invalid-feedback" id="dateError"></div>
                             {{ form_errors(form.sessionDate) }}
                         </div>
                         <div class="col-md-4">
@@ -77,7 +76,6 @@
                                 <span class="text-danger">*</span>
                             </label>
                             {{ form_widget(form.endTime) }}
-                            <div class="invalid-feedback" id="timeError"></div>
                             {{ form_errors(form.endTime) }}
                         </div>
                     </div>
@@ -128,7 +126,6 @@
                                 {{ form_label(form.maxParticipants) }}
                             </label>
                             {{ form_widget(form.maxParticipants) }}
-                            <div class="invalid-feedback" id="maxError"></div>
                             {{ form_errors(form.maxParticipants) }}
                         </div>
                         <div class="col-md-3">
@@ -137,7 +134,6 @@
                                 {{ form_label(form.price) }}
                             </label>
                             {{ form_widget(form.price) }}
-                            <div class="invalid-feedback" id="priceError"></div>
                             {{ form_errors(form.price) }}
                         </div>
                     </div>
@@ -172,8 +168,6 @@
                                 <li>Set status to "Active" when ready for booking</li>
                                 <li>For online sessions, provide a meeting link in location</li>
                                 <li>Set max capacity based on session type</li>
-                                <li><strong>Note:</strong> End time must be after start time</li>
-                                <li>Price cannot be negative</li>
                             </ul>
                         </div>
                     </div>
@@ -191,127 +185,10 @@
     box-shadow: 0 0 0 0.25rem rgba(80, 200, 120, 0.25) !important;
 }
 .card { border-radius: 24px; }
-.is-invalid {
-    border-color: #dc3545 !important;
-}
-.invalid-feedback {
-    display: block;
-    font-size: 0.875em;
-    color: #dc3545;
-}
 </style>
 {% endblock %}
 
 {% block javascripts %}
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-<script>
-AOS.init({ duration: 1000, once: true });
-
-// Validation functions
-function validateEndTime() {
-    const startTime = document.getElementById('session_startTime')?.value;
-    const endTime = document.getElementById('session_endTime')?.value;
-    const endTimeField = document.getElementById('session_endTime');
-    const errorDiv = document.getElementById('timeError');
-    
-    if (startTime && endTime && startTime >= endTime) {
-        endTimeField.classList.add('is-invalid');
-        if (errorDiv) errorDiv.textContent = 'End time must be after start time!';
-        return false;
-    } else {
-        endTimeField.classList.remove('is-invalid');
-        if (errorDiv) errorDiv.textContent = '';
-        return true;
-    }
-}
-
-function validatePrice() {
-    const priceField = document.getElementById('session_price');
-    const price = parseFloat(priceField?.value);
-    const errorDiv = document.getElementById('priceError');
-    
-    if (priceField?.value && price < 0) {
-        priceField.classList.add('is-invalid');
-        if (errorDiv) errorDiv.textContent = 'Price cannot be negative!';
-        return false;
-    } else {
-        priceField.classList.remove('is-invalid');
-        if (errorDiv) errorDiv.textContent = '';
-        return true;
-    }
-}
-
-function validateMaxParticipants() {
-    const maxField = document.getElementById('session_maxParticipants');
-    const max = parseInt(maxField?.value);
-    const errorDiv = document.getElementById('maxError');
-    
-    if (maxField?.value && max <= 0) {
-        maxField.classList.add('is-invalid');
-        if (errorDiv) errorDiv.textContent = 'Max participants must be greater than 0!';
-        return false;
-    } else {
-        maxField.classList.remove('is-invalid');
-        if (errorDiv) errorDiv.textContent = '';
-        return true;
-    }
-}
-
-function validateDate() {
-    const dateField = document.getElementById('session_sessionDate');
-    const dateValue = dateField?.value;
-    const errorDiv = document.getElementById('dateError');
-    
-    if (dateValue) {
-        const selectedDate = new Date(dateValue);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        if (selectedDate < today) {
-            dateField.classList.add('is-invalid');
-            if (errorDiv) errorDiv.textContent = 'Session date cannot be in the past!';
-            return false;
-        } else {
-            dateField.classList.remove('is-invalid');
-            if (errorDiv) errorDiv.textContent = '';
-            return true;
-        }
-    }
-    return true;
-}
-
-// Add event listeners
-document.addEventListener('DOMContentLoaded', function() {
-    const endTimeField = document.getElementById('session_endTime');
-    const startTimeField = document.getElementById('session_startTime');
-    const priceField = document.getElementById('session_price');
-    const maxField = document.getElementById('session_maxParticipants');
-    const dateField = document.getElementById('session_sessionDate');
-    
-    if (endTimeField && startTimeField) {
-        startTimeField.addEventListener('change', validateEndTime);
-        endTimeField.addEventListener('change', validateEndTime);
-    }
-    
-    if (priceField) priceField.addEventListener('input', validatePrice);
-    if (maxField) maxField.addEventListener('input', validateMaxParticipants);
-    if (dateField) dateField.addEventListener('change', validateDate);
-    
-    // Form submit validation
-    const form = document.querySelector('form');
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            const isTimeValid = validateEndTime();
-            const isPriceValid = validatePrice();
-            const isMaxValid = validateMaxParticipants();
-            const isDateValid = validateDate();
-            
-            if (!isTimeValid || !isPriceValid || !isMaxValid || !isDateValid) {
-                e.preventDefault();
-                alert('Please fix the errors before submitting.\n\n- End time must be after start time\n- Price must be 0 or positive\n- Max participants must be > 0\n- Date cannot be in the past');
-            }
-        });
-    }
-});
-</script>
+<script>AOS.init({ duration: 1000, once: true });</script>
 {% endblock %}

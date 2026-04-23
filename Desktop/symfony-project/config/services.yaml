@@ -1,7 +1,9 @@
-# config/services.yaml
+# yaml-language-server: $schema=../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
+
 parameters:
-    locale: 'en'
-    app.supported_locales: ['en', 'fr', 'es', 'ar']
+    # Email configuration
+    env(SENDER_EMAIL): 'noreply@mentis.com'
+    env(GOOGLE_MAPS_API_KEY): ''
 
 services:
     _defaults:
@@ -15,8 +17,13 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
-    # Geocoder Service for OpenStreetMap
-    App\Service\GeocoderService:
-        autowire: true
+    # Explicit service configuration for EmailNotificationService
+    App\Service\EmailNotificationService:
         arguments:
-            $httpClient: '@http_client'
+            $mailer: '@mailer.mailer'
+            $senderEmail: '%env(SENDER_EMAIL)%'
+
+    # Explicit service configuration for GoogleMapsService
+    App\Service\GoogleMapsService:
+        arguments:
+            $apiKey: '%env(GOOGLE_MAPS_API_KEY)%'

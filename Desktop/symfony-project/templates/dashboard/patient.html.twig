@@ -11,29 +11,6 @@
         </div>
     </div>
 
-    {# AI Recommendations Banner #}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow-sm border-0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                <div class="card-body p-4">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h5 class="text-white mb-2">
-                                <i class="fas fa-robot me-2"></i> AI-Powered Personalized Recommendations
-                            </h5>
-                            <p class="text-white-50 mb-0">Get personalized session suggestions, content recommendations, and wellness tips based on your activity and assessment results.</p>
-                        </div>
-                        <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                            <a href="{{ path('recommendations_index') }}" class="btn btn-light rounded-pill px-4 py-2 fw-bold">
-                                <i class="fas fa-magic me-2"></i>Get Recommendations
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     {# Assessment Quick Access Section #}
     <div class="row mb-4">
         <div class="col-12">
@@ -43,33 +20,7 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <a href="{{ path('take_assessment_index') }}" class="text-decoration-none">
-                                <div class="p-3 border rounded-3 text-center hover-card">
-                                    <i class="fas fa-play-circle fa-2x" style="color: #50C878;"></i>
-                                    <h6 class="mt-2 mb-0">Take Assessment</h6>
-                                    <small class="text-muted">Start a new assessment</small>
-                                </div>
-                            </a>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <a href="{{ path('result_stats', {userId: user.id}) }}" class="text-decoration-none">
-                                <div class="p-3 border rounded-3 text-center hover-card">
-                                    <i class="fas fa-chart-line fa-2x" style="color: #50C878;"></i>
-                                    <h6 class="mt-2 mb-0">My Progress</h6>
-                                    <small class="text-muted">Track your improvement</small>
-                                </div>
-                            </a>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <a href="{{ path('result_index') }}" class="text-decoration-none">
-                                <div class="p-3 border rounded-3 text-center hover-card">
-                                    <i class="fas fa-history fa-2x" style="color: #50C878;"></i>
-                                    <h6 class="mt-2 mb-0">Assessment History</h6>
-                                    <small class="text-muted">View past results</small>
-                                </div>
-                            </a>
-                        </div>
+                        
                     </div>
                 </div>
             </div>
@@ -106,9 +57,6 @@
                     <a href="{{ path('take_assessment_index') }}" class="btn btn-modern" style="background: #50C878; color: white; padding: 12px; border-radius: 10px; text-decoration: none; text-align: center;">
                         <i class="fas fa-clipboard-list me-2"></i> Take an Assessment
                     </a>
-                    <a href="{{ path('recommendations_index') }}" class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px; border-radius: 10px; text-decoration: none; text-align: center;">
-                        <i class="fas fa-robot me-2"></i> 🤖 AI Recommendations
-                    </a>
                     <a href="{{ path('result_stats', {userId: user.id}) }}" class="btn btn-outline-success" style="padding: 12px; border-radius: 10px;">
                         <i class="fas fa-chart-line me-2"></i> View My Progress
                     </a>
@@ -120,9 +68,6 @@
                     </a>
                     <a href="{{ path('app_chatbot') }}" class="btn btn-outline-success" style="padding: 12px; border-radius: 10px;">
                         <i class="fas fa-robot me-2"></i> AI Chatbot Support
-                    </a>
-                    <a href="{{ path('session_available') }}" class="btn btn-outline-success" style="padding: 12px; border-radius: 10px;">
-                        <i class="fas fa-calendar-alt me-2"></i> Browse Available Sessions
                     </a>
                 </div>
             </div>
@@ -191,15 +136,6 @@
     .btn-modern:hover {
         transform: translateY(-2px);
         box-shadow: 0 5px 15px rgba(80, 200, 120, 0.3);
-    }
-    .hover-card {
-        transition: all 0.3s;
-        cursor: pointer;
-    }
-    .hover-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        border-color: #50C878 !important;
     }
 </style>
 {% endblock %}

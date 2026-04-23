@@ -35,7 +35,7 @@
                         {% if contentNode.pdfPath is not empty %}
                             <div class="p-3 bg-white rounded-3 border mb-3">
                                 <h5 class="mb-2">PDF Resource</h5>
-                                <a class="btn btn-outline-primary" href="{{ contentNode.pdfPath }}" target="_blank"><i class="bi bi-file-earmark-pdf"></i> Open PDF</a>
+                                <a class="btn btn-outline-primary" href="{{ asset(contentNode.pdfPath) }}" target="_blank"><i class="bi bi-file-earmark-pdf"></i> Open PDF</a>
                             </div>
                         {% endif %}
 

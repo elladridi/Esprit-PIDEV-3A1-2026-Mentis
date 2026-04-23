@@ -27,29 +27,29 @@ class RegistrationController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             
-            // ANALYSE DU CV POUR LES PSYCHOLOGUES
+            // CV ANALYSIS FOR PSYCHOLOGISTS
             $cvFile = $form->get('cvFile')->getData();
             
             if ($cvFile && $user->getType() === 'Psychologist') {
                 try {
-                    // Créer un dossier temporaire
+                    // Create temporary folder
                     $tempDir = $this->getParameter('kernel.project_dir') . '/var/temp_cvs/';
                     if (!is_dir($tempDir)) {
                         mkdir($tempDir, 0777, true);
                     }
                     
-                    // Sauvegarder le CV temporairement
+                    // Save CV temporarily
                     $tempFileName = uniqid() . '.pdf';
                     $cvFile->move($tempDir, $tempFileName);
                     $tempFilePath = $tempDir . $tempFileName;
                     
-                    // Extraire le texte du PDF
+                    // Extract text from PDF
                     $cvText = $this->extractTextFromPDF($tempFilePath);
                     
-                    // Analyser le CV
+                    // Analyze CV
                     $analysis = $this->analyzeCVWithZai($cvText);
                     
-                    // Remplir automatiquement les champs avec les données extraites du CV
+                    // Auto-fill fields with extracted CV data
                     if (!empty($analysis['firstname']) && empty($user->getFirstname())) {
                         $user->setFirstname($analysis['firstname']);
                     }
@@ -69,7 +69,7 @@ class RegistrationController extends AbstractController
                         $user->setGender($analysis['gender']);
                     }
                     
-                    // Stocker l'analyse complète en session
+                    // Store complete analysis in session
                     $session = $request->getSession();
                     $session->set('cv_analysis_' . $user->getEmail(), [
                         'firstname' => $analysis['firstname'],
@@ -87,10 +87,10 @@ class RegistrationController extends AbstractController
                         'analysis_date' => date('Y-m-d H:i:s')
                     ]);
                     
-                    // Supprimer le fichier temporaire
+                    // Delete temporary file
                     unlink($tempFilePath);
                     
-                    // Afficher un résumé des informations extraites
+                    // Display analysis summary
                     $this->addFlash('info', '📄 CV Analysis: ' . 
                         'Name: ' . ($analysis['firstname'] ?: 'Not found') . ' ' . ($analysis['lastname'] ?: '') . ', ' .
                         'Email: ' . ($analysis['email'] ?: 'Not found') . ', ' .
@@ -99,7 +99,7 @@ class RegistrationController extends AbstractController
                         'Score: ' . $analysis['score'] . '%'
                     );
                     
-                    // Message flash de validation
+                    // Validation flash message
                     if ($analysis['is_valid'] ?? false) {
                         $this->addFlash('success', '✓ CV validated! Welcome to Mentis.');
                     } else {
@@ -111,7 +111,7 @@ class RegistrationController extends AbstractController
                 }
             }
             
-            // Hachage du mot de passe
+            // Password hashing
             $user->setPassword(
                 $userPasswordHasher->hashPassword(
                     $user,
@@ -141,22 +141,22 @@ class RegistrationController extends AbstractController
         }
         
         try {
-            // Créer un dossier temporaire
+            // Create temporary folder
             $tempDir = $this->getParameter('kernel.project_dir') . '/var/temp_cvs/';
             if (!is_dir($tempDir)) {
                 mkdir($tempDir, 0777, true);
             }
             
-            // Sauvegarder le fichier temporairement
+            // Save file temporarily
             $tempFileName = uniqid() . '.pdf';
             $cvFile->move($tempDir, $tempFileName);
             $tempFilePath = $tempDir . $tempFileName;
             
-            // Extraire et analyser
+            // Extract and analyze
             $cvText = $this->extractTextFromPDF($tempFilePath);
             $analysis = $this->analyzeCVWithZai($cvText);
             
-            // Supprimer le fichier temporaire
+            // Delete temporary file
             unlink($tempFilePath);
             
             return $this->json([
@@ -181,14 +181,14 @@ class RegistrationController extends AbstractController
 
    private function extractTextFromPDF(string $pdfPath): string
 {
-    // Méthode 1: Utiliser smalot/pdfparser (recommandé)
+    // Method 1: Use smalot/pdfparser (recommended)
     if (class_exists('Smalot\PdfParser\Parser')) {
         try {
             $parser = new Parser();
             $pdf = $parser->parseFile($pdfPath);
             $text = $pdf->getText();
             
-            // Nettoyer le texte
+            // Clean the text
             $text = preg_replace('/\s+/', ' ', $text);
             $text = trim($text);
             
@@ -196,13 +196,13 @@ class RegistrationController extends AbstractController
                 return substr($text, 0, 5000);
             }
         } catch (\Exception $e) {
-            // Fallback à la méthode suivante
+            // Fallback to next method
         }
     }
     
-    // Méthode 2: Utiliser pdftotext (si installé sur le serveur)
+    // Method 2: Use pdftotext (if installed on server)
     if (function_exists('shell_exec')) {
-        // Essayer différentes commandes pdftotext
+        // Try different pdftotext commands
         $commands = [
             'pdftotext ' . escapeshellarg($pdfPath) . ' - 2>/dev/null',
             'C:\Program Files\poppler\bin\pdftotext.exe ' . escapeshellarg($pdfPath) . ' - 2>nul',
@@ -216,11 +216,11 @@ class RegistrationController extends AbstractController
         }
     }
     
-    // Méthode 3: Tenter de décoder le contenu du PDF
+    // Method 3: Try to decode PDF content
     $content = file_get_contents($pdfPath);
     if ($content) {
-        // Chercher les chaînes de texte dans le PDF
-        // Les textes dans un PDF sont souvent entre parenthèses
+        // Look for text strings in PDF
+        // Texts in PDF are often between parentheses
         preg_match_all('/\(([^)]+)\)/', $content, $matches);
         if (!empty($matches[1])) {
             $text = implode(' ', $matches[1]);
@@ -233,7 +233,7 @@ class RegistrationController extends AbstractController
             }
         }
         
-        // Chercher les chaînes encodées en hexadécimal
+        // Look for hexadecimal encoded strings
         preg_match_all('/<([0-9A-Fa-f]{2,})>/', $content, $hexMatches);
         if (!empty($hexMatches[1])) {
             $hexText = '';
@@ -255,10 +255,10 @@ class RegistrationController extends AbstractController
 
     private function analyzeCVWithZai(string $cvText): array
     {
-        // Analyse locale sans API externe
+        // Local analysis without external API
         $cvLower = strtolower($cvText);
         
-        // ========== 1. EXTRACTION DES INFORMATIONS PERSONNELLES ==========
+        // ========== 1. PERSONAL INFORMATION EXTRACTION ==========
         
         // 1.1 Email
         $email = '';
@@ -266,7 +266,7 @@ class RegistrationController extends AbstractController
             $email = $emailMatches[0];
         }
         
-        // 1.2 Téléphone
+        // 1.2 Phone
         $phone = '';
         if (preg_match('/\+?[0-9]{1,3}[-.\s]?[0-9]{2,4}[-.\s]?[0-9]{3,4}[-.\s]?[0-9]{3,4}/', $cvText, $phoneMatches)) {
             $phone = $phoneMatches[0];
@@ -274,7 +274,7 @@ class RegistrationController extends AbstractController
             $phone = $phoneMatches[0];
         }
         
-        // 1.3 Prénom et Nom
+        // 1.3 First Name and Last Name
         $firstName = '';
         $lastName = '';
         
@@ -337,7 +337,7 @@ class RegistrationController extends AbstractController
         
         // ========== 2. ANALYSE DES QUALIFICATIONS ==========
         
-        // 2.1 Vérification du diplôme
+        // 2.1 Degree verification
         $degreeFound = false;
         $degreeType = 'None';
         $degreeKeywords = ['master', 'phd', 'doctorate', 'doctorat', 'master\'s', 'masters', 'maîtrise', 'doctor', 'm.sc', 'm.a', 'msc', 'ma'];
@@ -350,7 +350,7 @@ class RegistrationController extends AbstractController
             }
         }
         
-        // 2.2 Extraction des années d'expérience
+        // 2.2 Experience years extraction
         $experienceYears = 0;
         $patterns = [
             '/([0-9]+)\s*(?:years?|ans)/i',
@@ -365,7 +365,7 @@ class RegistrationController extends AbstractController
             }
         }
         
-        // 2.3 Détection des spécialisations
+        // 2.3 Specializations detection
         $specializations = [];
         $specKeywords = [
             'cbt' => 'CBT',
@@ -401,7 +401,7 @@ class RegistrationController extends AbstractController
         $score += min(count($specializations) * 5, 10);
         $score = min($score, 100);
         
-        // 2.6 Pré-requis manquants
+        // 2.6 Missing requirements
         $missingRequirements = [];
         if (!$degreeFound) {
             $missingRequirements[] = 'Master or PhD degree in Psychology';

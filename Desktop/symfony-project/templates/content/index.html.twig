@@ -2,6 +2,18 @@
 
 {% block title %}Content Management{% endblock %}
 
+{% macro renderParentTree(node, ancestors = []) %}
+    {% if node.parentNode is not null %}
+        {% set ancestors = ancestors|merge([node.parentNode.title]) %}
+        {{ _self.renderParentTree(node.parentNode, ancestors) }}
+    {% elseif ancestors|length > 0 %}
+        <div class="content-tree">
+            <i class="bi bi-diagram-3"></i>
+            Parent tree: {{ ancestors|reverse|join(' > ') }}
+        </div>
+    {% endif %}
+{% endmacro %}
+
 {% block body %}
 <div class="content-dashboard px-3 py-4"> <!-- new wrapper -->
     <div class="container-lg">
@@ -39,15 +51,27 @@
                     <div class="card h-100 shadow border-0 overflow-hidden content-card">
                         <div class="card-body d-flex flex-column">
                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h3 class="h5 card-title text-white">{{ node.title }}</h3>
+                                <h3 class="h5 card-title text-dark">{{ node.title }}</h3>
                                 <span class="badge bg-secondary">{{ node.id }}</span>
                             </div>
-                            <p class="card-text text-muted mb-3" style="min-height: 58px;">{{ node.description|default('No description')|slice(0, 120) ~ (node.description|length > 120 ? '…' : '') }}</p>
+                            {{ _self.renderParentTree(node) }}
+                            <p class="card-text text-dark mb-3" style="min-height: 58px;">{{ node.description|default('No description')|slice(0, 120) ~ (node.description|length > 120 ? '…' : '') }}</p>
 
-                            <ul class="list-unstyled small text-white-75 mb-3">
+                            <ul class="list-unstyled small text-dark mb-3 metadata-list">
                                 <li><strong>Creator:</strong> {{ node.createdBy.firstname }} {{ node.createdBy.lastname }}</li>
                                 <li><strong>Assigned:</strong> {{ node.assignedUsers|length }}</li>
                             </ul>
+
+                            {% if node.children|length > 0 %}
+                                <div class="mb-3">
+                                    <div class="small text-dark mb-2"><strong>Child content</strong></div>
+                                    <div class="d-flex flex-wrap gap-1 content-badges">
+                                        {% for child in node.children %}
+                                            <a class="badge bg-white text-dark border" href="{{ path('content_show', {id: child.id}) }}">{{ child.title }}</a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
 
                             <div class="mt-auto">
                                 <div class="mb-2 overflow-auto" style="max-height: 70px;">
@@ -62,9 +86,9 @@
                                 </div>
 
                                 <div class="d-flex gap-2">
-                                    <a class="btn btn-sm btn-light w-100" href="{{ path('content_show', {id: node.id}) }}"><i class="bi bi-eye"></i> View</a>
+                                    <a class="btn btn-sm btn-primary-custom w-100" href="{{ path('content_show', {id: node.id}) }}"><i class="bi bi-eye"></i> View</a>
                                     {% if is_granted('ROLE_ADMIN') or node.createdBy.id == app.user.id %}
-                                        <a class="btn btn-sm btn-light w-100" href="{{ path('content_edit', {id: node.id}) }}"><i class="bi bi-pencil"></i> Edit</a>
+                                        <a class="btn btn-sm btn-outline-custom w-100" href="{{ path('content_edit', {id: node.id}) }}"><i class="bi bi-pencil"></i> Edit</a>
                                     {% endif %}
                                 </div>
                             </div>

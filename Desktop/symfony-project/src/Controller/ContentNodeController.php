@@ -40,7 +40,7 @@ public function index(Request $request, ContentNodeRepository $contentNodeReposi
     } elseif (in_array('ROLE_PSYCHOLOGIST', $roles)) {
         $nodes = $contentNodeRepository->findForPsychologist($user, $q, $sort);
     } else {
-        // POUR LES PATIENTS - Utilise la nouvelle méthode
+        // FOR PATIENTS - Uses the new method
         $nodes = $contentNodeRepository->findAssignedToUserPhp($user->getId());
         
         // Appliquer la recherche en PHP
@@ -107,6 +107,18 @@ public function index(Request $request, ContentNodeRepository $contentNodeReposi
         if ($form->isSubmitted() && $form->isValid()) {
             /** @var \Doctrine\Common\Collections\Collection $assignedUsers */
             $assignedUsers = $form->get('assignedUsers')->getData();
+
+            // Handle PDF file upload
+            $pdfFile = $form->get('pdfPath')->getData();
+            if ($pdfFile) {
+                $originalFilename = pathinfo($pdfFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $originalFilename . '-' . uniqid() . '.' . $pdfFile->guessExtension();
+                $pdfFile->move(
+                    $this->getParameter('kernel.project_dir') . '/public/uploads',
+                    $safeFilename
+                );
+                $contentNode->setPdfPath('/uploads/' . $safeFilename);
+            }
 
             $contentNode->setAssignedUsers(array_map(fn($u) => $u->getId(), $assignedUsers->toArray()));
             $contentNode->setCreatedBy($user);
@@ -211,6 +223,18 @@ public function index(Request $request, ContentNodeRepository $contentNodeReposi
                 $assignedUsersArray = $assignedUsers;
             } else {
                 $assignedUsersArray = [];
+            }
+
+            // Handle PDF file upload
+            $pdfFile = $form->get('pdfPath')->getData();
+            if ($pdfFile) {
+                $originalFilename = pathinfo($pdfFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $originalFilename . '-' . uniqid() . '.' . $pdfFile->guessExtension();
+                $pdfFile->move(
+                    $this->getParameter('kernel.project_dir') . '/public/uploads',
+                    $safeFilename
+                );
+                $contentNode->setPdfPath('/uploads/' . $safeFilename);
             }
 
             $contentNode->setAssignedUsers(array_map(fn($u) => $u->getId(), $assignedUsersArray));

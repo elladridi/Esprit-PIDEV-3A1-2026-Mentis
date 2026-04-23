@@ -302,7 +302,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         },
  *     },
  *     translator?: bool|array{ // Translator configuration
- *         enabled?: bool|Param, // Default: true
+ *         enabled?: bool|Param, // Default: false
  *         fallbacks?: list<scalar|Param|null>,
  *         logging?: bool|Param, // Default: false
  *         formatter?: scalar|Param|null, // Default: "translator.formatter.default"
@@ -352,7 +352,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         enabled?: bool|Param, // Default: false
  *     },
  *     serializer?: bool|array{ // Serializer configuration
- *         enabled?: bool|Param, // Default: true
+ *         enabled?: bool|Param, // Default: false
  *         enable_attributes?: bool|Param, // Default: true
  *         name_converter?: scalar|Param|null,
  *         circular_reference_handler?: scalar|Param|null,
@@ -1292,67 +1292,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     generate_final_classes?: bool|Param, // Default: true
  *     generate_final_entities?: bool|Param, // Default: false
  * }
- * @psalm-type FlasherConfig = array{
- *     default?: scalar|Param|null, // Default notification library (e.g., "flasher", "toastr", "noty", "notyf", "sweetalert") // Default: "flasher"
- *     main_script?: scalar|Param|null, // Path to the main PHPFlasher JavaScript file // Default: "/vendor/flasher/flasher.min.js"
- *     public_path?: scalar|Param|null, // Prefix prepended to every flasher asset URL. Useful when the app is served from a subdirectory (e.g. "/Symfony") or a separate asset host (e.g. "https://cdn.example.com"). Defaults to "". // Default: ""
- *     inject_assets?: bool|Param, // Automatically inject assets into HTML pages // Default: true
- *     translate?: bool|Param, // Enable message translation // Default: true
- *     excluded_paths?: list<scalar|Param|null>,
- *     filter?: list<mixed>,
- *     scripts?: list<scalar|Param|null>,
- *     styles?: list<scalar|Param|null>,
- *     options?: list<mixed>,
- *     flash_bag?: mixed, // Map Symfony flash messages to notification types // Default: true
- *     presets?: array<string, array{ // Default: []
- *         type?: scalar|Param|null, // Notification type (e.g., "success", "error")
- *         title?: scalar|Param|null, // Default title
- *         message?: scalar|Param|null, // Default message
- *         options?: list<mixed>,
- *     }>,
- *     plugins?: array<string, array{ // Default: []
- *         view?: scalar|Param|null, // Custom twig view template
- *         styles?: list<scalar|Param|null>,
- *         scripts?: list<scalar|Param|null>,
- *         options?: list<mixed>,
- *     }>,
- *     themes?: array<string, array{ // Default: []
- *         styles?: list<scalar|Param|null>,
- *         scripts?: list<scalar|Param|null>,
- *         options?: list<mixed>,
- *     }>,
- * }
- * @psalm-type BazingaGeocoderConfig = array{
- *     providers?: array<string, array{ // Default: []
- *         factory?: scalar|Param|null,
- *         options?: mixed, // Default: []
- *         cache?: scalar|Param|null, // Default: null
- *         cache_lifetime?: scalar|Param|null, // Default: null
- *         cache_precision?: scalar|Param|null, // Precision of the coordinates to cache. // Default: null
- *         limit?: scalar|Param|null, // Default: null
- *         locale?: scalar|Param|null, // Default: null
- *         logger?: scalar|Param|null, // Default: null
- *         aliases?: list<scalar|Param|null>,
- *         plugins?: list<array{ // Default: []
- *             reference?: bool|array{ // Reference to a plugin service
- *                 enabled?: bool|Param, // Default: false
- *                 id?: scalar|Param|null, // Service id of a plugin
- *             },
- *         }>,
- *     }>,
- *     profiling?: bool|array{ // Extend the debug profiler with information about requests.
- *         enabled?: bool|Param, // Turn the toolbar on or off. Defaults to kernel debug mode. // Default: true
- *     },
- *     fake_ip?: bool|string|array{
- *         enabled?: bool|Param, // Default: false
- *         local_ip?: scalar|Param|null, // Default: "127.0.0.1"
- *         ip?: scalar|Param|null, // Default: null
- *         use_faker?: bool|Param, // Default: false
- *     },
- *     orm?: bool|array{
- *         enabled?: bool|Param, // Turn the Doctrine ORM listener on or off. // Default: false
- *     },
- * }
  * @psalm-type ConfigType = array{
  *     imports?: ImportsConfig,
  *     parameters?: ParametersConfig,
@@ -1362,8 +1301,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     security?: SecurityConfig,
  *     twig?: TwigConfig,
  *     doctrine_migrations?: DoctrineMigrationsConfig,
- *     flasher?: FlasherConfig,
- *     bazinga_geocoder?: BazingaGeocoderConfig,
  *     "when@dev"?: array{
  *         imports?: ImportsConfig,
  *         parameters?: ParametersConfig,
@@ -1374,8 +1311,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         twig?: TwigConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
  *         maker?: MakerConfig,
- *         flasher?: FlasherConfig,
- *         bazinga_geocoder?: BazingaGeocoderConfig,
  *     },
  *     "when@prod"?: array{
  *         imports?: ImportsConfig,
@@ -1386,8 +1321,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         security?: SecurityConfig,
  *         twig?: TwigConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
- *         flasher?: FlasherConfig,
- *         bazinga_geocoder?: BazingaGeocoderConfig,
  *     },
  *     "when@test"?: array{
  *         imports?: ImportsConfig,
@@ -1398,8 +1331,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         security?: SecurityConfig,
  *         twig?: TwigConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
- *         flasher?: FlasherConfig,
- *         bazinga_geocoder?: BazingaGeocoderConfig,
  *     },
  *     ...<string, ExtensionType|array{ // extra keys must follow the when@%env% pattern or match an extension alias
  *         imports?: ImportsConfig,
