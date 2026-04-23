@@ -352,11 +352,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         enabled?: bool|Param, // Default: false
  *     },
  *     serializer?: bool|array{ // Serializer configuration
-<<<<<<< HEAD
- *         enabled?: bool|Param, // Default: false
-=======
  *         enabled?: bool|Param, // Default: true
->>>>>>> my-work-backup
  *         enable_attributes?: bool|Param, // Default: true
  *         name_converter?: scalar|Param|null,
  *         circular_reference_handler?: scalar|Param|null,
@@ -633,11 +629,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         }>,
  *     },
  *     rate_limiter?: bool|array{ // Rate limiter configuration
-<<<<<<< HEAD
  *         enabled?: bool|Param, // Default: true
-=======
- *         enabled?: bool|Param, // Default: false
->>>>>>> my-work-backup
  *         limiters?: array<string, array{ // Default: []
  *             lock_factory?: scalar|Param|null, // The service ID of the lock factory used by this limiter (or null to disable locking). // Default: "auto"
  *             cache_pool?: scalar|Param|null, // The cache pool to use for storing the current limiter state. // Default: "cache.rate_limiter"
@@ -1300,7 +1292,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     generate_final_classes?: bool|Param, // Default: true
  *     generate_final_entities?: bool|Param, // Default: false
  * }
-<<<<<<< HEAD
  * @psalm-type KnpPaginatorConfig = array{
  *     default_options?: array{
  *         sort_field_name?: scalar|Param|null, // Default: "sort"
@@ -1423,36 +1414,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         namer_keep_extension?: scalar|Param|null, // Default: false
  *         db_driver?: scalar|Param|null, // Default: null
  *     }>,
-=======
- * @psalm-type FlasherConfig = array{
- *     default?: scalar|Param|null, // Default notification library (e.g., "flasher", "toastr", "noty", "notyf", "sweetalert") // Default: "flasher"
- *     main_script?: scalar|Param|null, // Path to the main PHPFlasher JavaScript file // Default: "/vendor/flasher/flasher.min.js"
- *     public_path?: scalar|Param|null, // Prefix prepended to every flasher asset URL. Useful when the app is served from a subdirectory (e.g. "/Symfony") or a separate asset host (e.g. "https://cdn.example.com"). Defaults to "". // Default: ""
- *     inject_assets?: bool|Param, // Automatically inject assets into HTML pages // Default: true
- *     translate?: bool|Param, // Enable message translation // Default: true
- *     excluded_paths?: list<scalar|Param|null>,
- *     filter?: list<mixed>,
- *     scripts?: list<scalar|Param|null>,
- *     styles?: list<scalar|Param|null>,
- *     options?: list<mixed>,
- *     flash_bag?: mixed, // Map Symfony flash messages to notification types // Default: true
- *     presets?: array<string, array{ // Default: []
- *         type?: scalar|Param|null, // Notification type (e.g., "success", "error")
- *         title?: scalar|Param|null, // Default title
- *         message?: scalar|Param|null, // Default message
- *         options?: list<mixed>,
- *     }>,
- *     plugins?: array<string, array{ // Default: []
- *         view?: scalar|Param|null, // Custom twig view template
- *         styles?: list<scalar|Param|null>,
- *         scripts?: list<scalar|Param|null>,
- *         options?: list<mixed>,
- *     }>,
- *     themes?: array<string, array{ // Default: []
- *         styles?: list<scalar|Param|null>,
- *         scripts?: list<scalar|Param|null>,
- *         options?: list<mixed>,
- *     }>,
  * }
  * @psalm-type BazingaGeocoderConfig = array{
  *     providers?: array<string, array{ // Default: []
@@ -1484,7 +1445,36 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     orm?: bool|array{
  *         enabled?: bool|Param, // Turn the Doctrine ORM listener on or off. // Default: false
  *     },
->>>>>>> my-work-backup
+ * }
+ * @psalm-type FlasherConfig = array{
+ *     default?: scalar|Param|null, // Default notification library (e.g., "flasher", "toastr", "noty", "notyf", "sweetalert") // Default: "flasher"
+ *     main_script?: scalar|Param|null, // Path to the main PHPFlasher JavaScript file // Default: "/vendor/flasher/flasher.min.js"
+ *     public_path?: scalar|Param|null, // Prefix prepended to every flasher asset URL. Useful when the app is served from a subdirectory (e.g. "/Symfony") or a separate asset host (e.g. "https://cdn.example.com"). Defaults to "". // Default: ""
+ *     inject_assets?: bool|Param, // Automatically inject assets into HTML pages // Default: true
+ *     translate?: bool|Param, // Enable message translation // Default: true
+ *     excluded_paths?: list<scalar|Param|null>,
+ *     filter?: list<mixed>,
+ *     scripts?: list<scalar|Param|null>,
+ *     styles?: list<scalar|Param|null>,
+ *     options?: list<mixed>,
+ *     flash_bag?: mixed, // Map Symfony flash messages to notification types // Default: true
+ *     presets?: array<string, array{ // Default: []
+ *         type?: scalar|Param|null, // Notification type (e.g., "success", "error")
+ *         title?: scalar|Param|null, // Default title
+ *         message?: scalar|Param|null, // Default message
+ *         options?: list<mixed>,
+ *     }>,
+ *     plugins?: array<string, array{ // Default: []
+ *         view?: scalar|Param|null, // Custom twig view template
+ *         styles?: list<scalar|Param|null>,
+ *         scripts?: list<scalar|Param|null>,
+ *         options?: list<mixed>,
+ *     }>,
+ *     themes?: array<string, array{ // Default: []
+ *         styles?: list<scalar|Param|null>,
+ *         scripts?: list<scalar|Param|null>,
+ *         options?: list<mixed>,
+ *     }>,
  * }
  * @psalm-type ConfigType = array{
  *     imports?: ImportsConfig,
@@ -1495,15 +1485,12 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     security?: SecurityConfig,
  *     twig?: TwigConfig,
  *     doctrine_migrations?: DoctrineMigrationsConfig,
-<<<<<<< HEAD
  *     knp_paginator?: KnpPaginatorConfig,
  *     knp_snappy?: KnpSnappyConfig,
  *     twig_extra?: TwigExtraConfig,
  *     vich_uploader?: VichUploaderConfig,
-=======
- *     flasher?: FlasherConfig,
  *     bazinga_geocoder?: BazingaGeocoderConfig,
->>>>>>> my-work-backup
+ *     flasher?: FlasherConfig,
  *     "when@dev"?: array{
  *         imports?: ImportsConfig,
  *         parameters?: ParametersConfig,
@@ -1514,15 +1501,12 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         twig?: TwigConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
  *         maker?: MakerConfig,
-<<<<<<< HEAD
  *         knp_paginator?: KnpPaginatorConfig,
  *         knp_snappy?: KnpSnappyConfig,
  *         twig_extra?: TwigExtraConfig,
  *         vich_uploader?: VichUploaderConfig,
-=======
- *         flasher?: FlasherConfig,
  *         bazinga_geocoder?: BazingaGeocoderConfig,
->>>>>>> my-work-backup
+ *         flasher?: FlasherConfig,
  *     },
  *     "when@prod"?: array{
  *         imports?: ImportsConfig,
@@ -1533,15 +1517,12 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         security?: SecurityConfig,
  *         twig?: TwigConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
-<<<<<<< HEAD
  *         knp_paginator?: KnpPaginatorConfig,
  *         knp_snappy?: KnpSnappyConfig,
  *         twig_extra?: TwigExtraConfig,
  *         vich_uploader?: VichUploaderConfig,
-=======
- *         flasher?: FlasherConfig,
  *         bazinga_geocoder?: BazingaGeocoderConfig,
->>>>>>> my-work-backup
+ *         flasher?: FlasherConfig,
  *     },
  *     "when@test"?: array{
  *         imports?: ImportsConfig,
@@ -1552,15 +1533,12 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         security?: SecurityConfig,
  *         twig?: TwigConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
-<<<<<<< HEAD
  *         knp_paginator?: KnpPaginatorConfig,
  *         knp_snappy?: KnpSnappyConfig,
  *         twig_extra?: TwigExtraConfig,
  *         vich_uploader?: VichUploaderConfig,
-=======
- *         flasher?: FlasherConfig,
  *         bazinga_geocoder?: BazingaGeocoderConfig,
->>>>>>> my-work-backup
+ *         flasher?: FlasherConfig,
  *     },
  *     ...<string, ExtensionType|array{ // extra keys must follow the when@%env% pattern or match an extension alias
  *         imports?: ImportsConfig,

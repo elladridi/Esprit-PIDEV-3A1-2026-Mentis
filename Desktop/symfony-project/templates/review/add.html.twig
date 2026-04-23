@@ -18,8 +18,6 @@
         <p class="lead text-muted">Share your experience with this session</p>
     </div>
 
-<<<<<<< HEAD
-=======
     {# ========== FLASH MESSAGES SECTION ========== #}
     {% for message in app.flashes('error') %}
         <div class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm" role="alert" data-aos="fade-up">
@@ -59,7 +57,6 @@
     {% endfor %}
     {# ========== END FLASH MESSAGES ========== #}
 
->>>>>>> my-work-backup
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="card shadow-lg border-0 rounded-4 overflow-hidden" data-aos="fade-up">
@@ -89,11 +86,7 @@
                         </label>
                         {{ form_widget(form.comment) }}
                         {{ form_errors(form.comment) }}
-<<<<<<< HEAD
-                        <small class="text-muted">Max 1000 characters</small>
-=======
                         <small class="text-muted">Max 1000 characters • Please keep your review respectful</small>
->>>>>>> my-work-backup
                     </div>
                     
                     <div class="d-flex gap-3 justify-content-end pt-4 border-top">
@@ -121,8 +114,6 @@
     box-shadow: 0 0 0 0.25rem rgba(80, 200, 120, 0.25) !important;
 }
 .card { border-radius: 24px; }
-<<<<<<< HEAD
-=======
 .alert {
     border-radius: 16px;
     border-left: 5px solid;
@@ -135,6 +126,5 @@
     border-left-color: #28a745;
     background: linear-gradient(135deg, #f0fff4 0%, #ffffff 100%);
 }
->>>>>>> my-work-backup
 </style>
 {% endblock %}
