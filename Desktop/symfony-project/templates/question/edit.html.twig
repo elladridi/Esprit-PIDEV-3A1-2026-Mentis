@@ -59,11 +59,7 @@
                         {{ form_errors(form.text) }}
                     </div>
 
-<<<<<<< HEAD
                     {# Scale - Using Symfony Form Field #}
-=======
-                    {# Scale #}
->>>>>>> my-work-backup
                     <div class="mb-4">
                         <label class="form-label fw-bold mb-2" style="color: #2E7D32; font-size: 16px;">
                             <i class="fas fa-ruler me-1"></i>
@@ -73,23 +69,18 @@
                         {{ form_errors(form.scale) }}
                         <div class="mt-3 p-3 bg-light rounded-4">
                             <small class="text-muted d-block mb-2">
-<<<<<<< HEAD
                                 <i class="fas fa-info-circle me-1 text-info"></i> Current scale: 
                                 <strong class="text-success">{{ question.scale ?: 'Not selected' }}</strong>
                             </small>
                             <small class="text-muted d-block">
                                 <i class="fas fa-lightbulb me-1 text-warning"></i> Select the appropriate scale type for this question
                             </small>
-=======
-                                <i class="fas fa-lightbulb me-1 text-warning"></i> Examples:
-                            </small>
-                            <div class="row g-2">
+                            <div class="row g-2 mt-2">
                                 <div class="col-md-6"><code class="small">Never/Rarely/Sometimes/Often/Always</code></div>
                                 <div class="col-md-6"><code class="small">1-5 numeric</code></div>
                                 <div class="col-md-6"><code class="small">Yes/No</code></div>
                                 <div class="col-md-6"><code class="small">1=Never,2=Rarely,3=Sometimes</code></div>
                             </div>
->>>>>>> my-work-backup
                         </div>
                     </div>
 
@@ -98,7 +89,6 @@
                         <h6 class="fw-bold mb-3" style="color: #2E7D32;">
                             <i class="fas fa-eye me-2"></i>Preview
                         </h6>
-<<<<<<< HEAD
                         <div class="bg-white rounded-3 p-3">
                             <p class="mb-2" id="previewText" style="color: #1a3c34;">{{ question.text }}</p>
                             <div class="mt-2 pt-2 border-top">
@@ -107,10 +97,6 @@
                                     {{ question.scale ?: 'No scale selected' }}
                                 </span>
                             </div>
-=======
-                        <div class="bg-white rounded-3 p-3 text-center">
-                            <p class="mb-0" id="previewText" style="color: #1a3c34;">{{ question.text }}</p>
->>>>>>> my-work-backup
                         </div>
                     </div>
 
@@ -135,7 +121,6 @@
 </div>
 
 <script>
-<<<<<<< HEAD
 // Preview text update
 const textarea = document.querySelector('textarea');
 const previewText = document.getElementById('previewText');
@@ -161,13 +146,6 @@ if (scaleSelect) {
             previewScale.textContent = 'No scale selected';
             previewScale.className = 'badge bg-warning bg-opacity-10 text-warning px-3 py-2';
         }
-=======
-const textarea = document.querySelector('textarea');
-const preview  = document.getElementById('previewText');
-if (textarea) {
-    textarea.addEventListener('input', function() {
-        preview.textContent = this.value || 'Preview will appear here';
->>>>>>> my-work-backup
     });
 }
 </script>
@@ -181,7 +159,6 @@ if (textarea) {
 }
 .card { border-radius: 24px; }
 code { background: #e9ecef; padding: 2px 8px; border-radius: 20px; font-size: 11px; }
-<<<<<<< HEAD
 .form-select {
     cursor: pointer;
     transition: all 0.3s ease;
@@ -189,8 +166,6 @@ code { background: #e9ecef; padding: 2px 8px; border-radius: 20px; font-size: 11
 .form-select:hover {
     border-color: #50C878;
 }
-=======
->>>>>>> my-work-backup
 </style>
 {% endblock %}
 

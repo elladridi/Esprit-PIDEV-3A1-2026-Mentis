@@ -59,11 +59,7 @@
                         {{ form_errors(form.text) }}
                     </div>
 
-<<<<<<< HEAD
                     {# Scale - Using Symfony Form Field #}
-=======
-                    {# Scale #}
->>>>>>> my-work-backup
                     <div class="mb-4">
                         <label class="form-label fw-bold mb-2" style="color: #2E7D32; font-size: 16px;">
                             <i class="fas fa-ruler me-1"></i>
@@ -89,17 +85,12 @@
                         <h6 class="fw-bold mb-3" style="color: #2E7D32;">
                             <i class="fas fa-eye me-2"></i>Preview
                         </h6>
-<<<<<<< HEAD
                         <div class="bg-white rounded-3 p-3">
                             <p class="text-muted mb-2" id="previewText">Question preview will appear here</p>
                             <div class="mt-2 pt-2 border-top">
                                 <small class="text-muted">Scale: </small>
                                 <span id="previewScale" class="badge bg-secondary px-3 py-2">No scale selected</span>
                             </div>
-=======
-                        <div class="bg-white rounded-3 p-3 text-center">
-                            <p class="text-muted mb-0" id="previewText">Question preview will appear here</p>
->>>>>>> my-work-backup
                         </div>
                     </div>
 
@@ -124,7 +115,6 @@
 </div>
 
 <script>
-<<<<<<< HEAD
 // Preview text update
 const textarea = document.querySelector('textarea[name="question[text]"]');
 const previewText = document.getElementById('previewText');
@@ -150,14 +140,6 @@ if (scaleSelect) {
             previewScale.textContent = 'No scale selected';
             previewScale.className = 'badge bg-secondary px-3 py-2';
         }
-=======
-const textarea = document.querySelector('textarea[name="question[text]"]');
-const preview  = document.getElementById('previewText');
-if (textarea) {
-    textarea.addEventListener('input', function() {
-        preview.textContent = this.value || 'Question preview will appear here';
-        preview.style.color = this.value ? '#1a3c34' : '#6c757d';
->>>>>>> my-work-backup
     });
 }
 </script>
@@ -171,7 +153,6 @@ if (textarea) {
 }
 .card { border-radius: 24px; }
 code { background: #e9ecef; padding: 2px 8px; border-radius: 20px; font-size: 11px; }
-<<<<<<< HEAD
 .form-select {
     cursor: pointer;
     transition: all 0.3s ease;
@@ -179,8 +160,6 @@ code { background: #e9ecef; padding: 2px 8px; border-radius: 20px; font-size: 11
 .form-select:hover {
     border-color: #50C878;
 }
-=======
->>>>>>> my-work-backup
 </style>
 {% endblock %}
 
