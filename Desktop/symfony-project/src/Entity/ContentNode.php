@@ -6,14 +6,10 @@ use App\Repository\ContentNodeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-<<<<<<< HEAD
 use Symfony\Component\HttpFoundation\File\File;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[Vich\Uploadable]
-=======
-
->>>>>>> my-work-backup
 #[ORM\Entity(repositoryClass: ContentNodeRepository::class)]
 #[ORM\Table(name: 'content_node')]
 class ContentNode
@@ -32,7 +28,6 @@ class ContentNode
     #[ORM\Column(name: 'pdf_path', length: 500, nullable: true)]
     private ?string $pdfPath = null;
 
-<<<<<<< HEAD
     #[Vich\UploadableField(mapping: 'content_pdf', fileNameProperty: 'pdfPath')]
     private ?File $pdfFile = null;
 
@@ -42,11 +37,6 @@ class ContentNode
     #[ORM\Column(name: 'updated_at', type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $updatedAt = null;
 
-=======
-    #[ORM\Column(name: 'created_at', type: 'datetime')]
-    private \DateTimeInterface $createdAt;
-
->>>>>>> my-work-backup
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'created_by', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private ?User $createdBy = null;
@@ -84,7 +74,6 @@ class ContentNode
     public function setTitle(string $title): self
     {
         $this->title = $title;
-
         return $this;
     }
 
@@ -96,7 +85,6 @@ class ContentNode
     public function setDescription(?string $description): self
     {
         $this->description = $description;
-
         return $this;
     }
 
@@ -108,11 +96,9 @@ class ContentNode
     public function setPdfPath(?string $pdfPath): self
     {
         $this->pdfPath = $pdfPath;
-
         return $this;
     }
 
-<<<<<<< HEAD
     public function getPdfFile(): ?File
     {
         return $this->pdfFile;
@@ -121,16 +107,12 @@ class ContentNode
     public function setPdfFile(?File $pdfFile = null): self
     {
         $this->pdfFile = $pdfFile;
-
         if ($pdfFile !== null) {
             $this->updatedAt = new \DateTime();
         }
-
         return $this;
     }
 
-=======
->>>>>>> my-work-backup
     public function getCreatedAt(): \DateTimeInterface
     {
         return $this->createdAt;
@@ -139,11 +121,9 @@ class ContentNode
     public function setCreatedAt(\DateTimeInterface $createdAt): self
     {
         $this->createdAt = $createdAt;
-
         return $this;
     }
 
-<<<<<<< HEAD
     public function getUpdatedAt(): ?\DateTimeInterface
     {
         return $this->updatedAt;
@@ -152,12 +132,9 @@ class ContentNode
     public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
-
         return $this;
     }
 
-=======
->>>>>>> my-work-backup
     public function getCreatedBy(): ?User
     {
         return $this->createdBy;
@@ -166,7 +143,6 @@ class ContentNode
     public function setCreatedBy(?User $createdBy): self
     {
         $this->createdBy = $createdBy;
-
         return $this;
     }
 
@@ -178,11 +154,9 @@ class ContentNode
     public function setParentNode(?self $parentNode): self
     {
         $this->parentNode = $parentNode;
-
         return $this;
     }
 
-    /** @return Collection<int, self> */
     public function getChildren(): Collection
     {
         return $this->children;
@@ -194,7 +168,6 @@ class ContentNode
             $this->children->add($child);
             $child->setParentNode($this);
         }
-
         return $this;
     }
 
@@ -205,7 +178,6 @@ class ContentNode
                 $child->setParentNode(null);
             }
         }
-
         return $this;
     }
 
@@ -218,11 +190,9 @@ class ContentNode
     public function setAssignedUsers(array $assignedUsers): self
     {
         $this->assignedUsers = json_encode($assignedUsers);
-
         return $this;
     }
 
-    /** @return Collection<int, ContentPath> */
     public function getContentPaths(): Collection
     {
         return $this->contentPaths;
@@ -234,7 +204,6 @@ class ContentNode
             $this->contentPaths->add($contentPath);
             $contentPath->setContentNode($this);
         }
-
         return $this;
     }
 
@@ -245,27 +214,20 @@ class ContentNode
                 $contentPath->setContentNode(null);
             }
         }
-
         return $this;
     }
-<<<<<<< HEAD
 
     public function getPdfPublicPath(): ?string
     {
         if ($this->pdfPath === null || $this->pdfPath === '') {
             return null;
         }
-
         if (str_starts_with($this->pdfPath, '/uploads/')) {
             return ltrim($this->pdfPath, '/');
         }
-
         if (str_starts_with($this->pdfPath, 'uploads/')) {
             return $this->pdfPath;
         }
-
         return 'uploads/' . ltrim($this->pdfPath, '/');
     }
-=======
->>>>>>> my-work-backup
 }
