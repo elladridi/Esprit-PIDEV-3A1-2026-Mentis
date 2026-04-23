@@ -3,11 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Assessment;
-<<<<<<< HEAD
-use App\Entity\AssessmentType;
-=======
 use App\Form\AssessmentType;
->>>>>>> my-work-backup
 use App\Repository\AssessmentRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

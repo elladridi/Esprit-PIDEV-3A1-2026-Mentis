@@ -1,12 +1,10 @@
 framework:
     cache:
-<<<<<<< HEAD
         app: cache.adapter.filesystem
         pools:
             content_logs_pool:
                 adapter: cache.adapter.filesystem
                 default_lifetime: 300
-=======
         # Unique name of your app: used to compute stable namespaces for cache keys.
         #prefix_seed: your_vendor_name/app_name
 
@@ -24,4 +22,3 @@ framework:
         # Namespaced pools use the above "app" backend by default
         #pools:
             #my.dedicated.cache: null
->>>>>>> my-work-backup

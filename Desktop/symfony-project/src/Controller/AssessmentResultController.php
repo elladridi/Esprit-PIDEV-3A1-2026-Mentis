@@ -1,17 +1,9 @@
 <?php
-<<<<<<< HEAD
-// src/Controller/AssessmentResultController.php
-=======
->>>>>>> my-work-backup
 
 namespace App\Controller;
 
 use App\Entity\AssessmentResult;
 use App\Entity\User;
-<<<<<<< HEAD
-use App\Service\CrisisAlertService;
-=======
->>>>>>> my-work-backup
 use App\Repository\AssessmentRepository;
 use App\Repository\AssessmentResultRepository;
 use App\Repository\QuestionRepository;
@@ -19,21 +11,15 @@ use App\Repository\UserRepository;
 use App\Service\GroqService;
 use App\Service\YouTubeService;
 use App\Service\PdfExportService;
-<<<<<<< HEAD
 use App\Service\SpotifyService;
 use App\Service\MeditationService;
-=======
->>>>>>> my-work-backup
+use App\Service\CrisisAlertService;
+use App\Service\BadgeService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-<<<<<<< HEAD
-use App\Service\BadgeService;
-
-=======
->>>>>>> my-work-backup
 
 #[Route('/result')]
 class AssessmentResultController extends AbstractController
@@ -45,12 +31,9 @@ class AssessmentResultController extends AbstractController
     private GroqService $groqService;
     private YouTubeService $youtubeService;
     private PdfExportService $pdfExportService;
-<<<<<<< HEAD
     private SpotifyService $spotifyService;
     private MeditationService $meditationService;
     private CrisisAlertService $crisisAlertService;
-=======
->>>>>>> my-work-backup
 
     public function __construct(
         EntityManagerInterface $em,
@@ -59,7 +42,6 @@ class AssessmentResultController extends AbstractController
         QuestionRepository $questionRepo,
         GroqService $groqService,
         YouTubeService $youtubeService,
-<<<<<<< HEAD
         PdfExportService $pdfExportService,
         SpotifyService $spotifyService,
         MeditationService $meditationService,
@@ -109,24 +91,6 @@ class AssessmentResultController extends AbstractController
         } else {
             $results = $this->resultRepo->findAllOrderedByDate();
         }
-=======
-        PdfExportService $pdfExportService
-    ) {
-        $this->em               = $em;
-        $this->resultRepo       = $resultRepo;
-        $this->assessmentRepo   = $assessmentRepo;
-        $this->questionRepo     = $questionRepo;
-        $this->groqService      = $groqService;
-        $this->youtubeService   = $youtubeService;
-        $this->pdfExportService = $pdfExportService;
-    }
-
-    // ── LIST ALL RESULTS ──────────────────────────────────────────
-    #[Route('/', name: 'result_index', methods: ['GET'])]
-    public function index(): Response
-    {
-        $results = $this->resultRepo->findAllOrderedByDate();
->>>>>>> my-work-backup
 
         $users = [];
         foreach ($results as $result) {
@@ -142,7 +106,6 @@ class AssessmentResultController extends AbstractController
         ]);
     }
 
-<<<<<<< HEAD
     #[Route('/user/{userId}', name: 'result_by_user', methods: ['GET'])]
     public function byUser(int $userId, UserRepository $userRepo): Response
     {
@@ -155,12 +118,6 @@ class AssessmentResultController extends AbstractController
             return $this->redirectToRoute('result_index');
         }
 
-=======
-    // ── USER RESULTS ──────────────────────────────────────────────
-    #[Route('/user/{userId}', name: 'result_by_user', methods: ['GET'])]
-    public function byUser(int $userId, UserRepository $userRepo): Response
-    {
->>>>>>> my-work-backup
         $results = $this->resultRepo->findByUser($userId);
         $user    = $userRepo->find($userId);
 
@@ -176,152 +133,13 @@ class AssessmentResultController extends AbstractController
         ]);
     }
 
-<<<<<<< HEAD
     #[Route('/submit', name: 'result_submit', methods: ['POST'])]
-public function submit(Request $request, UserRepository $userRepo, BadgeService $badgeService): Response
-{
-    $userId       = $request->request->get('user_id');
-    $assessmentId = $request->request->get('assessment_id');
-    $answers      = $request->request->all('answers');
-    $freeText     = trim($request->request->get('free_text', ''));
-
-    $assessment = $this->assessmentRepo->find($assessmentId);
-    if (!$assessment) {
-        $this->addFlash('error', 'Assessment not found');
-        return $this->redirectToRoute('take_assessment_index');
-    }
-
-    $questions = $this->questionRepo->findByAssessment($assessmentId);
-
-    $scores          = [];
-    $originalAnswers = [];
-    $totalScore      = 0;
-
-    foreach ($questions as $question) {
-        $qId                   = $question->getQuestionId();
-        $answer                = $answers[$qId] ?? '';
-        $score                 = $this->parseAnswerToScore($answer, $question->getScale());
-        $scores[$qId]          = $score;
-        $originalAnswers[$qId] = $answer;
-        $totalScore           += $score;
-    }
-
-    $riskLevel      = $this->determineRiskLevel($totalScore, (int)$assessmentId);
-    $aiAnalysis     = $this->generateAIAnalysis($questions, $scores, $originalAnswers, $totalScore, $riskLevel);
-    $interpretation = $this->generateInterpretation($riskLevel);
-    $suggestSession = $this->shouldSuggestSession($riskLevel, $aiAnalysis);
-
-    $sentimentData = [];
-    if (!empty($freeText)) {
-        try {
-            $sentimentData = $this->groqService->analyzeSentiment($freeText);
-
-            if (!empty($sentimentData['crisis_detected'])) {
-                $suggestSession = true;
-                if (!in_array(strtolower($riskLevel), ['high', 'severe'])) {
-                    $riskLevel = 'High';
-                }
-            }
-        } catch (\Exception $e) {
-            $sentimentData = [];
-        }
-    }
-
-    $recommendedContent = $this->generateRecommendedContent($riskLevel, $aiAnalysis);
-
-    $result = new AssessmentResult();
-    $user   = $this->em->getRepository(User::class)->find((int)$userId);
-    $result->setUser($user);
-    $result->setAssessment($assessment);
-    $result->setTotalScore($totalScore);
-    $result->setRiskLevel($riskLevel);
-    $result->setInterpretation($interpretation);
-    $result->setRecommendedContent($recommendedContent);
-    $result->setSuggestSession($suggestSession);
-    $result->setTakenAt(new \DateTime());
-
-    $this->em->persist($result);
-    $this->em->flush();
-
-    // ── ADD CRISIS ALERT IF HIGH RISK ─────────────────
-    if (in_array(strtolower($riskLevel), ['high', 'severe', 'critical'])) {
-        $this->crisisAlertService->addCrisisAlert($result);
-    }
-
-    // ==================== BADGE NOTIFICATION ====================
-    // Check for newly earned badges
-    $oldBadges = $badgeService->getUserBadges($user);
-    $oldEarnedCount = $badgeService->getEarnedCount($user);
-    
-    // Refresh entity to get latest data (in case assessment count changed)
-    $this->em->refresh($user);
-    
-    $newBadges = $badgeService->getUserBadges($user);
-    $newEarnedCount = $badgeService->getEarnedCount($user);
-    
-    // Find newly earned badges
-    $newlyEarned = [];
-    foreach ($newBadges as $newBadge) {
-        if ($newBadge['earned']) {
-            $found = false;
-            foreach ($oldBadges as $oldBadge) {
-                if ($oldBadge['id'] === $newBadge['id'] && $oldBadge['earned']) {
-                    $found = true;
-                    break;
-                }
-            }
-            if (!$found) {
-                $newlyEarned[] = $newBadge;
-            }
-        }
-    }
-    
-    // Store in session for notification
-    if (!empty($newlyEarned)) {
-        $session = $request->getSession();
-        $session->set('new_badges_earned', $newlyEarned);
-        $this->addFlash('badge_success', '🎉 Congratulations! You earned new achievements!');
-    }
-    // ==================== END BADGE NOTIFICATION ====================
-
-    $videos      = $this->youtubeService->fetchVideos($assessment->getType() ?? 'general', $riskLevel);
-    $playlists   = $this->spotifyService->fetchPlaylists($assessment->getType() ?? 'general', $riskLevel);
-    $meditations = $this->meditationService->getSessions($assessment->getType() ?? 'general', $riskLevel);
-
-    return $this->render('result/show.html.twig', [
-        'result'        => $result,
-        'aiAnalysis'    => $aiAnalysis,
-        'assessment'    => $assessment,
-        'user'          => $user,
-        'videos'        => $videos,
-        'playlists'     => $playlists,
-        'meditations'   => $meditations,
-        'sentimentData' => $sentimentData,
-        'freeText'      => $freeText,
-        'newlyEarnedBadges' => $newlyEarned, // Pass to template for immediate display
-    ]);
-}
-
-    #[Route('/stats/{userId}', name: 'result_stats', methods: ['GET'])]
-    public function stats(int $userId, UserRepository $userRepo): Response
-    {
-        $currentUser = $this->getCurrentUser();
-
-        if ($this->isPatient() && $currentUser !== null
-            && $currentUser->getId() !== $userId) {
-
-            $this->addFlash('error', 'You can only view your own statistics.');
-            return $this->redirectToRoute('result_index');
-        }
-
-=======
-    // ── SUBMIT ASSESSMENT ─────────────────────────────────────────
-    #[Route('/submit', name: 'result_submit', methods: ['POST'])]
-    public function submit(Request $request, UserRepository $userRepo): Response
+    public function submit(Request $request, UserRepository $userRepo, BadgeService $badgeService): Response
     {
         $userId       = $request->request->get('user_id');
         $assessmentId = $request->request->get('assessment_id');
         $answers      = $request->request->all('answers');
+        $freeText     = trim($request->request->get('free_text', ''));
 
         $assessment = $this->assessmentRepo->find($assessmentId);
         if (!$assessment) {
@@ -344,11 +162,28 @@ public function submit(Request $request, UserRepository $userRepo, BadgeService 
             $totalScore           += $score;
         }
 
-        $riskLevel          = $this->determineRiskLevel($totalScore, (int)$assessmentId);
-        $aiAnalysis         = $this->generateAIAnalysis($questions, $scores, $originalAnswers, $totalScore, $riskLevel);
-        $interpretation     = $this->generateInterpretation($riskLevel);
+        $riskLevel      = $this->determineRiskLevel($totalScore, (int)$assessmentId);
+        $aiAnalysis     = $this->generateAIAnalysis($questions, $scores, $originalAnswers, $totalScore, $riskLevel);
+        $interpretation = $this->generateInterpretation($riskLevel);
+        $suggestSession = $this->shouldSuggestSession($riskLevel, $aiAnalysis);
+
+        $sentimentData = [];
+        if (!empty($freeText)) {
+            try {
+                $sentimentData = $this->groqService->analyzeSentiment($freeText);
+
+                if (!empty($sentimentData['crisis_detected'])) {
+                    $suggestSession = true;
+                    if (!in_array(strtolower($riskLevel), ['high', 'severe'])) {
+                        $riskLevel = 'High';
+                    }
+                }
+            } catch (\Exception $e) {
+                $sentimentData = [];
+            }
+        }
+
         $recommendedContent = $this->generateRecommendedContent($riskLevel, $aiAnalysis);
-        $suggestSession     = $this->shouldSuggestSession($riskLevel, $aiAnalysis);
 
         $result = new AssessmentResult();
         $user   = $this->em->getRepository(User::class)->find((int)$userId);
@@ -364,22 +199,70 @@ public function submit(Request $request, UserRepository $userRepo, BadgeService 
         $this->em->persist($result);
         $this->em->flush();
 
-        $videos = $this->youtubeService->fetchVideos($assessment->getType() ?? 'general', $riskLevel);
+        // Add crisis alert if high risk
+        if (in_array(strtolower($riskLevel), ['high', 'severe', 'critical'])) {
+            $this->crisisAlertService->addCrisisAlert($result);
+        }
+
+        // Badge notification
+        $oldBadges = $badgeService->getUserBadges($user);
+        
+        $this->em->refresh($user);
+        
+        $newBadges = $badgeService->getUserBadges($user);
+        
+        $newlyEarned = [];
+        foreach ($newBadges as $newBadge) {
+            if ($newBadge['earned']) {
+                $found = false;
+                foreach ($oldBadges as $oldBadge) {
+                    if ($oldBadge['id'] === $newBadge['id'] && $oldBadge['earned']) {
+                        $found = true;
+                        break;
+                    }
+                }
+                if (!$found) {
+                    $newlyEarned[] = $newBadge;
+                }
+            }
+        }
+        
+        if (!empty($newlyEarned)) {
+            $session = $request->getSession();
+            $session->set('new_badges_earned', $newlyEarned);
+            $this->addFlash('badge_success', '🎉 Congratulations! You earned new achievements!');
+        }
+
+        $videos      = $this->youtubeService->fetchVideos($assessment->getType() ?? 'general', $riskLevel);
+        $playlists   = $this->spotifyService->fetchPlaylists($assessment->getType() ?? 'general', $riskLevel);
+        $meditations = $this->meditationService->getSessions($assessment->getType() ?? 'general', $riskLevel);
 
         return $this->render('result/show.html.twig', [
-            'result'     => $result,
-            'aiAnalysis' => $aiAnalysis,
-            'assessment' => $assessment,
-            'user'       => $user,
-            'videos'     => $videos,
+            'result'        => $result,
+            'aiAnalysis'    => $aiAnalysis,
+            'assessment'    => $assessment,
+            'user'          => $user,
+            'videos'        => $videos,
+            'playlists'     => $playlists,
+            'meditations'   => $meditations,
+            'sentimentData' => $sentimentData,
+            'freeText'      => $freeText,
+            'newlyEarnedBadges' => $newlyEarned,
         ]);
     }
 
-    // ── USER STATISTICS / PROGRESS DASHBOARD ─────────────────────
     #[Route('/stats/{userId}', name: 'result_stats', methods: ['GET'])]
     public function stats(int $userId, UserRepository $userRepo): Response
     {
->>>>>>> my-work-backup
+        $currentUser = $this->getCurrentUser();
+
+        if ($this->isPatient() && $currentUser !== null
+            && $currentUser->getId() !== $userId) {
+
+            $this->addFlash('error', 'You can only view your own statistics.');
+            return $this->redirectToRoute('result_index');
+        }
+
         $results = $this->resultRepo->findByUser($userId);
         $user    = $userRepo->find($userId);
 
@@ -435,10 +318,6 @@ public function submit(Request $request, UserRepository $userRepo, BadgeService 
         ]);
     }
 
-<<<<<<< HEAD
-=======
-    // ── EXPORT PDF ────────────────────────────────────────────────
->>>>>>> my-work-backup
     #[Route('/{id}/export-pdf', name: 'result_export_pdf', methods: ['GET'])]
     public function exportPdf(int $id): Response
     {
@@ -448,7 +327,6 @@ public function submit(Request $request, UserRepository $userRepo, BadgeService 
             throw $this->createNotFoundException('Result not found');
         }
 
-<<<<<<< HEAD
         if ($this->isPatient() && !$this->resultBelongsToCurrentUser($result)) {
             $this->addFlash('error', 'You can only export your own results.');
             return $this->redirectToRoute('result_index');
@@ -457,23 +335,11 @@ public function submit(Request $request, UserRepository $userRepo, BadgeService 
         $user        = $result->getUser();
         $assessment  = $result->getAssessment();
         $aiAnalysis  = $result->getInterpretation() ?? '';
-=======
-        $user       = $result->getUser();
-        $assessment = $result->getAssessment();
-        
-        // Get AI analysis - you might want to fetch this from somewhere
-        // For now, we'll use an empty string or fetch from result if stored
-        $aiAnalysis = $result->getInterpretation() ?? '';
->>>>>>> my-work-backup
 
         $pdfContent = $this->pdfExportService->generateResultPdf(
             $result, $aiAnalysis, $user, $assessment
         );
 
-<<<<<<< HEAD
-=======
-        // FIXED: Use getResultId() instead of getId()
->>>>>>> my-work-backup
         $filename = 'mentis-result-' . $result->getResultId() . '-' . date('Ymd') . '.pdf';
 
         return new Response($pdfContent, 200, [
@@ -483,10 +349,6 @@ public function submit(Request $request, UserRepository $userRepo, BadgeService 
         ]);
     }
 
-<<<<<<< HEAD
-=======
-    // ── DELETE ────────────────────────────────────────────────────
->>>>>>> my-work-backup
     #[Route('/{id}/delete', name: 'result_delete', methods: ['POST'])]
     public function delete(int $id): Response
     {
@@ -496,14 +358,11 @@ public function submit(Request $request, UserRepository $userRepo, BadgeService 
             throw $this->createNotFoundException('Result not found');
         }
 
-<<<<<<< HEAD
         if ($this->isPatient() && !$this->resultBelongsToCurrentUser($result)) {
             $this->addFlash('error', 'You can only delete your own results.');
             return $this->redirectToRoute('result_index');
         }
 
-=======
->>>>>>> my-work-backup
         $this->em->remove($result);
         $this->em->flush();
 
@@ -511,10 +370,6 @@ public function submit(Request $request, UserRepository $userRepo, BadgeService 
         return $this->redirectToRoute('result_index');
     }
 
-<<<<<<< HEAD
-=======
-    // ── VIEW SINGLE RESULT ────────────────────────────────────────
->>>>>>> my-work-backup
     #[Route('/{id}', name: 'result_show', methods: ['GET'])]
     public function show(int $id): Response
     {
@@ -524,7 +379,6 @@ public function submit(Request $request, UserRepository $userRepo, BadgeService 
             throw $this->createNotFoundException('Result not found');
         }
 
-<<<<<<< HEAD
         if ($this->isPatient() && !$this->resultBelongsToCurrentUser($result)) {
             $this->addFlash('error', 'You can only view your own results.');
             return $this->redirectToRoute('result_index');
@@ -552,36 +406,6 @@ public function submit(Request $request, UserRepository $userRepo, BadgeService 
         ]);
     }
 
-    // ═══════════════════════════════════════════════════
-    //  PRIVATE HELPERS
-    // ═══════════════════════════════════════════════════
-
-    private function generateAIAnalysis(array $questions, array $scores, array $originalAnswers, int $totalScore, string $riskLevel): string
-{
-    try {
-        $prompt = $this->buildGroqPrompt($questions, $scores, $originalAnswers, $totalScore, $riskLevel);
-        // Use generateAnalysis() NOT generateContent()
-        return $this->groqService->generateAnalysis($prompt);
-    } catch (\Exception $e) {
-        return $this->generateRuleBasedAnalysis($questions, $scores, $originalAnswers, $totalScore, $riskLevel);
-    }
-}
-=======
-        $user   = $result->getUser();
-        $videos = $this->youtubeService->fetchVideos(
-            $result->getAssessment()?->getType() ?? 'general',
-            $result->getRiskLevel() ?? 'low'
-        );
-
-        return $this->render('result/show.html.twig', [
-            'result'     => $result,
-            'aiAnalysis' => $result->getInterpretation() ?? '',
-            'assessment' => $result->getAssessment(),
-            'user'       => $user,
-            'videos'     => $videos,
-        ]);
-    }
-
     // ═══════════════════════════════════════════════════════════════
     //  PRIVATE HELPERS
     // ═══════════════════════════════════════════════════════════════
@@ -590,12 +414,11 @@ public function submit(Request $request, UserRepository $userRepo, BadgeService 
     {
         try {
             $prompt = $this->buildGroqPrompt($questions, $scores, $originalAnswers, $totalScore, $riskLevel);
-            return $this->groqService->generateContent($prompt);
+            return $this->groqService->generateAnalysis($prompt);
         } catch (\Exception $e) {
             return $this->generateRuleBasedAnalysis($questions, $scores, $originalAnswers, $totalScore, $riskLevel);
         }
     }
->>>>>>> my-work-backup
 
     private function buildGroqPrompt(array $questions, array $scores, array $originalAnswers, int $totalScore, string $riskLevel): string
     {
@@ -634,14 +457,7 @@ public function submit(Request $request, UserRepository $userRepo, BadgeService 
         $averageScore = count($questions) > 0 ? $totalScore / count($questions) : 0;
 
         $analysis  = "OVERALL SUMMARY\n\n";
-<<<<<<< HEAD
-        $analysis .= sprintf(
-            "You completed %d questions with a total score of %d out of %d points (%.0f%%). ",
-            count($questions), $totalScore, $maxPossible, $percentage
-        );
-=======
         $analysis .= sprintf("You completed %d questions with a total score of %d out of %d points (%.0f%%). ", count($questions), $totalScore, $maxPossible, $percentage);
->>>>>>> my-work-backup
         $analysis .= "Your overall risk level has been assessed as: " . strtoupper($riskLevel) . ".\n\n";
 
         if ($averageScore <= 1.0) {
@@ -703,17 +519,10 @@ public function submit(Request $request, UserRepository $userRepo, BadgeService 
         if (is_numeric(trim($answer))) return (int)trim($answer);
 
         if (str_contains($answerLower, 'always') || str_contains($answerLower, 'very often') || str_contains($answerLower, 'nearly every day')) return 4;
-<<<<<<< HEAD
-        if (str_contains($answerLower, 'often')  || str_contains($answerLower, 'frequently')  || str_contains($answerLower, 'more than half'))   return 3;
-        if (str_contains($answerLower, 'sometimes') || str_contains($answerLower, 'occasionally') || str_contains($answerLower, 'moderate'))      return 2;
-        if (str_contains($answerLower, 'rarely') || str_contains($answerLower, 'seldom')   || str_contains($answerLower, 'a little'))             return 1;
-        if (str_contains($answerLower, 'never')  || str_contains($answerLower, 'not at all'))                                                     return 0;
-=======
         if (str_contains($answerLower, 'often') || str_contains($answerLower, 'frequently') || str_contains($answerLower, 'more than half')) return 3;
         if (str_contains($answerLower, 'sometimes') || str_contains($answerLower, 'occasionally') || str_contains($answerLower, 'moderate')) return 2;
         if (str_contains($answerLower, 'rarely') || str_contains($answerLower, 'seldom') || str_contains($answerLower, 'a little')) return 1;
         if (str_contains($answerLower, 'never') || str_contains($answerLower, 'not at all')) return 0;
->>>>>>> my-work-backup
         if (str_contains($answerLower, 'yes')) return 1;
         if (str_contains($answerLower, 'no'))  return 0;
 
@@ -723,11 +532,7 @@ public function submit(Request $request, UserRepository $userRepo, BadgeService 
     private function generateInterpretation(string $riskLevel): string
     {
         return match(strtolower($riskLevel)) {
-<<<<<<< HEAD
             'low', 'minimal'   => 'Your scores indicate minimal concerns. Please review your AI analysis for personalized insights.',
-=======
-            'low', 'minimal'   => 'Your scores indicate minimal concerns in this area. Please review your AI analysis for personalized insights.',
->>>>>>> my-work-backup
             'moderate', 'mild' => 'Your scores suggest some areas that may need attention. Please review your AI analysis for personalized insights.',
             'high', 'severe'   => 'Your scores indicate significant concerns that should be addressed. Please review your AI analysis for personalized insights.',
             default            => 'Assessment completed. Please review your AI analysis for personalized insights.',

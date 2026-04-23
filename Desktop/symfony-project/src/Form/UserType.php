@@ -5,15 +5,12 @@ namespace App\Form;
 use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-<<<<<<< HEAD
-use Symfony\Component\Form\Extension\Core\Type\DateType;
-=======
->>>>>>> my-work-backup
 use Symfony\Component\Validator\Constraints as Assert;
 
 class UserType extends AbstractType
@@ -68,26 +65,16 @@ class UserType extends AbstractType
                     ])
                 ]
             ])
-<<<<<<< HEAD
-
-->add('dateofbirth', DateType::class, [
-    'widget' => 'single_text',  // renders as a single <input type="text">
-    'format' => 'yyyy-MM-dd',   // matches Flatpickr's "Y-m-d" output
-    'html5'  => false,          // disables browser native date picker so Flatpickr takes over
-    'label'  => 'Date of Birth',
-    'required' => false,
-    'attr' => [
-        'class'        => 'form-control',
-        'autocomplete' => 'off',
-        'placeholder'  => 'Select date of birth',
-    ],
-])
-=======
-            ->add('dateofbirth', TextType::class, [
+            ->add('dateofbirth', DateType::class, [
+                'widget' => 'single_text',
+                'format' => 'yyyy-MM-dd',
+                'html5' => false,
                 'label' => 'Date of Birth',
+                'required' => false,
                 'attr' => [
                     'class' => 'form-control',
-                    'type' => 'date'
+                    'autocomplete' => 'off',
+                    'placeholder' => 'Select date of birth',
                 ],
                 'constraints' => [
                     new Assert\NotBlank(['message' => 'Date of birth is required']),
@@ -97,7 +84,6 @@ class UserType extends AbstractType
                     ])
                 ]
             ])
->>>>>>> my-work-backup
             ->add('gender', ChoiceType::class, [
                 'label' => 'Gender',
                 'choices' => [

@@ -2,16 +2,12 @@
 
 namespace App\Service;
 
-<<<<<<< HEAD
 use Psr\Log\LoggerInterface;
 
-=======
->>>>>>> my-work-backup
 class GroqService
 {
     private string $apiKey;
     private string $apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
-<<<<<<< HEAD
     private ?LoggerInterface $logger = null;
 
     // ── Model constants ───────────────────────────────────
@@ -27,40 +23,20 @@ class GroqService
 
         if (empty($this->apiKey)) {
             $this->logError('GROQ_API_KEY environment variable is not set');
-=======
-
-    public function __construct()
-    {
-        // Get API key from environment variable in constructor
-        $this->apiKey = $_ENV['GROQ_API_KEY'] ?? getenv('GROQ_API_KEY');
-        
-        if (empty($this->apiKey)) {
->>>>>>> my-work-backup
             throw new \RuntimeException('GROQ_API_KEY environment variable is not set');
         }
     }
 
-<<<<<<< HEAD
-    // ── Generate assessment questions (ADMIN) ─────────────
-=======
->>>>>>> my-work-backup
     public function generateContent(string $prompt): string
     {
         $systemPrompt = "You are an expert at creating mental health assessment questions. "
             . "Generate questions in the exact format specified. "
-<<<<<<< HEAD
             . "Each question must be numbered and followed by SCALE: on the next line. "
             . "NEVER create questions that ask for paragraph or long text answers. "
             . "ALL questions must be answerable with a single scale selection.";
 
         $payload = json_encode([
             'model'       => self::MODEL_SMALL,
-=======
-            . "Each question must be numbered and followed by SCALE: on the next line.";
-
-        $payload = json_encode([
-            'model'       => 'llama-3.3-70b-versatile',
->>>>>>> my-work-backup
             'messages'    => [
                 ['role' => 'system', 'content' => $systemPrompt],
                 ['role' => 'user',   'content' => $prompt],
@@ -69,7 +45,6 @@ class GroqService
             'temperature' => 0.7,
         ]);
 
-<<<<<<< HEAD
         try {
             $result = $this->callApi($payload);
             $decoded = json_decode($result, true);
@@ -95,7 +70,75 @@ class GroqService
         }
     }
 
-    // ── Generate AI analysis of assessment result ─────────
+    public function moderateReview(string $reviewText): array
+    {
+        $prompt = "You are a content moderator for a mental health app. "
+            . "Analyze this review and determine if it contains ANY offensive, insulting, "
+            . "harmful, inappropriate, or disrespectful language.\n\n"
+            . "Review: \"" . str_replace('"', '\\"', $reviewText) . "\"\n\n"
+            . "Respond with a JSON object containing these EXACT fields (no other text):\n"
+            . "{\n"
+            . "  \"isAppropriate\": true,\n"
+            . "  \"confidence\": 0.0,\n"
+            . "  \"reason\": \"brief explanation\",\n"
+            . "  \"filteredVersion\": \"filtered text\",\n"
+            . "  \"containsProfanity\": false,\n"
+            . "  \"containsHateSpeech\": false,\n"
+            . "  \"containsHarassment\": false\n"
+            . "}";
+
+        $payload = json_encode([
+            'model'       => self::MODEL_LARGE,
+            'messages'    => [
+                [
+                    'role'    => 'system',
+                    'content' => 'You are a content moderator. Return ONLY valid JSON.',
+                ],
+                ['role' => 'user', 'content' => $prompt],
+            ],
+            'max_tokens'  => 500,
+            'temperature' => 0.1,
+        ]);
+
+        try {
+            $result = $this->callApi($payload);
+            $decoded = json_decode($result ?? '{}', true);
+            $content = $decoded['choices'][0]['message']['content'] ?? '{}';
+            return json_decode($content, true) ?? $this->defaultModeration($reviewText);
+        } catch (\Exception $e) {
+            return $this->defaultModeration($reviewText);
+        }
+    }
+
+    public function generateAdaptiveQuestion(string $context, string $focus): array
+    {
+        $prompt = "Generate ONE mental health question about {$focus}. "
+            . "Use first-person. Max 20 words. Use a scale.\n\n"
+            . "Return ONLY JSON: {\"question\": \"...\", \"scale_type\": \"never_always\", \"options\": [\"Never\", \"Rarely\", \"Sometimes\", \"Often\", \"Always\"]}";
+
+        $payload = json_encode([
+            'model'       => self::MODEL_SMALL,
+            'messages'    => [
+                ['role' => 'system', 'content' => 'You generate assessment questions. Return ONLY valid JSON.'],
+                ['role' => 'user', 'content' => $prompt],
+            ],
+            'max_tokens'  => 200,
+            'temperature' => 0.6,
+        ]);
+
+        try {
+            $result = $this->callApi($payload);
+            $decoded = json_decode($result, true);
+            $content = $decoded['choices'][0]['message']['content'] ?? '';
+            $content = preg_replace('/```json|```/', '', $content);
+            $data = json_decode(trim($content), true);
+            
+            return $data ?: $this->getFallbackQuestion($focus);
+        } catch (\Exception $e) {
+            return $this->getFallbackQuestion($focus);
+        }
+    }
+
     public function generateAnalysis(string $prompt): string
     {
         $this->logInfo('Generating analysis', ['prompt_length' => strlen($prompt)]);
@@ -139,7 +182,6 @@ class GroqService
         }
     }
 
-    // ── Safety Plan Suggestions (UPDATED - accepts section parameter) ──
     public function generateSafetyPlanSuggestions(string $prompt, string $section = 'general'): array
     {
         $this->logInfo('Generating safety plan suggestions', ['section' => $section]);
@@ -176,7 +218,6 @@ class GroqService
         }
     }
 
-    // ── Generate Full AI Safety Plan ──────────────────────
     public function generateFullSafetyPlan(string $context = ''): array
     {
         $this->logInfo('Generating full safety plan', ['context' => $context]);
@@ -238,7 +279,6 @@ class GroqService
         }
     }
 
-    // ── Sentiment Analysis ────────────────────────────────
     public function analyzeSentiment(string $text): array
     {
         $prompt = "Analyze this text and return ONLY valid JSON:\n"
@@ -278,124 +318,102 @@ class GroqService
         }
     }
 
-    // ── Content Moderation ────────────────────────────────
-    public function moderateReview(string $reviewText): array
+    /**
+     * Generate personalized review questions for a session
+     */
+    public function generateReviewQuestions(string $sessionTitle, string $sessionType, string $category): array
     {
-        $prompt = "Analyze this review for inappropriate content:\n\n"
-            . "Review: \"" . str_replace('"', '\\"', $reviewText) . "\"\n\n"
-            . "Return JSON: {\"isAppropriate\": true, \"confidence\": 0.0, \"reason\": \"\", \"filteredVersion\": \"\", \"containsProfanity\": false, \"containsHateSpeech\": false, \"containsHarassment\": false}";
+        $prompt = 'Generate 4 personalized review questions for a patient who just completed a therapy session.
 
-        $payload = json_encode([
-            'model'       => self::MODEL_LARGE,
-            'messages'    => [
-                ['role' => 'system', 'content' => 'You are a content moderator. Return ONLY valid JSON.'],
-=======
-        $result = $this->callApi($payload);
+Session Title: "' . $sessionTitle . '"
+Session Type: "' . $sessionType . '"
+Category: "' . $category . '"
 
-        if ($result === null) {
-            throw new \RuntimeException('Groq API call failed');
-        }
+Return ONLY valid JSON format. Use this exact structure:
+{
+    "questions": [
+        {"id": 1, "type": "rating", "text": "How helpful was the specific technique used in this session?", "scale": 5},
+        {"id": 2, "type": "choice", "text": "Would you recommend this session to a friend?", "options": ["Yes", "Maybe", "No"]},
+        {"id": 3, "type": "text", "text": "What was the most valuable thing you learned today?"},
+        {"id": 4, "type": "scale", "text": "How likely are you to practice what you learned?", "scale": 5}
+    ]
+}
 
-        $decoded = json_decode($result, true);
-
-        if (!isset($decoded['choices'][0]['message']['content'])) {
-            throw new \RuntimeException('Unexpected response: ' . $result);
-        }
-
-        $content = $decoded['choices'][0]['message']['content'];
-
-        // Add default SCALE lines if missing
-        if (!str_contains($content, 'SCALE:')) {
-            $lines     = explode("\n", $content);
-            $formatted = '';
-            foreach ($lines as $line) {
-                if (preg_match('/^\d+\./', trim($line))) {
-                    $formatted .= $line . "\n";
-                    $formatted .= "SCALE: Never/Rarely/Sometimes/Often/Always\n";
-                } else {
-                    $formatted .= $line . "\n";
-                }
-            }
-            $content = $formatted;
-        }
-
-        return $content;
-    }
-
-    public function moderateReview(string $reviewText): array
-    {
-        $prompt = "You are a content moderator for a mental health app. "
-            . "Analyze this review and determine if it contains ANY offensive, insulting, "
-            . "harmful, inappropriate, or disrespectful language.\n\n"
-            . "Review: \"" . str_replace('"', '\\"', $reviewText) . "\"\n\n"
-            . "Respond with a JSON object containing these EXACT fields (no other text):\n"
-            . "{\n"
-            . "  \"isAppropriate\": true,\n"
-            . "  \"confidence\": 0.0,\n"
-            . "  \"reason\": \"brief explanation\",\n"
-            . "  \"filteredVersion\": \"filtered text\",\n"
-            . "  \"containsProfanity\": false,\n"
-            . "  \"containsHateSpeech\": false,\n"
-            . "  \"containsHarassment\": false\n"
-            . "}";
-
-        $payload = json_encode([
-            'model'       => 'llama-3.3-70b-versatile',
-            'messages'    => [
-                [
-                    'role'    => 'system',
-                    'content' => 'You are a content moderator. Return ONLY valid JSON.',
-                ],
->>>>>>> my-work-backup
-                ['role' => 'user', 'content' => $prompt],
-            ],
-            'max_tokens'  => 500,
-            'temperature' => 0.1,
-        ]);
+Make questions specific to ' . $sessionType . ' therapy sessions about ' . $category . '. Be warm and empathetic.';
 
         try {
-<<<<<<< HEAD
-            $result = $this->callApi($payload);
-            $decoded = json_decode($result, true);
-=======
-            $result  = $this->callApi($payload);
-            $decoded = json_decode($result ?? '{}', true);
->>>>>>> my-work-backup
-            $content = $decoded['choices'][0]['message']['content'] ?? '{}';
-            return json_decode($content, true) ?? $this->defaultModeration($reviewText);
-        } catch (\Exception $e) {
-            return $this->defaultModeration($reviewText);
-        }
-    }
-
-<<<<<<< HEAD
-    // ── Generate Adaptive Question ────────────────────────
-    public function generateAdaptiveQuestion(string $context, string $focus): array
-    {
-        $prompt = "Generate ONE mental health question about {$focus}. "
-            . "Use first-person. Max 20 words. Use a scale.\n\n"
-            . "Return ONLY JSON: {\"question\": \"...\", \"scale_type\": \"never_always\", \"options\": [\"Never\", \"Rarely\", \"Sometimes\", \"Often\", \"Always\"]}";
-
-        $payload = json_encode([
-            'model'       => self::MODEL_SMALL,
-            'messages'    => [
-                ['role' => 'system', 'content' => 'You generate assessment questions. Return ONLY valid JSON.'],
-                ['role' => 'user', 'content' => $prompt],
-            ],
-            'max_tokens'  => 200,
-            'temperature' => 0.6,
-        ]);
-
-        try {
-            $result = $this->callApi($payload);
-            $decoded = json_decode($result, true);
-            $content = $decoded['choices'][0]['message']['content'] ?? '';
-            $content = preg_replace('/```json|```/', '', $content);
-            $data = json_decode(trim($content), true);
+            $response = $this->generateContent($prompt);
             
-            return $data ?: $this->getFallbackQuestion($focus);
+            // Clean the response to extract JSON
+            $response = preg_replace('/```json\s*|\s*```/', '', $response);
+            $response = preg_replace('/^[^{]*/', '', $response);
+            $response = preg_replace('/[^}]*$/', '', $response);
+            
+            $data = json_decode($response, true);
+            
+            if (isset($data['questions']) && count($data['questions']) >= 4) {
+                return $data['questions'];
+            }
+            
+            return $this->getFallbackQuestions($sessionType, $sessionTitle);
+            
         } catch (\Exception $e) {
-            return $this->getFallbackQuestion($focus);
+            return $this->getFallbackQuestions($sessionType, $sessionTitle);
+        }
+    }
+
+    /**
+     * Analyze a review and provide feedback for psychologists
+     */
+    public function analyzeReviewFeedback(string $reviewText, int $rating, string $sessionTitle): array
+    {
+        $sentiment = $rating >= 4 ? 'positive' : ($rating <= 2 ? 'negative' : 'neutral');
+        
+        $prompt = "You are an expert clinical supervisor analyzing a patient's session review. 
+        
+Review: \"{$reviewText}\"
+Rating: {$rating}/5 stars
+Session Title: \"{$sessionTitle}\"
+
+Based on this review, provide a professional analysis for the psychologist.
+
+Return ONLY valid JSON format. Use this exact structure:
+{
+    \"sentiment\": \"{$sentiment}\",
+    \"analysis\": {
+        \"key_points\": [\"point 1\", \"point 2\", \"point 3\"],
+        \"patient_sentiment\": \"What the patient is feeling\",
+        \"what_went_well\": [\"aspect 1\", \"aspect 2\"],
+        \"areas_for_improvement\": [\"area 1\", \"area 2\"]
+    },
+    \"advice\": \"Professional advice for the psychologist based on this review\",
+    \"action_items\": [\"action 1\", \"action 2\", \"action 3\"],
+    \"encouragement\": \"Encouraging message for the psychologist\"
+}
+
+For {$sentiment} reviews:
+- If positive: Focus on what worked well, encourage maintaining those practices
+- If negative: Provide constructive advice, suggest specific improvements
+- If neutral: Offer balanced feedback and suggestions for enhancement";
+
+        try {
+            $response = $this->generateContent($prompt);
+            
+            // Clean the response to extract JSON
+            $response = preg_replace('/```json\s*|\s*```/', '', $response);
+            $response = preg_replace('/^[^{]*/', '', $response);
+            $response = preg_replace('/[^}]*$/', '', $response);
+            
+            $data = json_decode($response, true);
+            
+            if (isset($data['analysis'])) {
+                return $data;
+            }
+            
+            return $this->getDefaultAnalysis($rating, $sessionTitle);
+            
+        } catch (\Exception $e) {
+            return $this->getDefaultAnalysis($rating, $sessionTitle);
         }
     }
 
@@ -540,115 +558,7 @@ class GroqService
         ];
     }
 
-    private function parseSafetyPlanLines(string $text): array
-    {
-        $lines = explode("\n", $text);
-        $suggestions = [];
-
-        foreach ($lines as $line) {
-            $line = trim($line);
-            if (empty($line)) continue;
-            
-            $line = preg_replace('/^\d+[\.\)]\s*/', '', $line);
-            $line = preg_replace('/^[-•*]\s*/', '', $line);
-            $line = trim($line);
-            
-            if (strlen($line) < 5) continue;
-            if (stripos($line, 'SCALE:') !== false) continue;
-            if (preg_match('/^(Never|Rarely|Sometimes|Often|Always|Strongly)/i', $line)) continue;
-            
-            $suggestions[] = $line;
-        }
-
-        return array_slice($suggestions, 0, 7);
-    }
-
-    private function defaultSentiment(): array
-    {
-        return [
-            'sentiment_label'    => 'neutral',
-            'sentiment_score'    => 0.5,
-            'emotion_tags'       => [],
-            'crisis_detected'    => false,
-            'crisis_keywords'    => [],
-            'key_themes'         => [],
-            'protective_factors' => [],
-            'clinical_note'      => 'Analysis temporarily unavailable. Please consult a professional.',
-        ];
-    }
-
-    private function defaultModeration(string $reviewText): array
-    {
-        return [
-            'isAppropriate'      => true,
-            'confidence'         => 1.0,
-            'reason'             => 'Auto-approved',
-            'filteredVersion'    => $reviewText,
-            'containsProfanity'  => false,
-            'containsHateSpeech' => false,
-            'containsHarassment' => false,
-        ];
-    }
-
-=======
-    public function generateAdaptiveQuestion(string $context, string $focus): string
-    {
-        $prompt = "You are an expert clinical psychologist. "
-            . "Based on this assessment context: {$context}\n\n"
-            . "Generate ONE specific, clinically appropriate {$focus} question. "
-            . "Return ONLY the question text, no explanations, no numbering.";
-
-        return $this->generateContent($prompt);
-    }
-
-    /**
-     * Generate personalized review questions for a session
-     */
-    public function generateReviewQuestions(string $sessionTitle, string $sessionType, string $category): array
-    {
-        $prompt = 'Generate 4 personalized review questions for a patient who just completed a therapy session.
-
-Session Title: "' . $sessionTitle . '"
-Session Type: "' . $sessionType . '"
-Category: "' . $category . '"
-
-Return ONLY valid JSON format. Use this exact structure:
-{
-    "questions": [
-        {"id": 1, "type": "rating", "text": "How helpful was the specific technique used in this session?", "scale": 5},
-        {"id": 2, "type": "choice", "text": "Would you recommend this session to a friend?", "options": ["Yes", "Maybe", "No"]},
-        {"id": 3, "type": "text", "text": "What was the most valuable thing you learned today?"},
-        {"id": 4, "type": "scale", "text": "How likely are you to practice what you learned?", "scale": 5}
-    ]
-}
-
-Make questions specific to ' . $sessionType . ' therapy sessions about ' . $category . '. Be warm and empathetic.';
-
-        try {
-            $response = $this->generateContent($prompt);
-            
-            // Clean the response to extract JSON
-            $response = preg_replace('/```json\s*|\s*```/', '', $response);
-            $response = preg_replace('/^[^{]*/', '', $response);
-            $response = preg_replace('/[^}]*$/', '', $response);
-            
-            $data = json_decode($response, true);
-            
-            if (isset($data['questions']) && count($data['questions']) >= 4) {
-                return $data['questions'];
-            }
-            
-            return $this->getFallbackQuestions($sessionType, $sessionTitle);
-            
-        } catch (\Exception $e) {
-            return $this->getFallbackQuestions($sessionType, $sessionTitle);
-        }
-    }
-
-    /**
-     * Fallback questions if API fails
-     */
-    private function getFallbackQuestions(string $sessionType, string $sessionTitle): array
+    private function getFallbackQuestionsForReview(string $sessionType, string $sessionTitle): array
     {
         $fallbacks = [
             'Individual' => [
@@ -680,64 +590,6 @@ Make questions specific to ' . $sessionType . ' therapy sessions about ' . $cate
         return $fallbacks[$sessionType] ?? $fallbacks['Individual'];
     }
 
-    /**
-     * Analyze a review and provide feedback for psychologists
-     */
-    public function analyzeReviewFeedback(string $reviewText, int $rating, string $sessionTitle): array
-    {
-        $sentiment = $rating >= 4 ? 'positive' : ($rating <= 2 ? 'negative' : 'neutral');
-        
-        $prompt = "You are an expert clinical supervisor analyzing a patient's session review. 
-        
-Review: \"{$reviewText}\"
-Rating: {$rating}/5 stars
-Session Title: \"{$sessionTitle}\"
-
-Based on this review, provide a professional analysis for the psychologist.
-
-Return ONLY valid JSON format. Use this exact structure:
-{
-    \"sentiment\": \"{$sentiment}\",
-    \"analysis\": {
-        \"key_points\": [\"point 1\", \"point 2\", \"point 3\"],
-        \"patient_sentiment\": \"What the patient is feeling\",
-        \"what_went_well\": [\"aspect 1\", \"aspect 2\"],
-        \"areas_for_improvement\": [\"area 1\", \"area 2\"]
-    },
-    \"advice\": \"Professional advice for the psychologist based on this review\",
-    \"action_items\": [\"action 1\", \"action 2\", \"action 3\"],
-    \"encouragement\": \"Encouraging message for the psychologist\"
-}
-
-For {$sentiment} reviews:
-- If positive: Focus on what worked well, encourage maintaining those practices
-- If negative: Provide constructive advice, suggest specific improvements
-- If neutral: Offer balanced feedback and suggestions for enhancement";
-
-        try {
-            $response = $this->generateContent($prompt);
-            
-            // Clean the response to extract JSON
-            $response = preg_replace('/```json\s*|\s*```/', '', $response);
-            $response = preg_replace('/^[^{]*/', '', $response);
-            $response = preg_replace('/[^}]*$/', '', $response);
-            
-            $data = json_decode($response, true);
-            
-            if (isset($data['analysis'])) {
-                return $data;
-            }
-            
-            return $this->getDefaultAnalysis($rating, $sessionTitle);
-            
-        } catch (\Exception $e) {
-            return $this->getDefaultAnalysis($rating, $sessionTitle);
-        }
-    }
-
-    /**
-     * Default analysis when API fails
-     */
     private function getDefaultAnalysis(int $rating, string $sessionTitle): array
     {
         if ($rating >= 4) {
@@ -782,48 +634,54 @@ For {$sentiment} reviews:
         }
     }
 
-    // ── Core cURL call ──────────────────────────────────────────────
->>>>>>> my-work-backup
-    private function callApi(string $jsonPayload): ?string
+    private function parseSafetyPlanLines(string $text): array
     {
-        $ch = curl_init($this->apiUrl);
+        $lines = explode("\n", $text);
+        $suggestions = [];
 
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonPayload);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            'Authorization: Bearer ' . $this->apiKey,
-        ]);
-<<<<<<< HEAD
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 60);
-
-        $result = curl_exec($ch);
-        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error = curl_error($ch);
-=======
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-
-        $result = curl_exec($ch);
-        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error  = curl_error($ch);
->>>>>>> my-work-backup
-        curl_close($ch);
-
-        if ($error) {
-            throw new \RuntimeException('cURL error: ' . $error);
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if (empty($line)) continue;
+            
+            $line = preg_replace('/^\d+[\.\)]\s*/', '', $line);
+            $line = preg_replace('/^[-•*]\s*/', '', $line);
+            $line = trim($line);
+            
+            if (strlen($line) < 5) continue;
+            if (stripos($line, 'SCALE:') !== false) continue;
+            if (preg_match('/^(Never|Rarely|Sometimes|Often|Always|Strongly)/i', $line)) continue;
+            
+            $suggestions[] = $line;
         }
 
-        if ($status !== 200) {
-            throw new \RuntimeException('API returned HTTP ' . $status . ': ' . $result);
-        }
+        return array_slice($suggestions, 0, 7);
+    }
 
-<<<<<<< HEAD
-        return $result;
+    private function defaultSentiment(): array
+    {
+        return [
+            'sentiment_label'    => 'neutral',
+            'sentiment_score'    => 0.5,
+            'emotion_tags'       => [],
+            'crisis_detected'    => false,
+            'crisis_keywords'    => [],
+            'key_themes'         => [],
+            'protective_factors' => [],
+            'clinical_note'      => 'Analysis temporarily unavailable. Please consult a professional.',
+        ];
+    }
+
+    private function defaultModeration(string $reviewText): array
+    {
+        return [
+            'isAppropriate'      => true,
+            'confidence'         => 1.0,
+            'reason'             => 'API unavailable, auto-approved',
+            'filteredVersion'    => $reviewText,
+            'containsProfanity'  => false,
+            'containsHateSpeech' => false,
+            'containsHarassment' => false,
+        ];
     }
 
     private function logInfo(string $message, array $context = []): void
@@ -838,21 +696,37 @@ For {$sentiment} reviews:
         if ($this->logger) {
             $this->logger->error('[GroqService] ' . $message, $context);
         }
-=======
-        return $result ?: null;
     }
 
-    private function defaultModeration(string $reviewText): array
+    // ── Core cURL call ──────────────────────────────────────────────
+    private function callApi(string $jsonPayload): ?string
     {
-        return [
-            'isAppropriate'      => true,
-            'confidence'         => 1.0,
-            'reason'             => 'API unavailable, auto-approved',
-            'filteredVersion'    => $reviewText,
-            'containsProfanity'  => false,
-            'containsHateSpeech' => false,
-            'containsHarassment' => false,
-        ];
->>>>>>> my-work-backup
+        $ch = curl_init($this->apiUrl);
+
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonPayload);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $this->apiKey,
+        ]);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+
+        $result = curl_exec($ch);
+        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+        curl_close($ch);
+
+        if ($error) {
+            throw new \RuntimeException('cURL error: ' . $error);
+        }
+
+        if ($status !== 200) {
+            throw new \RuntimeException('API returned HTTP ' . $status . ': ' . $result);
+        }
+
+        return $result;
     }
 }

@@ -46,7 +46,7 @@ class UserRepository extends ServiceEntityRepository
                ->setParameter('gender', $gender);
         }
         
-        // Age group filter (using DQL with SUBSTRING for date)
+        // Age group filter
         if ($ageGroup) {
             $this->addAgeGroupFilter($qb, $ageGroup);
         }
@@ -65,7 +65,6 @@ class UserRepository extends ServiceEntityRepository
      */
     private function addAgeGroupFilter(QueryBuilder $qb, string $ageGroup): void
     {
-        // Using SUBSTRING to extract year from dateofbirth (format YYYY-MM-DD)
         switch ($ageGroup) {
             case '0-18':
                 $qb->andWhere('CAST(SUBSTRING(u.dateofbirth, 1, 4) AS integer) >= :year')
@@ -98,7 +97,6 @@ class UserRepository extends ServiceEntityRepository
      */
     public function getStatsByType(string $type): array
     {
-        // Get all users of this type
         $users = $this->findBy(['type' => $type]);
         
         $total = count($users);
@@ -115,7 +113,6 @@ class UserRepository extends ServiceEntityRepository
         ];
         
         foreach ($users as $user) {
-            // Calculate age
             $age = $user->getAge();
             if ($age !== null) {
                 $ages[] = $age;
@@ -126,7 +123,6 @@ class UserRepository extends ServiceEntityRepository
                 else $ageGroups['60+']++;
             }
             
-            // Count gender
             $gender = $user->getGender();
             if ($gender === 'male') $maleCount++;
             elseif ($gender === 'female') $femaleCount++;
@@ -185,14 +181,11 @@ class UserRepository extends ServiceEntityRepository
             'femaleCount' => $femaleCount,
         ];
     }
-<<<<<<< HEAD
 
     // ==================== FACE RECOGNITION METHODS ====================
     
     /**
      * Find users with face recognition enabled
-     * 
-     * @return User[] Returns an array of User objects
      */
     public function findUsersWithFaceEnabled(): array
     {
@@ -206,21 +199,15 @@ class UserRepository extends ServiceEntityRepository
 
     /**
      * Find a user by their face sample path
-     * 
-     * @param string $facePath The face image path
-     * @return User|null
      */
     public function findUserByFaceSample(string $facePath): ?User
     {
-        // This searches for users who have this face path in their faceData JSON
         $qb = $this->createQueryBuilder('u');
         
-        // MySQL JSON search syntax
         if ($this->getEntityManager()->getConnection()->getDatabasePlatform() instanceof \Doctrine\DBAL\Platforms\MySQLPlatform) {
             $qb->andWhere('JSON_SEARCH(u.faceData, "one", :path) IS NOT NULL')
                ->setParameter('path', $facePath);
         } else {
-            // PostgreSQL or other databases - use LIKE (less efficient)
             $qb->andWhere('u.faceData LIKE :path')
                ->setParameter('path', '%' . $facePath . '%');
         }
@@ -232,9 +219,6 @@ class UserRepository extends ServiceEntityRepository
 
     /**
      * Get users who registered for face ID in the last X days
-     * 
-     * @param int $days
-     * @return User[]
      */
     public function findRecentlyRegisteredFaceUsers(int $days = 30): array
     {
@@ -252,8 +236,6 @@ class UserRepository extends ServiceEntityRepository
 
     /**
      * Get statistics about face recognition usage
-     * 
-     * @return array
      */
     public function getFaceRecognitionStats(): array
     {
@@ -273,7 +255,6 @@ class UserRepository extends ServiceEntityRepository
             ->select('AVG(JSON_LENGTH(u.faceData))')
             ->where('u.faceData IS NOT NULL')
             ->andWhere('u.faceEnabled = :enabled')
-            ->setParameter('enabled', true)
             ->getQuery()
             ->getSingleScalarResult();
         
@@ -289,11 +270,6 @@ class UserRepository extends ServiceEntityRepository
 
     /**
      * Override the find method to add proper type hint
-     * 
-     * @param int $id
-     * @param int|null $lockMode
-     * @param int|null $lockVersion
-     * @return User|null
      */
     public function find($id, $lockMode = null, $lockVersion = null): ?User
     {
@@ -302,14 +278,9 @@ class UserRepository extends ServiceEntityRepository
 
     /**
      * Find by email (useful for login)
-     * 
-     * @param string $email
-     * @return User|null
      */
     public function findOneByEmail(string $email): ?User
     {
         return $this->findOneBy(['email' => $email]);
     }
-=======
->>>>>>> my-work-backup
 }

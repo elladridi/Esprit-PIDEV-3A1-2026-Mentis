@@ -2,13 +2,6 @@
 
 namespace App\Controller;
 
-<<<<<<< HEAD
-use App\Entity\User;
-use App\Repository\SessionRepository;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
-=======
 use App\Entity\Session;
 use App\Entity\User;
 use App\Repository\SessionRepository;
@@ -19,25 +12,17 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
->>>>>>> my-work-backup
 
 #[Route('/calendar')]
 class CalendarController extends AbstractController
 {
     private SessionRepository $sessionRepo;
-<<<<<<< HEAD
-
-    public function __construct(SessionRepository $sessionRepo)
-    {
-        $this->sessionRepo = $sessionRepo;
-=======
     private EntityManagerInterface $em;
 
     public function __construct(SessionRepository $sessionRepo, EntityManagerInterface $em)
     {
         $this->sessionRepo = $sessionRepo;
         $this->em = $em;
->>>>>>> my-work-backup
     }
 
     #[Route('/patient', name: 'calendar_patient', methods: ['GET'])]
@@ -46,10 +31,6 @@ class CalendarController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
         
-<<<<<<< HEAD
-        // Check if user is logged in and is a patient
-=======
->>>>>>> my-work-backup
         if (!$user || $user->getType() !== 'Patient') {
             $this->addFlash('error', 'Only patients can access the calendar.');
             return $this->redirectToRoute('app_home');
@@ -66,12 +47,9 @@ class CalendarController extends AbstractController
                 'end' => $session->getSessionDate()->format('Y-m-d') . 'T' . $session->getEndTime()->format('H:i:s'),
                 'color' => $this->getSessionColor($session->getSessionType()),
                 'url' => $this->generateUrl('session_show', ['id' => $session->getSessionId()]),
-<<<<<<< HEAD
                 'location' => $session->getLocation(),
                 'type' => $session->getSessionType(),
                 'status' => $session->getStatus(),
-=======
->>>>>>> my-work-backup
             ];
         }
         
@@ -80,17 +58,6 @@ class CalendarController extends AbstractController
         ]);
     }
 
-<<<<<<< HEAD
-    private function getSessionColor(?string $sessionType): string
-    {
-        return match (strtolower($sessionType ?? '')) {
-            'individual' => '#3498db',
-            'group' => '#2ecc71',
-            'family' => '#9b59b6',
-            'couple' => '#e67e22',
-            'online' => '#1abc9c',
-            default => '#95a5a6',
-=======
     #[Route('/', name: 'calendar_index', methods: ['GET'])]
     #[IsGranted('ROLE_ADMIN')]
     public function adminCalendar(): Response
@@ -252,7 +219,6 @@ class CalendarController extends AbstractController
             'couple' => '#9C27B0',
             'online' => '#00BCD4',
             default => '#757575',
->>>>>>> my-work-backup
         };
     }
 }

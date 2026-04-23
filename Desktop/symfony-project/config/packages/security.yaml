@@ -1,33 +1,18 @@
 security:
-<<<<<<< HEAD
-    # Password hashers
     password_hashers:
         App\Entity\User: 'auto'
 
-    # User providers
-=======
-    password_hashers:
-        App\Entity\User: 'auto'
-
->>>>>>> my-work-backup
     providers:
         app_user_provider:
             entity:
                 class: App\Entity\User
                 property: email
 
-<<<<<<< HEAD
-    # Firewalls
-=======
->>>>>>> my-work-backup
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
-<<<<<<< HEAD
-        
-=======
->>>>>>> my-work-backup
+
         main:
             lazy: true
             provider: app_user_provider
@@ -41,21 +26,17 @@ security:
                 target: app_home
             remember_me:
                 secret: '%kernel.secret%'
-<<<<<<< HEAD
-                lifetime: 604800  # 1 week
+                lifetime: 604800
                 path: /
             login_throttling:
-                max_attempts: 3                # <--- User is blocked after 3 failed attempts
-                interval: '15 minutes'   
+                max_attempts: 3
+                interval: '15 minutes'
             user_checker: App\Security\BannedUserChecker
 
-
-    # Role Hierarchy - Defines inheritance
     role_hierarchy:
         ROLE_ADMIN: [ROLE_PSYCHOLOGIST, ROLE_PATIENT]
         ROLE_PSYCHOLOGIST: [ROLE_PATIENT]
 
-    # Access Control Rules - URL-based permissions
     access_control:
         # Public routes (no login required)
         - { path: ^/$, roles: PUBLIC_ACCESS }
@@ -63,17 +44,10 @@ security:
         - { path: ^/about$, roles: PUBLIC_ACCESS }
         - { path: ^/services$, roles: PUBLIC_ACCESS }
         - { path: ^/contact$, roles: PUBLIC_ACCESS }
-=======
-                lifetime: 604800
-                path: /
-
-    access_control:
->>>>>>> my-work-backup
         - { path: ^/login$, roles: PUBLIC_ACCESS }
         - { path: ^/register$, roles: PUBLIC_ACCESS }
         - { path: ^/forgot-password$, roles: PUBLIC_ACCESS }
         - { path: ^/reset-password, roles: PUBLIC_ACCESS }
-<<<<<<< HEAD
         
         # Dashboard - authenticated users only
         - { path: ^/dashboard, roles: ROLE_USER }
@@ -81,75 +55,33 @@ security:
         # Content Library - authenticated users only
         - { path: ^/content, roles: ROLE_USER }
         
-        # ============= EVENTS MODULE PERMISSIONS =============
-        
-        # Events listing - Anyone (including guests) can VIEW events
+        # Events Module Permissions
         - { path: ^/events$, roles: PUBLIC_ACCESS }
         - { path: ^/events/[0-9]+$, roles: PUBLIC_ACCESS }
-        
-        # Create event - Admin and Psychologist only (FIXED typo and combined)
         - { path: ^/events/new$, roles: [ROLE_ADMIN, ROLE_PSYCHOLOGIST] }
-
-        # Edit event - Admin and Psychologist only (FIXED typo and combined)
         - { path: ^/events/[0-9]+/edit$, roles: [ROLE_ADMIN, ROLE_PSYCHOLOGIST] }
-
-        # Delete event - Admin only
         - { path: ^/events/[0-9]+/delete$, roles: ROLE_ADMIN }
-        
-        # Statistics dashboard - Admin and Psychologist only (FIXED - combined)
         - { path: ^/statistics, roles: [ROLE_ADMIN, ROLE_PSYCHOLOGIST] }
-
-        # Export event report - Admin only
         - { path: ^/events/[0-9]+/export-report$, roles: ROLE_ADMIN }
         
-        # ============= REGISTRATION PERMISSIONS =============
-        
-        # Create registration - Patients only (self registration)
+        # Registration Permissions
         - { path: ^/registration/event/[0-9]+/register$, roles: ROLE_PATIENT }
-        
-        # Create registration for others - Admin and Psychologist only
         - { path: ^/registration/event/[0-9]+/register-other$, roles: [ROLE_ADMIN, ROLE_PSYCHOLOGIST] }
-        
-        # Edit registration - Admin and Psychologist only
         - { path: ^/registration/[0-9]+/edit$, roles: [ROLE_ADMIN, ROLE_PSYCHOLOGIST] }
-        
-        # Cancel registration - Anyone logged in (controller checks ownership)
         - { path: ^/registration/[0-9]+/cancel$, roles: ROLE_USER }
-        
-        # Delete registration - Admin and Psychologist only
         - { path: ^/registration/[0-9]+/delete$, roles: [ROLE_ADMIN, ROLE_PSYCHOLOGIST] }
-        
-        # Download ticket - Anyone logged in (controller checks ownership)
         - { path: ^/registration/[0-9]+/download-ticket$, roles: ROLE_USER }
-        
-        # Download QR code - Anyone logged in (controller checks ownership)
         - { path: ^/registration/[0-9]+/download-qr$, roles: ROLE_USER }
-        
-        # Resend confirmation email - Admin and Psychologist only
         - { path: ^/registration/[0-9]+/resend-email$, roles: [ROLE_ADMIN, ROLE_PSYCHOLOGIST] }
         
-        # ============= OTHER MODULES =============
-        
-        # Chatbot - authenticated users
+        # Other Modules
         - { path: ^/chatbot, roles: ROLE_USER }
-        
-        # Calendar - authenticated users
         - { path: ^/calendar, roles: ROLE_USER }
-        
-        # Sessions - authenticated users
         - { path: ^/sessions, roles: ROLE_USER }
-        
-        # Assessments - authenticated users
         - { path: ^/assessment, roles: ROLE_USER }
         - { path: ^/take-assessment, roles: ROLE_USER }
         - { path: ^/result, roles: ROLE_USER }
-        
-        # Reviews - authenticated users
         - { path: ^/review, roles: ROLE_USER }
-=======
-        - { path: ^/dashboard, roles: ROLE_USER }
-        - { path: ^/content, roles: ROLE_USER }
->>>>>>> my-work-backup
 
 when@test:
     security:

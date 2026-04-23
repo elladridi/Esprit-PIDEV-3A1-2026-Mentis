@@ -2,6 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\Assessment;
+use App\Entity\AssessmentResult;
+use App\Entity\Question;
 use App\Repository\AssessmentRepository;
 use App\Repository\QuestionRepository;
 use App\Service\GroqService;
@@ -32,11 +35,7 @@ class TakeAssessmentController extends AbstractController
         $this->em             = $em;
     }
 
-<<<<<<< HEAD
-    // ── ASSESSMENT SELECTION WITH FULL QB FILTERS + SORT ───────
-=======
     // ── 🔥 ASSESSMENT SELECTION WITH FULL QB FILTERS + SORT ───────
->>>>>>> my-work-backup
     #[Route('/', name: 'take_assessment_index', methods: ['GET'])]
     public function index(Request $request): Response
     {
@@ -45,23 +44,14 @@ class TakeAssessmentController extends AbstractController
         $status = $request->query->get('status', '');
         $sort = $request->query->get('sort', 'title_asc');
 
-<<<<<<< HEAD
+        // 🔥 DYNAMIC QUERY BUILDER - FIXED FIELD NAMES
         $qb = $this->assessmentRepo->createQueryBuilder('a')
             ->leftJoin('a.questions', 'q')
             ->select('a', 'COUNT(q.questionId) as HIDDEN questionCount')
             ->groupBy('a.assessmentId')
             ->orderBy('a.title', 'ASC');
 
-=======
-        // 🔥 DYNAMIC QUERY BUILDER - FIXED FIELD NAMES
-        $qb = $this->assessmentRepo->createQueryBuilder('a')
-            ->leftJoin('a.questions', 'q')
-            ->select('a', 'COUNT(q.questionId) as HIDDEN questionCount')  // ✅ FIXED: questionId
-            ->groupBy('a.assessmentId')
-            ->orderBy('a.title', 'ASC');
-
         // 🔍 FULL-TEXT SEARCH (title + description)
->>>>>>> my-work-backup
         if ($search) {
             $qb->andWhere(
                 $qb->expr()->orX(
@@ -71,28 +61,19 @@ class TakeAssessmentController extends AbstractController
             )->setParameter('search', '%' . $search . '%');
         }
 
-<<<<<<< HEAD
-=======
         // 📂 TYPE FILTER
->>>>>>> my-work-backup
         if ($type) {
             $qb->andWhere('a.type = :type')->setParameter('type', $type);
         }
 
-<<<<<<< HEAD
-=======
         // ✅ STATUS FILTER (Active by default)
->>>>>>> my-work-backup
         if ($status) {
             $qb->andWhere('a.status = :status')->setParameter('status', $status);
         } else {
             $qb->andWhere('a.status = :active')->setParameter('active', 'Active');
         }
 
-<<<<<<< HEAD
-=======
         // 🔄 DYNAMIC SORTING
->>>>>>> my-work-backup
         switch ($sort) {
             case 'title_asc':
                 $qb->orderBy('a.title', 'ASC');
@@ -113,15 +94,10 @@ class TakeAssessmentController extends AbstractController
                 $qb->orderBy('a.title', 'ASC');
         }
 
-<<<<<<< HEAD
-        $assessments = $qb->getQuery()->getResult();
-
-=======
         // EXECUTE QUERY
         $assessments = $qb->getQuery()->getResult();
 
         // 📊 TOTAL COUNT QUERY (separate for accuracy)
->>>>>>> my-work-backup
         $countQB = $this->assessmentRepo->createQueryBuilder('a')
             ->select('COUNT(DISTINCT a.assessmentId)')
             ->where('a.status = :active')
@@ -164,10 +140,7 @@ class TakeAssessmentController extends AbstractController
             throw $this->createNotFoundException('Assessment not found');
         }
 
-<<<<<<< HEAD
-=======
         // ✅ CHECK IF ACTIVE
->>>>>>> my-work-backup
         if ($assessment->getStatus() !== 'Active') {
             $this->addFlash('error', 'This assessment is currently inactive.');
             return $this->redirectToRoute('take_assessment_index');
@@ -180,10 +153,7 @@ class TakeAssessmentController extends AbstractController
             return $this->redirectToRoute('take_assessment_index');
         }
 
-<<<<<<< HEAD
-=======
         // Parse scale options for each question
->>>>>>> my-work-backup
         $questionData = [];
         foreach ($questions as $question) {
             $questionData[] = [
@@ -201,114 +171,6 @@ class TakeAssessmentController extends AbstractController
         ]);
     }
 
-<<<<<<< HEAD
-    // ── GENERATE ADAPTIVE QUESTION VIA AI (UPDATED FOR SCALE-BASED ANSWERS) ──
-    #[Route('/ai/adaptive-question', name: 'take_assessment_adaptive', methods: ['POST'])]
-    public function generateAdaptiveQuestion(Request $request): JsonResponse
-    {
-        $data = json_decode($request->getContent(), true);
-        $categoryScores = $data['categoryScores'] ?? [];
-        $focus = $data['focus'] ?? 'general';
-        $askedIds = $data['askedIds'] ?? [];
-
-        // Build context based on previous answers
-        $contextPrompt = "Based on a mental health assessment where the patient has shown: ";
-        foreach ($categoryScores as $category => $score) {
-            $level = $score > 0.7 ? 'high' : ($score > 0.4 ? 'moderate' : 'low');
-            $contextPrompt .= "{$category} ({$level} levels), ";
-        }
-
-        $prompt = "You are an expert clinical psychologist creating a mental health assessment question.
-
-Assessment context: {$contextPrompt}
-
-Generate ONE specific follow-up question about {$focus}.
-
-CRITICAL RULES - MUST FOLLOW:
-1. The question MUST be answerable using a simple scale (NOT a paragraph)
-2. The question MUST use first-person \"I\" statements
-3. DO NOT ask \"why\", \"explain\", or \"describe\" questions
-4. DO NOT ask for long text answers
-5. The question should be short and clear (max 20 words)
-
-Return ONLY a valid JSON object in this exact format:
-{
-    \"question\": \"your question text here\",
-    \"scale_type\": \"never_always\",
-    \"options\": [\"option1\", \"option2\", \"option3\", \"option4\", \"option5\"]
-}
-
-Valid scale types (choose the most appropriate):
-- never_always: [\"Never\", \"Rarely\", \"Sometimes\", \"Often\", \"Always\"]
-- numeric_5: [\"1\", \"2\", \"3\", \"4\", \"5\"]
-- agreement: [\"Strongly Disagree\", \"Disagree\", \"Neutral\", \"Agree\", \"Strongly Agree\"]
-
-Example good questions:
-- \"How often have I felt anxious this week?\" (never_always)
-- \"On a scale of 1-5, how much has sleep affected my mood?\" (numeric_5)
-- \"I have been able to focus on my daily tasks\" (agreement)
-
-Return ONLY the JSON, no other text.";
-
-        try {
-            $response = $this->groqService->generateContent($prompt);
-            
-            // Clean up the response
-            $response = trim($response);
-            $response = preg_replace('/```json|```/', '', $response);
-            $response = trim($response);
-            
-            $parsed = json_decode($response, true);
-            
-            // Define scale options
-            $scaleMap = [
-                'never_always' => ['Never', 'Rarely', 'Sometimes', 'Often', 'Always'],
-                'numeric_5' => ['1', '2', '3', '4', '5'],
-                'agreement' => ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'],
-            ];
-            
-            if (!$parsed || !isset($parsed['question'])) {
-                // Fallback to default question
-                return $this->json([
-                    'success' => true,
-                    'question' => [
-                        'id' => 'ai_' . time(),
-                        'text' => "How often have I been experiencing {$focus} related difficulties?",
-                        'scale' => 'Never/Rarely/Sometimes/Often/Always',
-                        'options' => ['Never', 'Rarely', 'Sometimes', 'Often', 'Always'],
-                    ],
-                ]);
-            }
-            
-            $scaleType = $parsed['scale_type'] ?? 'never_always';
-            $options = isset($parsed['options']) && count($parsed['options']) === 5 
-                ? $parsed['options'] 
-                : $scaleMap[$scaleType];
-            
-            $scaleString = implode('/', $options);
-            
-            return $this->json([
-                'success' => true,
-                'question' => [
-                    'id' => 'ai_' . time(),
-                    'text' => $parsed['question'],
-                    'scale' => $scaleString,
-                    'options' => $options,
-                ],
-            ]);
-            
-        } catch (\Exception $e) {
-            // Return a safe fallback question with scale
-            return $this->json([
-                'success' => true,
-                'question' => [
-                    'id' => 'ai_' . time(),
-                    'text' => "On a scale of 1-5, how would I rate my current mental state?",
-                    'scale' => '1/2/3/4/5',
-                    'options' => ['1', '2', '3', '4', '5'],
-                ],
-            ]);
-=======
     // ── GENERATE ADAPTIVE QUESTION VIA AI ─────────────────────────
     #[Route('/ai/adaptive-question', name: 'take_assessment_adaptive', methods: ['POST'])]
     public function generateAdaptiveQuestion(Request $request): JsonResponse
@@ -318,15 +180,17 @@ Return ONLY the JSON, no other text.";
         $focus        = $data['focus'] ?? 'general';
         $askedIds     = $data['askedIds'] ?? [];
 
-        $prompt = "You are an expert clinical psychologist. Based on a mental health assessment where the patient has shown: ";
+        // Build context based on previous answers
+        $prompt = "Based on a mental health assessment where the patient has shown: ";
 
         foreach ($categoryScores as $category => $score) {
             $level    = $score > 0.7 ? 'high' : ($score > 0.4 ? 'moderate' : 'low');
             $prompt  .= "{$category} ({$level} levels), ";
         }
 
-        $prompt .= "\n\nGenerate ONE specific follow-up question about {$focus}. ";
-        $prompt .= "Return ONLY the question text, nothing else.";
+        $prompt   .= "\n\nGenerate ONE specific follow-up question about {$focus}. ";
+        $prompt   .= "The question MUST be answerable using a simple scale. ";
+        $prompt   .= "Return ONLY the question text, nothing else.";
 
         try {
             $questionText = $this->groqService->generateContent($prompt);
@@ -344,72 +208,11 @@ Return ONLY the JSON, no other text.";
             ]);
         } catch (\Exception $e) {
             return $this->json(['success' => false, 'error' => $e->getMessage()]);
->>>>>>> my-work-backup
         }
     }
 
     // ── AI QUESTION GENERATOR FOR ADMIN ───────────────────────────
     #[Route('/ai/generate-questions', name: 'take_assessment_generate_questions', methods: ['POST'])]
-<<<<<<< HEAD
-public function generateQuestions(Request $request): JsonResponse
-{
-    $data    = json_decode($request->getContent(), true);
-    $count   = (int)($data['count'] ?? 5);
-    $focus   = $data['focus'] ?? 'General mental wellness';
-    $scale   = $data['scale'] ?? 'Never/Rarely/Sometimes/Often/Always';
-    $context = $data['context'] ?? '';
-
-    // Log the request for debugging
-    error_log('=== GENERATE QUESTIONS REQUEST ===');
-    error_log('Count: ' . $count);
-    error_log('Focus: ' . $focus);
-    error_log('Scale: ' . $scale);
-    error_log('Context: ' . $context);
-
-    $prompt  = "You are an expert clinical psychologist and mental health assessment designer. ";
-    $prompt .= "Generate exactly {$count} original mental health assessment questions focused on: {$focus}. ";
-
-    if ($context) {
-        $prompt .= "Additional context: {$context}. ";
-    }
-
-    $prompt .= "Each question must use this answer scale: {$scale}.\n\n";
-    $prompt .= "CRITICAL FORMAT RULES:\n";
-    $prompt .= "- Number each question like: 1. [question text]\n";
-    $prompt .= "- After each question write: SCALE: {$scale}\n";
-    $prompt .= "- Questions MUST be answerable with a single scale selection\n";
-    $prompt .= "- DO NOT create questions that ask for explanations or descriptions\n";
-    $prompt .= "- Output ONLY the questions, nothing else.\n";
-    $prompt .= "- Questions should be in first-person.\n\n";
-    $prompt .= "Now generate {$count} questions:";
-
-    try {
-        error_log('Calling Groq API with generateContent()...');
-        
-        $response = $this->groqService->generateContent($prompt);
-        
-        // Log the raw response for debugging
-        error_log('Raw Groq Response: ' . substr($response, 0, 500));
-        
-        $questions = $this->parseGeneratedQuestions($response, $scale);
-        
-        error_log('Parsed ' . count($questions) . ' questions');
-
-        return $this->json([
-            'success'   => true,
-            'questions' => $questions,
-        ]);
-    } catch (\Exception $e) {
-        error_log('ERROR in generateQuestions: ' . $e->getMessage());
-        error_log('Stack trace: ' . $e->getTraceAsString());
-        
-        return $this->json([
-            'success' => false, 
-            'error' => $e->getMessage()
-        ]);
-    }
-}
-=======
     public function generateQuestions(Request $request): JsonResponse
     {
         $data    = json_decode($request->getContent(), true);
@@ -417,6 +220,13 @@ public function generateQuestions(Request $request): JsonResponse
         $focus   = $data['focus'] ?? 'General mental wellness';
         $scale   = $data['scale'] ?? 'Never/Rarely/Sometimes/Often/Always';
         $context = $data['context'] ?? '';
+
+        // Log the request for debugging
+        error_log('=== GENERATE QUESTIONS REQUEST ===');
+        error_log('Count: ' . $count);
+        error_log('Focus: ' . $focus);
+        error_log('Scale: ' . $scale);
+        error_log('Context: ' . $context);
 
         $prompt  = "You are an expert clinical psychologist and mental health assessment designer. ";
         $prompt .= "Generate exactly {$count} original mental health assessment questions focused on: {$focus}. ";
@@ -429,24 +239,38 @@ public function generateQuestions(Request $request): JsonResponse
         $prompt .= "CRITICAL FORMAT RULES:\n";
         $prompt .= "- Number each question like: 1. [question text]\n";
         $prompt .= "- After each question write: SCALE: {$scale}\n";
+        $prompt .= "- Questions MUST be answerable with a single scale selection\n";
+        $prompt .= "- DO NOT create questions that ask for explanations or descriptions\n";
         $prompt .= "- Output ONLY the questions, nothing else.\n";
         $prompt .= "- Questions should be in first-person.\n\n";
         $prompt .= "Now generate {$count} questions:";
 
         try {
-            $response  = $this->groqService->generateContent($prompt);
+            error_log('Calling Groq API with generateContent()...');
+            
+            $response = $this->groqService->generateContent($prompt);
+            
+            // Log the raw response for debugging
+            error_log('Raw Groq Response: ' . substr($response, 0, 500));
+            
             $questions = $this->parseGeneratedQuestions($response, $scale);
+            
+            error_log('Parsed ' . count($questions) . ' questions');
 
             return $this->json([
                 'success'   => true,
                 'questions' => $questions,
             ]);
         } catch (\Exception $e) {
-            return $this->json(['success' => false, 'error' => $e->getMessage()]);
+            error_log('ERROR in generateQuestions: ' . $e->getMessage());
+            
+            return $this->json([
+                'success' => false, 
+                'error' => $e->getMessage()
+            ]);
         }
     }
 
->>>>>>> my-work-backup
     // ── SAVE AI GENERATED QUESTIONS ───────────────────────────────
     #[Route('/ai/save-questions/{assessmentId}', name: 'take_assessment_save_questions', methods: ['POST'])]
     public function saveGeneratedQuestions(Request $request, int $assessmentId): JsonResponse

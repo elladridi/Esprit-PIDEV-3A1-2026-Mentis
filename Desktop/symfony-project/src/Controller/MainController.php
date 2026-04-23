@@ -4,18 +4,12 @@ namespace App\Controller;
 
 use App\Repository\AssessmentRepository;
 use App\Repository\SessionRepository;
-<<<<<<< HEAD
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
-=======
 use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
->>>>>>> my-work-backup
 
 class MainController extends AbstractController
 {
@@ -65,8 +59,6 @@ class MainController extends AbstractController
     {
         return $this->render('main/contact.html.twig');
     }
-<<<<<<< HEAD
-=======
 
     #[Route('/set-locale/{locale}', name: 'set_locale', methods: ['POST'])]
     public function setLocale(string $locale, Request $request): JsonResponse
@@ -99,5 +91,4 @@ class MainController extends AbstractController
         
         return $this->redirectToRoute('app_home');
     }
->>>>>>> my-work-backup
 }

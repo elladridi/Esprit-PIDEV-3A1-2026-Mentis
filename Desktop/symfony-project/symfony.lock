@@ -1,6 +1,4 @@
 {
-<<<<<<< HEAD
-=======
     "doctrine/annotations": {
         "version": "2.0",
         "recipe": {
@@ -10,7 +8,6 @@
             "ref": "64d8583af5ea57b7afa4aba4b159907f3a148b05"
         }
     },
->>>>>>> my-work-backup
     "doctrine/deprecations": {
         "version": "1.1",
         "recipe": {
@@ -47,7 +44,6 @@
             "./migrations/.gitignore"
         ]
     },
-<<<<<<< HEAD
     "knplabs/knp-paginator-bundle": {
         "version": "v6.10.0"
     },
@@ -58,8 +54,11 @@
             "branch": "main",
             "version": "1.5",
             "ref": "c81bdcf4a9d4e7b1959071457f9608631865d381"
-        }
-=======
+        },
+        "files": [
+            "./config/packages/knp_snappy.yaml"
+        ]
+    },
     "php-flasher/flasher-sweetalert-symfony": {
         "version": "v2.6.1"
     },
@@ -77,7 +76,6 @@
         "files": [
             "./config/packages/http_discovery.yaml"
         ]
->>>>>>> my-work-backup
     },
     "symfony/console": {
         "version": "7.4",
@@ -122,7 +120,7 @@
             "repo": "github.com/symfony/recipes",
             "branch": "main",
             "version": "7.4",
-            "ref": "09f6e081c763a206802674ce0cb34a022f0ffc6d"
+            "ref": "d5dcd308c8becd725c9d8b91e31aab1ff0bbc30b"
         },
         "files": [
             "./config/packages/cache.yaml",
@@ -254,19 +252,6 @@
             "./config/packages/validator.yaml"
         ]
     },
-<<<<<<< HEAD
-    "twig/extra-bundle": {
-        "version": "v3.24.0"
-    },
-    "vich/uploader-bundle": {
-        "version": "2.9",
-        "recipe": {
-            "repo": "github.com/symfony/recipes-contrib",
-            "branch": "main",
-            "version": "1.13",
-            "ref": "1b3064c2f6b255c2bc2f56461aaeb76b11e07e36"
-        }
-=======
     "tattali/calendar-bundle": {
         "version": "7.0",
         "recipe": {
@@ -277,6 +262,21 @@
         },
         "files": [
             "./config/routes/calendar.yaml"
+        ]
+    },
+    "twig/extra-bundle": {
+        "version": "v3.24.0"
+    },
+    "vich/uploader-bundle": {
+        "version": "2.9",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "main",
+            "version": "1.13",
+            "ref": "1b3064c2f6b255c2bc2f56461aaeb76b11e07e36"
+        },
+        "files": [
+            "./config/packages/vich_uploader.yaml"
         ]
     },
     "willdurand/geocoder-bundle": {
@@ -290,6 +290,5 @@
         "files": [
             "./config/packages/bazinga_geocoder.yaml"
         ]
->>>>>>> my-work-backup
     }
 }
