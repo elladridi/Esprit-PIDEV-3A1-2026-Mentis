@@ -4,10 +4,7 @@
 
 {% block body %}
 <div class="container py-4">
-<<<<<<< HEAD
 
-=======
->>>>>>> my-work-backup
     {# Back Button #}
     <div class="mb-4" data-aos="fade-right">
         <a href="{{ path('result_index') }}" class="text-decoration-none" style="color: #50C878;">
@@ -15,31 +12,22 @@
         </a>
     </div>
 
-<<<<<<< HEAD
     {# Emergency Banner #}
-=======
-    {# ── EMERGENCY BANNER ── #}
->>>>>>> my-work-backup
     {% if result.riskLevel in ['High', 'Severe'] %}
     <div class="alert alert-danger border-0 shadow-sm mb-4" data-aos="fade-up" role="alert">
         <div class="d-flex align-items-center">
             <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
             <div>
                 <h5 class="mb-1 fw-bold">⚠️ CRITICAL RISK DETECTED</h5>
-<<<<<<< HEAD
                 <p class="mb-0">
                     Please seek immediate professional support.
                     Emergency: 911 (US) / 112 (EU) | Crisis Line: 988
                 </p>
-=======
-                <p class="mb-0">Please seek immediate professional support. Emergency: 911 (US) / 112 (EU) | Crisis Line: 988</p>
->>>>>>> my-work-backup
             </div>
         </div>
     </div>
     {% endif %}
 
-<<<<<<< HEAD
     {# Tabs #}
     <ul class="nav nav-tabs mb-4" id="resultTab" role="tablist" data-aos="fade-up">
 
@@ -98,33 +86,10 @@
             <button class="nav-link" id="emergency-tab"
                     data-bs-toggle="tab" data-bs-target="#emergency"
                     type="button" role="tab">
-=======
-    {# ── TABS ── #}
-    <ul class="nav nav-tabs mb-4" id="resultTab" role="tablist" data-aos="fade-up">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="summary-tab" data-bs-toggle="tab" data-bs-target="#summary" type="button" role="tab">
-                <i class="fas fa-chart-simple me-2"></i>Summary
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="analysis-tab" data-bs-toggle="tab" data-bs-target="#analysis" type="button" role="tab">
-                <i class="fas fa-robot me-2"></i>AI Analysis
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="recommendations-tab" data-bs-toggle="tab" data-bs-target="#recommendations" type="button" role="tab">
-                <i class="fas fa-lightbulb me-2"></i>Recommendations
-            </button>
-        </li>
-        {% if result.riskLevel in ['High', 'Severe'] %}
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="emergency-tab" data-bs-toggle="tab" data-bs-target="#emergency" type="button" role="tab">
->>>>>>> my-work-backup
                 <i class="fas fa-map-marker-alt me-2"></i>Emergency Map
             </button>
         </li>
         {% endif %}
-<<<<<<< HEAD
 
     </ul>
 
@@ -136,38 +101,21 @@
             <div class="card shadow-sm border-0">
                 <div class="card-body p-4">
 
-=======
-    </ul>
-
-    <div class="tab-content" data-aos="fade-up" data-aos-delay="100">
-        {# ══════════════ SUMMARY TAB ══════════════ #}
-        <div class="tab-pane fade show active" id="summary" role="tabpanel">
-            <div class="card shadow-sm border-0">
-                <div class="card-body p-4">
->>>>>>> my-work-backup
                     {# Score Cards #}
                     <div class="row g-3 mb-4">
                         <div class="col-md-4">
                             <div class="card border-0 text-center p-3" style="background: #F1F8E9;">
                                 <i class="fas fa-star fa-2x mb-2" style="color: #50C878;"></i>
-<<<<<<< HEAD
                                 <h2 class="mb-0 fw-bold" style="color: #2E7D32;">
                                     {{ result.totalScore }}
                                 </h2>
-=======
-                                <h2 class="mb-0 fw-bold" style="color: #2E7D32;">{{ result.totalScore }}</h2>
->>>>>>> my-work-backup
                                 <small class="text-muted">Total Score</small>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="card border-0 text-center p-3" style="background: #F1F8E9;">
                                 <i class="fas fa-chart-line fa-2x mb-2" style="color: #50C878;"></i>
-<<<<<<< HEAD
                                 <h2 class="mb-0 fw-bold
-=======
-                                <h2 class="mb-0 fw-bold 
->>>>>>> my-work-backup
                                     {% if result.riskLevel in ['High', 'Severe'] %}text-danger
                                     {% elseif result.riskLevel in ['Moderate', 'Mild'] %}text-warning
                                     {% else %}text-success{% endif %}">
@@ -179,13 +127,9 @@
                         <div class="col-md-4">
                             <div class="card border-0 text-center p-3" style="background: #F1F8E9;">
                                 <i class="fas fa-calendar-alt fa-2x mb-2" style="color: #50C878;"></i>
-<<<<<<< HEAD
                                 <h5 class="mb-0">
                                     {{ result.takenAt ? result.takenAt|date('M d, Y H:i') : 'N/A' }}
                                 </h5>
-=======
-                                <h5 class="mb-0">{{ result.takenAt ? result.takenAt|date('M d, Y H:i') : 'N/A' }}</h5>
->>>>>>> my-work-backup
                                 <small class="text-muted">Date Taken</small>
                             </div>
                         </div>
@@ -201,17 +145,12 @@
                                 <p><strong>Type:</strong> {{ assessment ? assessment.type : 'N/A' }}</p>
                             </div>
                             <div class="col-md-6">
-<<<<<<< HEAD
                                 <p>
                                     <strong>Patient:</strong>
                                     {{ user ? user.firstname ~ ' ' ~ user.lastname : 'N/A' }}
                                 </p>
                                 <p>
                                     <strong>Session Suggested:</strong>
-=======
-                                <p><strong>Patient:</strong> {{ user ? user.firstname ~ ' ' ~ user.lastname : 'N/A' }}</p>
-                                <p><strong>Session Suggested:</strong> 
->>>>>>> my-work-backup
                                     {% if result.suggestSession %}
                                         <span class="badge bg-danger">Yes</span>
                                     {% else %}
@@ -230,7 +169,6 @@
                         <p class="mt-3 text-muted">{{ result.interpretation }}</p>
                     </div>
                     {% endif %}
-<<<<<<< HEAD
 
                     {# In the summary tab — Safety Plan prompt box #}
                     {% if result.riskLevel in ['High', 'Severe', 'Moderate'] %}
@@ -254,17 +192,11 @@
                     </div>
                     {% endif %}
 
-=======
->>>>>>> my-work-backup
                 </div>
             </div>
         </div>
 
-<<<<<<< HEAD
         {# ══ AI ANALYSIS TAB ══ #}
-=======
-        {# ══════════════ AI ANALYSIS TAB ══════════════ #}
->>>>>>> my-work-backup
         <div class="tab-pane fade" id="analysis" role="tabpanel">
             <div class="card shadow-sm border-0">
                 <div class="card-body p-4">
@@ -272,11 +204,7 @@
                         <i class="fas fa-robot me-2"></i>AI-Powered Analysis
                     </h5>
                     <hr class="my-2 mb-4" style="border-color: #50C878;">
-<<<<<<< HEAD
 
-=======
-                    
->>>>>>> my-work-backup
                     {% if aiAnalysis is defined and aiAnalysis %}
                         <div class="p-3" style="background: #F8F9FA; border-radius: 10px;">
                             <p class="text-muted" style="line-height: 1.8; white-space: pre-line;">
@@ -287,19 +215,12 @@
                         <div class="text-center py-5">
                             <i class="fas fa-robot fa-3x mb-3" style="color: #50C878;"></i>
                             <p class="text-muted">AI analysis was not generated for this result.</p>
-<<<<<<< HEAD
-=======
-                            <a href="{{ path('take_assessment_index') }}" class="btn btn-primary-custom rounded-pill">
-                                Take a new assessment
-                            </a>
->>>>>>> my-work-backup
                         </div>
                     {% endif %}
                 </div>
             </div>
         </div>
 
-<<<<<<< HEAD
         {# ══ SENTIMENT TAB ══ #}
         {% if freeText is defined and freeText %}
         <div class="tab-pane fade" id="sentiment" role="tabpanel">
@@ -464,9 +385,6 @@
         {% endif %}
 
         {# ══ RECOMMENDATIONS TAB ══ #}
-=======
-        {# ══════════════ RECOMMENDATIONS TAB ══════════════ #}
->>>>>>> my-work-backup
         <div class="tab-pane fade" id="recommendations" role="tabpanel">
             <div class="card shadow-sm border-0">
                 <div class="card-body p-4">
@@ -474,11 +392,7 @@
                         <i class="fas fa-lightbulb me-2"></i>Personalized Recommendations
                     </h5>
                     <hr class="my-2 mb-4" style="border-color: #50C878;">
-<<<<<<< HEAD
 
-=======
-                    
->>>>>>> my-work-backup
                     {% if result.recommendedContent %}
                         <div class="p-3 mb-4" style="background: #F8F9FA; border-radius: 10px;">
                             <p class="text-muted" style="line-height: 1.8; white-space: pre-line;">
@@ -487,25 +401,16 @@
                         </div>
                     {% endif %}
 
-<<<<<<< HEAD
                     {# YouTube Videos #}
                     <h6 class="fw-bold mt-3 mb-3">
                         <i class="fab fa-youtube me-2" style="color: #FF0000;"></i>
                         Recommended Videos
                     </h6>
 
-=======
-                    {# YouTube Videos Section #}
-                    <h6 class="fw-bold mt-3 mb-3">
-                        <i class="fab fa-youtube me-2" style="color: #FF0000;"></i>Recommended Videos
-                    </h6>
-                    
->>>>>>> my-work-backup
                     {% if videos is defined and videos|length > 0 %}
                         <div class="row g-3">
                             {% for video in videos|slice(0, 3) %}
                             <div class="col-md-4">
-<<<<<<< HEAD
                                 <a href="{{ video.watchUrl }}" target="_blank"
                                    class="text-decoration-none">
                                     <div class="card border-0 shadow-sm h-100">
@@ -524,21 +429,6 @@
                                             <p class="small fw-bold mb-0 text-dark">
                                                 {{ video.title|slice(0, 50) }}...
                                             </p>
-=======
-                                <a href="{{ video.watchUrl }}" target="_blank" class="text-decoration-none">
-                                    <div class="card border-0 shadow-sm h-100">
-                                        <div class="position-relative">
-                                            <img src="{{ video.thumbnail ?: 'https://i.ytimg.com/vi/' ~ video.videoId ~ '/mqdefault.jpg' }}" 
-                                                 class="card-img-top" 
-                                                 alt="{{ video.title }}"
-                                                 style="height: 150px; object-fit: cover; border-radius: 10px 10px 0 0;">
-                                            <div class="position-absolute top-50 start-50 translate-middle">
-                                                <i class="fab fa-youtube fa-3x text-white" style="text-shadow: 0 0 10px rgba(0,0,0,0.5);"></i>
-                                            </div>
-                                        </div>
-                                        <div class="card-body p-2">
-                                            <p class="small fw-bold mb-0 text-dark">{{ video.title|slice(0, 50) }}...</p>
->>>>>>> my-work-backup
                                             <small class="text-muted">{{ video.channelTitle }}</small>
                                         </div>
                                     </div>
@@ -552,25 +442,17 @@
                             <p class="text-muted">No video recommendations available.</p>
                         </div>
                     {% endif %}
-<<<<<<< HEAD
 
                     <div class="alert alert-info mt-3 small">
                         <i class="fas fa-info-circle me-2"></i>
                         <strong>Disclaimer:</strong> This analysis is for informational purposes
                         only and is not a clinical diagnosis. Please consult a qualified mental
                         health professional.
-=======
-                    
-                    <div class="alert alert-info mt-3 small">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>Disclaimer:</strong> This analysis is for informational purposes only and is not a clinical diagnosis. Please consult a qualified mental health professional.
->>>>>>> my-work-backup
                     </div>
                 </div>
             </div>
         </div>
 
-<<<<<<< HEAD
         {# ══ MEDITATION TAB ══ #}
         <div class="tab-pane fade" id="meditation" role="tabpanel">
             <div class="card shadow-sm border-0">
@@ -825,40 +707,27 @@
         </div>
 
         {# ══ EMERGENCY MAP TAB ══ #}
-=======
-        {# ══════════════ EMERGENCY MAP TAB ══════════════ #}
->>>>>>> my-work-backup
         {% if result.riskLevel in ['High', 'Severe'] %}
         <div class="tab-pane fade" id="emergency" role="tabpanel">
             <div class="card shadow-sm border-0 overflow-hidden">
                 <div class="card-header bg-danger text-white">
-<<<<<<< HEAD
                     <i class="fas fa-map-marker-alt me-2"></i>Emergency Resources Near You
-=======
-                    <i class="fas fa-map-marker-alt me-2"></i> Emergency Resources Near You
->>>>>>> my-work-backup
                 </div>
                 <div class="card-body p-0">
                     <div id="emergencyMap" style="height: 400px; width: 100%;"></div>
                     <div id="mapResults" class="p-3" style="max-height: 200px; overflow-y: auto;"></div>
                     <div class="p-3 bg-light">
                         <strong>📞 Emergency Numbers:</strong><br>
-<<<<<<< HEAD
                         USA/Canada: <strong>911</strong> |
                         UK/Europe: <strong>112</strong> |
                         Australia: <strong>000</strong><br>
                         Crisis Line (USA): <strong>988</strong> |
                         Crisis Text: Text <strong>HOME</strong> to <strong>741741</strong>
-=======
-                        USA/Canada: <strong>911</strong> | UK/Europe: <strong>112</strong> | Australia: <strong>000</strong><br>
-                        Crisis Line (USA): <strong>988</strong> | Crisis Text: Text <strong>HOME</strong> to <strong>741741</strong>
->>>>>>> my-work-backup
                     </div>
                 </div>
             </div>
         </div>
         {% endif %}
-<<<<<<< HEAD
 
     </div>
 
@@ -915,21 +784,6 @@ function playPlaylist(embedUrl, card) {
 </script>
 
 {# Emergency Map Scripts #}
-=======
-    </div>
-
-    {# Action Buttons #}
-    <div class="d-flex gap-3 mt-4 justify-content-center" data-aos="fade-up" data-aos-delay="200">
-        <a href="{{ path('take_assessment_index') }}" class="btn btn-primary-custom rounded-pill px-4">
-            <i class="fas fa-play me-2"></i>Take Another Assessment
-        </a>
-        <a href="{{ path('result_export_pdf', {id: result.resultId}) }}" class="btn btn-outline-secondary rounded-pill px-4">
-            <i class="fas fa-file-pdf me-2"></i>Export PDF
-        </a>
-    </div>
-</div>
-
->>>>>>> my-work-backup
 {% if result.riskLevel in ['High', 'Severe'] %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -941,18 +795,12 @@ let markers = [];
 
 function initEmergencyMap() {
     const container = document.getElementById('emergencyMap');
-<<<<<<< HEAD
     if (!container || map) return;
 
-=======
-    if (!container) return;
-    
->>>>>>> my-work-backup
     map = L.map('emergencyMap').setView([36.8065, 10.1815], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
-<<<<<<< HEAD
 
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -965,26 +813,6 @@ function initEmergencyMap() {
                 searchNearbyHospitals();
             },
             function () { searchNearbyHospitals(); }
-=======
-    
-    // Get user location
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            function(pos) {
-                userLat = pos.coords.latitude;
-                userLon = pos.coords.longitude;
-                map.setView([userLat, userLon], 14);
-                
-                L.marker([userLat, userLon]).addTo(map)
-                    .bindPopup('<b>📍 Your Location</b>')
-                    .openPopup();
-                
-                searchNearbyHospitals();
-            },
-            function() {
-                searchNearbyHospitals();
-            }
->>>>>>> my-work-backup
         );
     } else {
         searchNearbyHospitals();
@@ -993,31 +821,19 @@ function initEmergencyMap() {
 
 function searchNearbyHospitals() {
     if (!map) return;
-<<<<<<< HEAD
     const lat = userLat || 36.8065;
     const lon = userLon || 10.1815;
 
-=======
-    
-    const lat = userLat || 36.8065;
-    const lon = userLon || 10.1815;
-    
->>>>>>> my-work-backup
     const query = `[out:json][timeout:25];(
         node["amenity"="hospital"](around:10000,${lat},${lon});
         way["amenity"="hospital"](around:10000,${lat},${lon});
     );out center 20;`;
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> my-work-backup
     fetch('https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(query))
         .then(r => r.json())
         .then(data => {
             markers.forEach(m => map.removeLayer(m));
             markers = [];
-<<<<<<< HEAD
 
             const resultsDiv = document.getElementById('mapResults');
             resultsDiv.innerHTML = '<strong class="mb-2 d-block">Nearby Hospitals:</strong>';
@@ -1032,65 +848,32 @@ function searchNearbyHospitals() {
                     .bindPopup(`<b>🏥 ${name}</b><br>Emergency services available`);
                 markers.push(marker);
 
-=======
-            
-            const resultsDiv = document.getElementById('mapResults');
-            resultsDiv.innerHTML = '<strong class="mb-2 d-block">Nearby Hospitals:</strong>';
-            
-            data.elements.forEach(el => {
-                const elLat = el.lat || (el.center && el.center.lat);
-                const elLon = el.lon || (el.center && el.center.lon);
-                if (!elLat || !elLon) return;
-                
-                const name = (el.tags && el.tags.name) || 'Hospital';
-                
-                const marker = L.marker([elLat, elLon]).addTo(map)
-                    .bindPopup(`<b>🏥 ${name}</b><br>Emergency services available`);
-                markers.push(marker);
-                
->>>>>>> my-work-backup
                 const div = document.createElement('div');
                 div.className = 'mb-2 pb-2 border-bottom';
                 div.innerHTML = `<i class="fas fa-hospital me-2 text-danger"></i> ${name}`;
                 resultsDiv.appendChild(div);
             });
-<<<<<<< HEAD
 
-=======
-            
->>>>>>> my-work-backup
             if (markers.length === 0) {
                 resultsDiv.innerHTML += '<p class="text-muted">No hospitals found nearby.</p>';
             }
         })
         .catch(() => {
-<<<<<<< HEAD
             document.getElementById('mapResults').innerHTML =
                 '<p class="text-muted">Could not load map data.</p>';
         });
 }
 
 document.getElementById('emergency-tab')?.addEventListener('shown.bs.tab', function () {
-=======
-            document.getElementById('mapResults').innerHTML = '<p class="text-muted">Could not load map data.</p>';
-        });
-}
-
-document.getElementById('emergency-tab')?.addEventListener('shown.bs.tab', function() {
->>>>>>> my-work-backup
     setTimeout(initEmergencyMap, 100);
 });
 </script>
 {% endif %}
-<<<<<<< HEAD
 
-=======
->>>>>>> my-work-backup
 {% endblock %}
 
 {% block stylesheets %}
 <style>
-<<<<<<< HEAD
 .btn-primary-custom {
     background: linear-gradient(135deg, #50C878 0%, #3A9B5E 100%);
     border: none;
@@ -1118,27 +901,4 @@ document.getElementById('emergency-tab')?.addEventListener('shown.bs.tab', funct
 {% block javascripts %}
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script>AOS.init({ duration: 800 });</script>
-=======
-    .btn-primary-custom {
-        background: linear-gradient(135deg, #50C878 0%, #3A9B5E 100%);
-        border: none;
-        transition: transform 0.3s, box-shadow 0.3s;
-        color: white;
-    }
-    .btn-primary-custom:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 20px rgba(80, 200, 120, 0.4);
-        color: white;
-    }
-    .nav-tabs .nav-link {
-        color: #2E7D32;
-        font-weight: 500;
-    }
-    .nav-tabs .nav-link.active {
-        color: #50C878;
-        border-bottom-color: #50C878;
-        font-weight: 600;
-    }
-</style>
->>>>>>> my-work-backup
 {% endblock %}
