@@ -15,6 +15,8 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\Range;
 use Symfony\Component\Validator\Constraints\Positive;
+use Symfony\Component\Validator\Constraints\Callback;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 class SessionType extends AbstractType
 {
@@ -42,6 +44,14 @@ class SessionType extends AbstractType
                 ],
                 'constraints' => [
                     new NotBlank(['message' => 'Date is required']),
+                    new Callback([
+                        'callback' => function($date, ExecutionContextInterface $context) {
+                            if ($date && $date < new \DateTime('today')) {
+                                $context->buildViolation('Session date cannot be in the past!')
+                                    ->addViolation();
+                            }
+                        }
+                    ]),
                 ],
             ])
             ->add('startTime', TimeType::class, [
@@ -64,6 +74,17 @@ class SessionType extends AbstractType
                 ],
                 'constraints' => [
                     new NotBlank(['message' => 'End time is required']),
+                    new Callback([
+                        'callback' => function($endTime, ExecutionContextInterface $context) {
+                            $form = $context->getRoot();
+                            $startTime = $form->get('startTime')->getData();
+                            
+                            if ($startTime && $endTime && $startTime >= $endTime) {
+                                $context->buildViolation('End time must be after start time!')
+                                    ->addViolation();
+                            }
+                        }
+                    ]),
                 ],
             ])
             ->add('location', TextType::class, [
@@ -126,7 +147,15 @@ class SessionType extends AbstractType
                 ],
                 'constraints' => [
                     new Positive(['message' => 'Max participants must be a positive number']),
-                    new Range(['min' => 1, 'max' => 100, 'minMessage' => 'Must have at least 1 participant', 'maxMessage' => 'Cannot exceed 100 participants']),
+                    new Range(['min' => 1, 'max' => 100, 'notInRangeMessage' => 'Number of participants must be between 1 and 100.']),
+                    new Callback([
+                        'callback' => function($maxParticipants, ExecutionContextInterface $context) {
+                            if ($maxParticipants !== null && $maxParticipants <= 0) {
+                                $context->buildViolation('Max participants must be greater than 0!')
+                                    ->addViolation();
+                            }
+                        }
+                    ]),
                 ],
             ])
             ->add('price', NumberType::class, [
@@ -138,6 +167,14 @@ class SessionType extends AbstractType
                 ],
                 'constraints' => [
                     new Range(['min' => 0, 'minMessage' => 'Price cannot be negative']),
+                    new Callback([
+                        'callback' => function($price, ExecutionContextInterface $context) {
+                            if ($price !== null && $price < 0) {
+                                $context->buildViolation('Price cannot be negative!')
+                                    ->addViolation();
+                            }
+                        }
+                    ]),
                 ],
             ]);
     }
@@ -146,6 +183,7 @@ class SessionType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Session::class,
+            'validation_groups' => ['Default'],
         ]);
     }
 }

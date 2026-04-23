@@ -3,96 +3,182 @@
 {% block title %}{{ session.title }} - Mentis{% endblock %}
 
 {% block body %}
+{# Traductions intégrées directement #}
+{% set lang = app.session.get('_locale', 'en') %}
+
+{% set t = {
+    'en': {
+        'back': 'Back to Sessions', 'date': 'Date', 'time': 'Time', 'places': 'Places',
+        'price': 'Price', 'scan_qr': 'Scan this QR code with your phone to see session details instantly.',
+        'download': 'Download', 'print': 'Print', 'reservation_status': 'Reservation Status',
+        'reserved': 'Reserved', 'available': 'Available', 'reserve_now': 'Reserve Now',
+        'video_meeting': 'Video Meeting', 'meeting_ready': 'Meeting is ready!',
+        'no_meeting': 'No meeting created yet', 'create_meeting': 'Create Meeting',
+        'join_meeting': 'Join Meeting', 'copy_link': 'Copy Link',
+        'link_copied': 'Meeting link copied to clipboard!', 'copy_failed': 'Failed to copy link',
+        'no_link': 'No meeting link available', 'created': 'Created'
+    },
+    'fr': {
+        'back': 'Retour aux sessions', 'date': 'Date', 'time': 'Heure', 'places': 'Places',
+        'price': 'Prix', 'scan_qr': 'Scannez ce code QR avec votre téléphone pour voir les détails de la session instantanément.',
+        'download': 'Télécharger', 'print': 'Imprimer', 'reservation_status': 'Statut de réservation',
+        'reserved': 'Réservé', 'available': 'Disponible', 'reserve_now': 'Réserver maintenant',
+        'video_meeting': 'Réunion vidéo', 'meeting_ready': 'La réunion est prête !',
+        'no_meeting': 'Aucune réunion créée', 'create_meeting': 'Créer une réunion',
+        'join_meeting': 'Rejoindre', 'copy_link': 'Copier le lien',
+        'link_copied': 'Lien de réunion copié !', 'copy_failed': 'Échec de la copie',
+        'no_link': 'Aucun lien disponible', 'created': 'Créé le'
+    },
+    'es': {
+        'back': 'Volver a las sesiones', 'date': 'Fecha', 'time': 'Hora', 'places': 'Plazas',
+        'price': 'Precio', 'scan_qr': 'Escanea este código QR con tu teléfono para ver los detalles de la sesión al instante.',
+        'download': 'Descargar', 'print': 'Imprimir', 'reservation_status': 'Estado de reserva',
+        'reserved': 'Reservado', 'available': 'Disponible', 'reserve_now': 'Reservar ahora',
+        'video_meeting': 'Reunión de video', 'meeting_ready': '¡La reunión está lista!',
+        'no_meeting': 'No hay reunión creada', 'create_meeting': 'Crear reunión',
+        'join_meeting': 'Unirse', 'copy_link': 'Copiar enlace',
+        'link_copied': '¡Enlace copiado!', 'copy_failed': 'Error al copiar',
+        'no_link': 'No hay enlace disponible', 'created': 'Creado el'
+    },
+    'ar': {
+        'back': 'العودة إلى الجلسات', 'date': 'التاريخ', 'time': 'الوقت', 'places': 'الأماكن',
+        'price': 'السعر', 'scan_qr': 'امسح رمز QR هذا بهاتفك لرؤية تفاصيل الجلسة فوراً',
+        'download': 'تحميل', 'print': 'طباعة', 'reservation_status': 'حالة الحجز',
+        'reserved': 'محجوز', 'available': 'متاح', 'reserve_now': 'احجز الآن',
+        'video_meeting': 'اجتماع فيديو', 'meeting_ready': 'الاجتماع جاهز!',
+        'no_meeting': 'لا يوجد اجتماع', 'create_meeting': 'إنشاء اجتماع',
+        'join_meeting': 'انضم', 'copy_link': 'نسخ الرابط',
+        'link_copied': 'تم نسخ الرابط!', 'copy_failed': 'فشل النسخ',
+        'no_link': 'لا يوجد رابط', 'created': 'تم الإنشاء'
+    }
+} %}
+
+{% set trans = t[lang] %}
+
 <div class="container py-5">
-    {# Back Button #}
     <div class="mb-4">
-        <a href="{{ path('session_index') }}" 
-           class="text-decoration-none d-inline-flex align-items-center" style="color: #50C878;">
-            <i class="fas fa-arrow-left me-2"></i> Back to Sessions
+        <a href="{{ path('session_index') }}" class="text-decoration-none d-inline-flex align-items-center" style="color: #50C878;">
+            <i class="fas fa-arrow-left me-2"></i> {{ trans.back }}
         </a>
     </div>
 
     <div class="row g-5">
-        {# Left Panel - Details #}
+        {# LEFT PANEL #}
         <div class="col-lg-8" data-aos="fade-up">
             <div class="card shadow-lg border-0 rounded-4 h-100 overflow-hidden">
-                {# Header #}
-                <div class="card-header bg-gradient text-white py-5 px-5 position-relative overflow-hidden" 
-                     style="background: linear-gradient(135deg, #2E7D32 0%, #50C878 100%);">
-                    <div class="position-absolute top-0 end-0 p-3">
-                        <span class="badge rounded-pill px-4 py-2 fw-semibold fs-6
-                            {% if session.status == 'active' %}bg-success
-                            {% elseif session.status == 'scheduled' %}bg-info text-dark
-                            {% elseif session.status == 'completed' %}bg-secondary
-                            {% elseif session.status == 'cancelled' %}bg-danger
-                            {% else %}bg-warning text-dark{% endif %}">
-                            {{ session.status }}
-                        </span>
-                    </div>
+                <div class="card-header bg-gradient text-white py-5 px-5" style="background: linear-gradient(135deg, #2E7D32 0%, #50C878 100%);">
                     <div class="row align-items-center">
                         <div class="col-md-3 text-center">
-                            <div class="rounded-circle bg-white d-flex align-items-center justify-content-center shadow-lg" 
-                                 style="width: 140px; height: 140px; font-size: 48px; color: #50C878; margin: 0 auto;">
-                                <i class="fas fa-users"></i>
+                            <div class="rounded-circle bg-white d-flex align-items-center justify-content-center shadow-lg mx-auto" style="width: 120px; height: 120px;">
+                                <i class="fas fa-calendar-alt fa-3x" style="color: #50C878;"></i>
                             </div>
                         </div>
                         <div class="col-md-9">
-                            <h1 class="display-4 fw-bold mb-2" style="color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
-                                {{ session.title }}
-                            </h1>
-                            <h4 class="mb-1" style="color: rgba(255,255,255,0.95);">
-                                <i class="fas fa-tag me-2"></i>{{ session.sessionType }} Session
-                            </h4>
-                            <p class="lead mb-0" style="color: rgba(255,255,255,0.85);">
-                                <i class="fas fa-map-marker-alt me-2"></i>{{ session.location }}
-                            </p>
+                            <h1 class="display-5 fw-bold mb-2">{{ session.title }}</h1>
+                            <h4 class="mb-1">{{ session.sessionType }} Session</h4>
+                            <p class="lead mb-0"><i class="fas fa-map-marker-alt me-2"></i>{{ session.location }}</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="card-body p-5">
-                    {# Stats Row #}
-                    <div class="row g-4 mb-5">
-                        <div class="col-md-3 text-center">
-                            <div class="h3 fw-bold mb-1" style="color: #50C878;">{{ session.sessionDate|date('M d, Y') }}</div>
-                            <small class="text-muted text-uppercase fw-semibold">Date</small>
+                    <div class="row g-4 mb-5 text-center">
+                        <div class="col-md-3">
+                            <div class="h4 fw-bold text-success">{{ session.sessionDate|date('d/m/Y') }}</div>
+                            <small class="text-muted">{{ trans.date }}</small>
                         </div>
-                        <div class="col-md-3 text-center">
-                            <div class="h3 fw-bold mb-1" style="color: #2E7D32;">{{ session.startTime|date('H:i') }} - {{ session.endTime|date('H:i') }}</div>
-                            <small class="text-muted text-uppercase fw-semibold">Time</small>
+                        <div class="col-md-3">
+                            <div class="h4 fw-bold text-success">{{ session.startTime|date('H:i') }} - {{ session.endTime|date('H:i') }}</div>
+                            <small class="text-muted">{{ trans.time }}</small>
                         </div>
-                        <div class="col-md-3 text-center">
-                            <div class="h3 fw-bold mb-1" style="color: #28a745;">{{ session.currentParticipants }}/{{ session.maxParticipants }}</div>
-                            <small class="text-muted text-uppercase fw-semibold">Participants</small>
+                        <div class="col-md-3">
+                            <div class="h4 fw-bold text-success">{{ session.currentParticipants }}/{{ session.maxParticipants }}</div>
+                            <small class="text-muted">{{ trans.places }}</small>
                         </div>
-                        <div class="col-md-3 text-center">
-                            <div class="h3 fw-bold mb-1" style="color: #17a2b8;">${{ session.price }}</div>
-                            <small class="text-muted text-uppercase fw-semibold">Price</small>
+                        <div class="col-md-3">
+                            <div class="h4 fw-bold text-success">{{ session.price }} €</div>
+                            <small class="text-muted">{{ trans.price }}</small>
                         </div>
                     </div>
+
+                    {# QR CODE SECTION #}
+                    <div class="row mb-5">
+                        <div class="col-12">
+                            <div class="card border-0 bg-light rounded-4 p-4 text-center">
+                                <div class="row align-items-center">
+                                    <div class="col-md-4">
+                                        <img src="{{ path('session_qr', {id: session.sessionId}) }}" alt="QR Code" class="img-fluid" style="max-width: 180px;">
+                                    </div>
+                                    <div class="col-md-8 text-md-start text-center">
+                                        <h5 class="fw-bold text-success mb-3"><i class="fas fa-qrcode me-2"></i>Session QR Code</h5>
+                                        <p class="text-muted mb-3">{{ trans.scan_qr }}</p>
+                                        <div>
+                                            <a href="{{ path('session_qr', {id: session.sessionId}) }}" download="session_{{ session.sessionId }}.png" class="btn btn-success rounded-pill px-4 me-2"><i class="fas fa-download me-2"></i>{{ trans.download }}</a>
+                                            <button onclick="window.print()" class="btn btn-outline-secondary rounded-pill px-4"><i class="fas fa-print me-2"></i>{{ trans.print }}</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# MAP SECTION #}
+                    {% if session.reservedBy and session.reservedBy == app.user.id and coordinates %}
+                    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+                    <div class="row mb-5">
+                        <div class="col-12">
+                            <div class="card border-0 bg-light rounded-4 p-4">
+                                <h5 class="fw-bold mb-3" style="color: #2E7D32;"><i class="fas fa-map-marker-alt me-2"></i>Session Location</h5>
+                                <div class="row align-items-center">
+                                    <div class="col-md-7">
+                                        <div id="sessionMap" style="height: 300px; border-radius: 15px;"></div>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <p class="mb-2"><strong>Address:</strong><br>{{ coordinates.formatted_address|default(session.location) }}</p>
+                                        <button onclick="openOSMRoute()" class="btn btn-success rounded-pill w-100 mb-2">Get Directions</button>
+                                        <button onclick="openOpenStreetMap()" class="btn btn-outline-primary rounded-pill w-100">Open in OpenStreetMap</button>
+                                        <div class="alert alert-info mt-3 small"><i class="fas fa-info-circle me-2"></i>Click "Get Directions" to see the route from your current location.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+                    <script>
+                        let sessionMap;
+                        function initSessionMap() {
+                            const lat = {{ coordinates.lat }};
+                            const lng = {{ coordinates.lng }};
+                            sessionMap = L.map('sessionMap').setView([lat, lng], 15);
+                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(sessionMap);
+                            L.marker([lat, lng], { icon: L.divIcon({ className: 'custom-div-icon', html: '<div style="background-color: #50C878; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white;"><i class="fas fa-map-marker-alt" style="color: white; font-size: 16px;"></i></div>', iconSize: [30, 30] }) }).addTo(sessionMap).bindPopup('{{ session.title }}').openPopup();
+                            if (navigator.geolocation) {
+                                navigator.geolocation.getCurrentPosition((position) => {
+                                    L.marker([position.coords.latitude, position.coords.longitude], { icon: L.divIcon({ className: 'custom-div-icon', html: '<div style="background-color: #2196F3; width: 25px; height: 25px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white;"><i class="fas fa-user" style="color: white; font-size: 12px;"></i></div>', iconSize: [25, 25] }) }).addTo(sessionMap).bindPopup("Your location").openPopup();
+                                }, () => {});
+                            }
+                        }
+                        function openOSMRoute() {
+                            if (navigator.geolocation) {
+                                navigator.geolocation.getCurrentPosition((position) => { window.open(`https://www.openstreetmap.org/directions?engine=graphhopper_foot&route=${position.coords.latitude},${position.coords.longitude}&to={{ coordinates.lat }},{{ coordinates.lng }}`, '_blank'); }, () => { openOpenStreetMap(); });
+                            } else { openOpenStreetMap(); }
+                        }
+                        function openOpenStreetMap() { window.open(`https://www.openstreetmap.org/?mlat={{ coordinates.lat }}&mlon={{ coordinates.lng }}#map=15/{{ coordinates.lat }}/{{ coordinates.lng }}`, '_blank'); }
+                        document.addEventListener('DOMContentLoaded', initSessionMap);
+                    </script>
+                    <style>.custom-div-icon i { line-height: 30px; }</style>
+                    {% endif %}
 
                     {# Category & Popularity #}
                     <div class="row g-3 mb-5">
                         <div class="col-md-6">
                             <div class="card border-0 bg-light rounded-3 p-3">
-                                <div class="d-flex align-items-center">
-                                    <i class="fas fa-tags fa-2x me-3" style="color: #50C878;"></i>
-                                    <div>
-                                        <small class="text-muted text-uppercase fw-semibold">Category</small>
-                                        <div class="fw-bold">{{ session.category|default('General') }}</div>
-                                    </div>
-                                </div>
+                                <div class="d-flex align-items-center"><i class="fas fa-tags fa-2x me-3" style="color: #50C878;"></i><div><small class="text-muted text-uppercase fw-semibold">Category</small><div class="fw-bold">{{ session.category|default('General') }}</div></div></div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="card border-0 bg-light rounded-3 p-3">
-                                <div class="d-flex align-items-center">
-                                    <i class="fas fa-chart-line fa-2x me-3" style="color: #f39c12;"></i>
-                                    <div>
-                                        <small class="text-muted text-uppercase fw-semibold">Popularity</small>
-                                        <div class="fw-bold">{{ session.popularity }} bookings</div>
-                                    </div>
-                                </div>
+                                <div class="d-flex align-items-center"><i class="fas fa-chart-line fa-2x me-3" style="color: #f39c12;"></i><div><small class="text-muted text-uppercase fw-semibold">Popularity</small><div class="fw-bold">{{ session.popularity }} bookings</div></div></div>
                             </div>
                         </div>
                     </div>
@@ -102,166 +188,131 @@
                         <div class="col-md-3">
                             <form method="post" action="{{ path('session_reserve', {id: session.sessionId}) }}">
                                 <input type="hidden" name="patientId" value="{{ app.user.id ?? 1 }}">
-                                <button type="submit" class="btn btn-success btn-lg w-100 rounded-pill py-3 {% if session.reservedBy is not null %}disabled{% endif %}">
-                                    {% if session.reservedBy is null %}
-                                        <i class="fas fa-calendar-check me-2"></i>Reserve Now
-                                    {% else %}
-                                        <i class="fas fa-lock me-2"></i>Already Reserved
-                                    {% endif %}
-                                </button>
+                                <button type="submit" class="btn btn-success btn-lg w-100 rounded-pill py-3 {% if session.reservedBy is not null %}disabled{% endif %}">{% if session.reservedBy is null %}<i class="fas fa-calendar-check me-2"></i>Reserve Now{% else %}<i class="fas fa-lock me-2"></i>Already Reserved{% endif %}</button>
                             </form>
                         </div>
+                        <div class="col-md-3"><a href="{{ path('session_edit', {id: session.sessionId}) }}" class="btn btn-outline-primary btn-lg w-100 rounded-pill py-3"><i class="fas fa-edit me-2"></i>Edit Details</a></div>
                         <div class="col-md-3">
-                            <a href="{{ path('session_edit', {id: session.sessionId}) }}" 
-                               class="btn btn-outline-primary btn-lg w-100 rounded-pill py-3">
-                                <i class="fas fa-edit me-2"></i>Edit Details
-                            </a>
+                            <form method="post" action="{{ path('session_toggle_status', {id: session.sessionId}) }}" style="display: contents;"><button type="submit" class="btn btn-outline-warning btn-lg w-100 rounded-pill py-3"><i class="fas fa-toggle-{{ session.status == 'active' ? 'off' : 'on' }} me-2"></i>{{ session.status == 'active' ? 'Deactivate' : 'Activate' }}</button></form>
                         </div>
-                        <div class="col-md-3">
-                            <form method="post" action="{{ path('session_toggle_status', {id: session.sessionId}) }}" 
-                                  style="display: contents;">
-                                <button type="submit" class="btn btn-outline-warning btn-lg w-100 rounded-pill py-3">
-                                    <i class="fas fa-toggle-{{ session.status == 'active' ? 'off' : 'on' }} me-2"></i>
-                                    {{ session.status == 'active' ? 'Deactivate' : 'Activate' }}
-                                </button>
-                            </form>
-                        </div>
-                        <div class="col-md-3">
-                            {% if session.reservedBy is not null %}
-                            <form method="post" action="{{ path('session_cancel_reservation', {id: session.sessionId}) }}">
-                                <input type="hidden" name="patientId" value="{{ session.reservedBy }}">
-                                <button type="submit" class="btn btn-outline-danger btn-lg w-100 rounded-pill py-3">
-                                    <i class="fas fa-times-circle me-2"></i>Cancel Reservation
-                                </button>
-                            </form>
-                            {% endif %}
-                        </div>
+                        <div class="col-md-3">{% if session.reservedBy is not null %}<form method="post" action="{{ path('session_cancel_reservation', {id: session.sessionId}) }}"><input type="hidden" name="patientId" value="{{ session.reservedBy }}"><button type="submit" class="btn btn-outline-danger btn-lg w-100 rounded-pill py-3"><i class="fas fa-times-circle me-2"></i>Cancel Reservation</button></form>{% endif %}</div>
                     </div>
 
                     {# Danger Zone #}
                     <div class="card border-0 bg-danger-subtle rounded-3 p-4 mt-5">
                         <div class="row align-items-center">
-                            <div class="col-md-2 text-center">
-                                <i class="fas fa-exclamation-triangle fa-3x text-danger"></i>
-                            </div>
-                            <div class="col-md-7">
-                                <h5 class="fw-bold mb-2 text-danger">Danger Zone</h5>
-                                <p class="mb-0 text-danger-emphasis">Delete this session permanently.</p>
-                            </div>
-                            <div class="col-md-3 text-end">
-                                <form method="post" action="{{ path('session_delete', {id: session.sessionId}) }}" 
-                                      onsubmit="return confirm('⚠️ PERMANENTLY DELETE this session? This cannot be undone.')" 
-                                      style="display: inline;">
-                                    <button type="submit" class="btn btn-danger rounded-pill px-4 py-2">
-                                        <i class="fas fa-trash me-1"></i>Delete Forever
-                                    </button>
-                                </form>
-                            </div>
+                            <div class="col-md-2 text-center"><i class="fas fa-exclamation-triangle fa-3x text-danger"></i></div>
+                            <div class="col-md-7"><h5 class="fw-bold mb-2 text-danger">Danger Zone</h5><p class="mb-0 text-danger-emphasis">Delete this session permanently.</p></div>
+                            <div class="col-md-3 text-end"><form method="post" action="{{ path('session_delete', {id: session.sessionId}) }}" onsubmit="return confirm('⚠️ PERMANENTLY DELETE this session? This cannot be undone.')" style="display: inline;"><button type="submit" class="btn btn-danger rounded-pill px-4 py-2"><i class="fas fa-trash me-1"></i>Delete Forever</button></form></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        {# Right Panel - Reservation Info #}
+        {# RIGHT PANEL #}
         <div class="col-lg-4" data-aos="fade-up" data-aos-delay="200">
-            <div class="card shadow-lg border-0 h-100 rounded-4 overflow-hidden">
-                <div class="card-header bg-light border-0 py-4 px-4">
-                    <h5 class="mb-0 fw-bold" style="color: #2E7D32;">
-                        <i class="fas fa-user-check me-2"></i>Reservation Status
-                    </h5>
-                </div>
+            
+            {# Reservation Status Card #}
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                <div class="card-header bg-light border-0 py-4 px-4"><h5 class="mb-0 fw-bold" style="color: #2E7D32;"><i class="fas fa-user-check me-2"></i>{{ trans.reservation_status }}</h5></div>
                 <div class="card-body p-4">
                     {% if session.reservedBy %}
                         <div class="text-center mb-4">
-                            <div class="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px;">
-                                <i class="fas fa-user-circle fa-3x text-success"></i>
-                            </div>
-                            <h5 class="mb-1">Reserved</h5>
+                            <div class="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px;"><i class="fas fa-user-circle fa-3x text-success"></i></div>
+                            <h5 class="mb-1">{{ trans.reserved }}</h5>
                             <small class="text-muted">Patient ID: {{ session.reservedBy }}</small>
-                            <div class="mt-2 small text-muted">
-                                <i class="fas fa-clock me-1"></i>Reserved at: {{ session.reservedAt ? session.reservedAt|date('M d, H:i') : 'N/A' }}
-                            </div>
+                            <div class="mt-2 small text-muted"><i class="fas fa-clock me-1"></i>{{ trans.reserved }} at: {{ session.reservedAt ? session.reservedAt|date('M d, H:i') : 'N/A' }}</div>
                         </div>
-
-                        {% if session.sessionType == 'Online' and session.meetingLink %}
-                            <hr>
-                            <div class="text-center mt-3">
-                                <a href="{{ session.meetingLink }}" target="_blank" class="btn btn-info btn-lg w-100 rounded-pill py-3">
-                                    <i class="fas fa-video me-2"></i>Join Video Call
-                                </a>
-                                <small class="text-muted d-block mt-2">Available 15min before session start</small>
-                            </div>
-                        {% endif %}
                     {% else %}
-                        <div class="text-center py-4">
-                            <i class="fas fa-calendar-plus fa-4x text-muted mb-3"></i>
-                            <h5 class="text-muted">Available</h5>
-                            <p class="text-muted small mb-0">This session is available for reservation</p>
-                        </div>
+                        <div class="text-center py-4"><i class="fas fa-calendar-plus fa-4x text-muted mb-3"></i><h5 class="text-muted">{{ trans.available }}</h5><p class="text-muted small mb-0">This session is available for reservation</p></div>
                     {% endif %}
-
                     <hr class="my-4">
-
                     <div class="small text-muted">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Total Spots:</span>
-                            <span class="fw-bold">{{ session.maxParticipants }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Remaining Spots:</span>
-                            <span class="fw-bold text-success">{{ session.maxParticipants - session.currentParticipants }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Price per person:</span>
-                            <span class="fw-bold">${{ session.price }}</span>
-                        </div>
+                        <div class="d-flex justify-content-between mb-2"><span>Total Spots:</span><span class="fw-bold">{{ session.maxParticipants }}</span></div>
+                        <div class="d-flex justify-content-between mb-2"><span>Remaining Spots:</span><span class="fw-bold text-success">{{ session.maxParticipants - session.currentParticipants }}</span></div>
+                        <div class="d-flex justify-content-between"><span>Price per person:</span><span class="fw-bold">${{ session.price }}</span></div>
                     </div>
                 </div>
             </div>
+
+            {# Video Meeting Card - RIGHT BELOW RESERVATION STATUS #}
+            {% if session.reservedBy and session.reservedBy == app.user.id %}
+                <div class="card shadow-lg border-0 rounded-4 mt-4">
+                    <div class="card-header bg-light border-0 py-3 px-4"><h5 class="mb-0 fw-bold text-primary"><i class="fas fa-video me-2"></i>{{ trans.video_meeting }}</h5></div>
+                    <div class="card-body p-4">
+                        {% if session.meetingLink %}
+                            <div class="text-center">
+                                <div class="alert alert-success p-3 rounded-3">
+                                    <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                                    <h6 class="mb-2">{{ trans.meeting_ready }}</h6>
+                                    <p class="small text-muted mb-3">{{ trans.created }}: {{ session.meetingCreatedAt|date('d/m/Y H:i') }}</p>
+                                    <div class="d-flex flex-column gap-2">
+                                        <a href="{{ path('session_join_meeting', {id: session.sessionId}) }}" target="_blank" class="btn btn-primary rounded-pill px-4"><i class="fas fa-video me-2"></i>{{ trans.join_meeting }}</a>
+                                        <button onclick="copyMeetingLink('{{ trans.link_copied|e('js') }}', '{{ trans.copy_failed|e('js') }}', '{{ trans.no_link|e('js') }}')" class="btn btn-outline-secondary rounded-pill px-4"><i class="fas fa-copy me-2"></i>{{ trans.copy_link }}</button>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="text-center">
+                                <div class="alert alert-info p-3 rounded-3">
+                                    <i class="fas fa-info-circle fa-2x text-info mb-2"></i>
+                                    <h6 class="mb-2">{{ trans.no_meeting }}</h6>
+                                    <form method="post" action="{{ path('session_create_meeting', {id: session.sessionId}) }}" class="mt-3"><button type="submit" class="btn btn-success rounded-pill px-4"><i class="fas fa-plus-circle me-2"></i>{{ trans.create_meeting }}</button></form>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% elseif session.meetingLink %}
+                <div class="card shadow-lg border-0 rounded-4 mt-4">
+                    <div class="card-header bg-light border-0 py-3 px-4"><h5 class="mb-0 fw-bold text-primary"><i class="fas fa-video me-2"></i>{{ trans.video_meeting }}</h5></div>
+                    <div class="card-body p-4">
+                        <div class="text-center"><div class="alert alert-success p-3 rounded-3"><i class="fas fa-video fa-2x text-success mb-2"></i><h6 class="mb-2">{{ trans.meeting_ready }}</h6><a href="{{ path('session_join_meeting', {id: session.sessionId}) }}" target="_blank" class="btn btn-primary rounded-pill px-4 mt-3"><i class="fas fa-video me-2"></i>{{ trans.join_meeting }}</a></div></div>
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
+
+{# REMINDER POPUP #}
+{% if reminderData and reminderData.show_popup %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    Swal.fire({
+        title: '🔔 Session Reminder',
+        html: `<div style="text-align: center;"><i class="fas fa-bell" style="font-size: 48px; color: #50C878; margin-bottom: 15px;"></i><h4 style="color: #2E7D32;">{% if reminderData.is_today %}🎯 Your session is TODAY!{% else %}📅 Your session is in {{ reminderData.days_left }} days{% endif %}</h4><p style="font-size: 16px;"><strong>Location:</strong> {{ reminderData.location }}<br><strong>Time:</strong> {{ reminderData.session_time }}</p><div style="text-align: left; margin-top: 15px; padding: 10px; background: #f0f7ff; border-radius: 10px;"><strong><i class="fas fa-cloud-sun"></i> Weather Forecast:</strong><br>🌡️ Temperature: {{ reminderData.weather.temperature }}°C<br>🌤️ Conditions: {{ reminderData.weather.description }}<br>💧 Humidity: {{ reminderData.weather.humidity }}%<br>💨 Wind: {{ reminderData.weather.wind_speed }} km/h</div></div>`,
+        icon: 'info', confirmButtonText: 'Got it! ✅', confirmButtonColor: '#50C878', showCancelButton: true, cancelButtonText: 'Remind me later', cancelButtonColor: '#6c757d', timer: 15000, timerProgressBar: true
+    });
+});
+</script>
+{% endif %}
 {% endblock %}
 
 {% block stylesheets %}
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 <style>
-.btn-primary-custom {
-    background: linear-gradient(135deg, #50C878 0%, #3A9B5E 100%);
-    border: none;
-    color: white;
-    transition: all 0.3s ease;
-    font-weight: 600;
-}
-.btn-primary-custom:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(80, 200, 120, 0.4);
-    color: white !important;
-}
-.bg-gradient {
-    position: relative;
-}
-.bg-gradient::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(46,125,50,0.1) 0%, rgba(80,200,120,0.2) 100%);
-    z-index: 1;
-}
-.card {
-    border-radius: 28px;
-}
-.btn-lg {
-    font-size: 15px;
-}
+.bg-gradient { background: linear-gradient(135deg, #2E7D32 0%, #50C878 100%); }
+.card { border-radius: 20px; }
+.btn-success { background: linear-gradient(135deg, #50C878, #2E7D32); border: none; }
+.btn-success:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(80,200,120,0.4); }
+.btn-primary { background: linear-gradient(135deg, #2196F3, #1976D2); border: none; }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(33,150,243,0.4); }
+.alert { border-radius: 15px; }
 </style>
 {% endblock %}
 
 {% block javascripts %}
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-<script>AOS.init({ duration: 1000, once: true });</script>
+<script>
+AOS.init({ duration: 800 });
+function copyMeetingLink(linkCopiedMsg, copyFailedMsg, noLinkMsg) {
+    const meetingLink = "{{ session.meetingLink }}";
+    if (meetingLink && meetingLink !== '') {
+        navigator.clipboard.writeText(meetingLink).then(() => { alert(linkCopiedMsg); }).catch(() => { alert(copyFailedMsg); });
+    } else { alert(noLinkMsg); }
+}
+</script>
 {% endblock %}
