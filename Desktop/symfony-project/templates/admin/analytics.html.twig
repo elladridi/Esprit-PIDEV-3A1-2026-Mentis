@@ -1,0 +1,319 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Session Analytics - Admin Panel{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5 fw-bold" style="color: #2E7D32;">
+                <i class="fas fa-chart-line me-3"></i>Session Analytics Dashboard
+            </h1>
+            <p class="text-muted">Complete overview of session statistics, reservations, and performance</p>
+        </div>
+    </div>
+
+    {# Summary Cards #}
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-alt fa-3x text-success mb-2"></i>
+                    <h2 class="fw-bold mb-0">{{ analytics.total_sessions }}</h2>
+                    <p class="text-muted mb-0">Total Sessions</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body text-center">
+                    <i class="fas fa-users fa-3x text-primary mb-2"></i>
+                    <h2 class="fw-bold mb-0">{{ analytics.reservations.total }}</h2>
+                    <p class="text-muted mb-0">Total Reservations</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle fa-3x text-success mb-2"></i>
+                    <h2 class="fw-bold mb-0">{{ analytics.reservations.completion_rate }}%</h2>
+                    <p class="text-muted mb-0">Completion Rate</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body text-center">
+                    <i class="fas fa-euro-sign fa-3x text-warning mb-2"></i>
+                    <h2 class="fw-bold mb-0">{{ analytics.revenue.total|number_format(0, ',', ' ') }} €</h2>
+                    <p class="text-muted mb-0">Total Revenue</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {# Sessions by Status #}
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-chart-pie me-2 text-success"></i>Sessions by Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Count</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="badge bg-info">Scheduled</span></td>
+                                    <td>{{ analytics.by_status.scheduled }}</td>
+                                    <td>{{ (analytics.by_status.scheduled / analytics.total_sessions * 100)|round(1) }}%</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-success">Active</span></td>
+                                    <td>{{ analytics.by_status.active }}</td>
+                                    <td>{{ (analytics.by_status.active / analytics.total_sessions * 100)|round(1) }}%</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-secondary">Completed</span></td>
+                                    <td>{{ analytics.by_status.completed }}</td>
+                                    <td>{{ (analytics.by_status.completed / analytics.total_sessions * 100)|round(1) }}%</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-danger">Cancelled</span></td>
+                                    <td>{{ analytics.by_status.cancelled }}</td>
+                                    <td>{{ (analytics.by_status.cancelled / analytics.total_sessions * 100)|round(1) }}%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Sessions by Type #}
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-tags me-2 text-success"></i>Sessions by Type</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Count</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for type, count in analytics.by_type %}
+                                <tr>
+                                    <td>{{ type }}</td>
+                                    <td>{{ count }}</td>
+                                    <td>{{ (count / analytics.total_sessions * 100)|round(1) }}%</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Reservation Stats #}
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-calendar-check me-2 text-success"></i>Reservation Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h3 class="fw-bold text-success">{{ analytics.reservations.completed }}</h3>
+                            <small class="text-muted">Completed</small>
+                        </div>
+                        <div class="col-4">
+                            <h3 class="fw-bold text-warning">{{ analytics.reservations.cancelled }}</h3>
+                            <small class="text-muted">Cancelled</small>
+                        </div>
+                        <div class="col-4">
+                            <h3 class="fw-bold text-primary">{{ analytics.reservations.unique_patients }}</h3>
+                            <small class="text-muted">Active Patients</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Revenue Stats #}
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-chart-line me-2 text-success"></i>Revenue Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h3 class="fw-bold text-success">{{ analytics.revenue.completed|number_format(0, ',', ' ') }} €</h3>
+                            <small class="text-muted">Completed Revenue</small>
+                        </div>
+                        <div class="col-4">
+                            <h3 class="fw-bold text-warning">{{ analytics.revenue.pending|number_format(0, ',', ' ') }} €</h3>
+                            <small class="text-muted">Pending Revenue</small>
+                        </div>
+                        <div class="col-4">
+                            <h3 class="fw-bold text-primary">{{ analytics.revenue.average_per_session|number_format(2, ',', ' ') }} €</h3>
+                            <small class="text-muted">Avg per Session</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Patient Stats #}
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-users me-2 text-success"></i>Patient Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h3 class="fw-bold text-primary">{{ analytics.patient_stats.total_patients }}</h3>
+                            <small class="text-muted">Total Patients</small>
+                        </div>
+                        <div class="col-4">
+                            <h3 class="fw-bold text-success">{{ analytics.patient_stats.active_patients }}</h3>
+                            <small class="text-muted">Active Patients</small>
+                        </div>
+                        <div class="col-4">
+                            <h3 class="fw-bold text-warning">{{ analytics.patient_stats.inactive_patients }}</h3>
+                            <small class="text-muted">Inactive Patients</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Popularity Stats #}
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-fire me-2 text-success"></i>Popularity Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h3 class="fw-bold text-warning">{{ analytics.popularity.total }}</h3>
+                            <small class="text-muted">Total Bookings</small>
+                        </div>
+                        <div class="col-4">
+                            <h3 class="fw-bold text-success">{{ analytics.popularity.average }}</h3>
+                            <small class="text-muted">Avg per Session</small>
+                        </div>
+                        <div class="col-4">
+                            <h3 class="fw-bold text-primary">{{ analytics.popularity.max }}</h3>
+                            <small class="text-muted">Max Popularity</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Most Popular Sessions #}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-trophy me-2 text-success"></i>Most Popular Sessions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Type</th>
+                                    <th>Bookings</th>
+                                    <th>Status</th>
+                                    <th>Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for session in analytics.top_sessions %}
+                                <tr>
+                                    <td><strong>{{ session.title }}</strong></td>
+                                    <td>{{ session.sessionType }}</td>
+                                    <td><span class="badge bg-success">{{ session.popularity }}</span></td>
+                                    <td>
+                                        <span class="badge {% if session.status == 'active' %}bg-success{% elseif session.status == 'completed' %}bg-secondary{% else %}bg-info{% endif %}">
+                                            {{ session.status }}
+                                        </span>
+                                    </td>
+                                    <td>{{ session.price }} €</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Monthly Trend #}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-chart-line me-2 text-success"></i>Monthly Trend</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Month</th>
+                                    <th>Total Sessions</th>
+                                    <th>Reserved</th>
+                                    <th>Completed</th>
+                                    <th>Completion Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for month in analytics.monthly_trend %}
+                                <tr>
+                                    <td>{{ month.month }}</td>
+                                    <td>{{ month.total }}</td>
+                                    <td>{{ month.reserved }}</td>
+                                    <td>{{ month.completed }}</td>
+                                    <td>
+                                        {% if month.reserved > 0 %}
+                                            {{ (month.completed / month.reserved * 100)|round(1) }}%
+                                        {% else %}
+                                            0%
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{{ path('app_dashboard_admin') }}" class="btn btn-outline-secondary rounded-pill px-4">
+            <i class="fas fa-arrow-left me-2"></i>Back to Admin Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

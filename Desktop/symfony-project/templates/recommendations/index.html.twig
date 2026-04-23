@@ -1,0 +1,229 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}AI Personalized Recommendations - Mentis{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="text-center mb-5" data-aos="fade-up">
+        <h1 class="display-5 fw-bold mb-3" style="color: #2E7D32;">
+            <i class="fas fa-robot me-2"></i>AI Personalized Recommendations
+        </h1>
+        <p class="lead text-muted">Smart suggestions tailored just for you based on your activity</p>
+    </div>
+
+    {% if refreshed %}
+        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+            <i class="fas fa-sync-alt me-2"></i> Recommendations refreshed based on your latest activity!
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endif %}
+
+    {# Show user activity summary #}
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 bg-light rounded-4 text-center p-3">
+                <h3 class="fw-bold text-success mb-0">{{ recommendations.reserved_count|default(0) }}</h3>
+                <small class="text-muted">Upcoming Sessions</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 bg-light rounded-4 text-center p-3">
+                <h3 class="fw-bold text-primary mb-0">{{ recommendations.past_count|default(0) }}</h3>
+                <small class="text-muted">Past Sessions</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 bg-light rounded-4 text-center p-3">
+                <h3 class="fw-bold text-warning mb-0">{{ recommendations.review_count|default(0) }}</h3>
+                <small class="text-muted">Reviews Written</small>
+            </div>
+        </div>
+    </div>
+
+    {# If user has no activity #}
+    {% if not recommendations.has_activity %}
+        <div class="card shadow-lg border-0 rounded-4 text-center p-5 mb-5">
+            <div class="mb-4">
+                <i class="fas fa-brain fa-5x text-muted mb-3"></i>
+                <h3 class="fw-bold">Welcome to AI Recommendations!</h3>
+                <p class="lead text-muted">Your personalized recommendations will appear here based on your activity.</p>
+            </div>
+            <div class="alert alert-info rounded-3">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Getting started:</strong> Complete assessments, book sessions, and write reviews to get better recommendations!
+            </div>
+            <div class="mt-3">
+                <a href="{{ path('session_available') }}" class="btn btn-success rounded-pill px-4 me-2">
+                    <i class="fas fa-calendar-plus me-2"></i>Book a Session
+                </a>
+                <a href="{{ path('take_assessment_index') }}" class="btn btn-outline-primary rounded-pill px-4">
+                    <i class="fas fa-clipboard-list me-2"></i>Take Assessment
+                </a>
+            </div>
+        </div>
+    {% else %}
+        {# Session Recommendations #}
+        <div class="card shadow-lg border-0 rounded-4 mb-5">
+            <div class="card-header bg-gradient text-white py-3 px-4 rounded-top-4" style="background: linear-gradient(135deg, #2E7D32 0%, #50C878 100%);">
+                <h4 class="mb-0 fw-bold">
+                    <i class="fas fa-calendar-alt me-2"></i>Recommended Sessions for You
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                {% if recommendations.sessions.has_sessions %}
+                    <div class="row g-4">
+                        {% for rec in recommendations.sessions.list %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card h-100 border-0 shadow-sm rounded-4 hover-card">
+                                    <div class="card-body p-4">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <span class="badge bg-success rounded-pill px-3 py-2">
+                                                {{ rec.session.sessionType }}
+                                            </span>
+                                            <span class="badge bg-info rounded-pill px-3 py-2">
+                                                {{ rec.match_percentage }}% Match
+                                            </span>
+                                        </div>
+                                        <h5 class="fw-bold mt-2">{{ rec.session.title }}</h5>
+                                        <p class="text-muted small mb-2">
+                                            <i class="fas fa-map-marker-alt me-1"></i> {{ rec.session.location }}
+                                        </p>
+                                        <p class="text-muted small mb-3">
+                                            <i class="fas fa-calendar me-1"></i> {{ rec.session.sessionDate|date('M d, Y') }}
+                                            <br>
+                                            <i class="fas fa-clock me-1"></i> {{ rec.session.startTime|date('H:i') }}
+                                        </p>
+                                        <div class="alert alert-light small p-2 mb-3">
+                                            <i class="fas fa-lightbulb text-warning me-1"></i>
+                                            {{ rec.reason }}
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="fw-bold text-success">{{ rec.session.price }} €</span>
+                                            <a href="{{ path('session_show', {id: rec.session.sessionId}) }}" class="btn btn-sm btn-outline-success rounded-pill">
+                                                View Details <i class="fas fa-arrow-right ms-1"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+                        <p class="lead">{{ recommendations.sessions.message|default('No session recommendations available') }}</p>
+                        <a href="{{ path('session_available') }}" class="btn btn-success rounded-pill">
+                            Browse Available Sessions
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {# Content Recommendations #}
+        {% if recommendations.content|length > 0 %}
+        <div class="card shadow-lg border-0 rounded-4 mb-5">
+            <div class="card-header bg-gradient text-white py-3 px-4 rounded-top-4" style="background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);">
+                <h4 class="mb-0 fw-bold">
+                    <i class="fas fa-book-open me-2"></i>Educational Content for You
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-4">
+                    {% for item in recommendations.content %}
+                        <div class="col-md-4">
+                            <div class="card h-100 border-0 shadow-sm rounded-4">
+                                <div class="card-body p-4">
+                                    <div class="text-center mb-3">
+                                        <i class="fas fa-file-alt fa-3x text-primary"></i>
+                                    </div>
+                                    <h5 class="fw-bold text-center">{{ item.title|default('Resource') }}</h5>
+                                    <p class="text-muted small text-center mb-3">Type: {{ item.type }}</p>
+                                    <div class="text-center">
+                                        <a href="#" class="btn btn-sm btn-outline-primary rounded-pill">
+                                            Read More
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# Personalized Tips #}
+        {% if recommendations.tips|length > 0 %}
+        <div class="card shadow-lg border-0 rounded-4 mb-5">
+            <div class="card-header bg-gradient text-white py-3 px-4 rounded-top-4" style="background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);">
+                <h4 class="mb-0 fw-bold">
+                    <i class="fas fa-lightbulb me-2"></i>Personalized Tips & Insights
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    {% for tip in recommendations.tips %}
+                        <div class="col-md-6">
+                            <div class="alert alert-warning bg-light rounded-3 mb-0">
+                                <i class="fas fa-star text-warning me-2"></i>
+                                {{ tip }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# Recommended Activities #}
+        {% if recommendations.activities|length > 0 %}
+        <div class="card shadow-lg border-0 rounded-4">
+            <div class="card-header bg-gradient text-white py-3 px-4 rounded-top-4" style="background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);">
+                <h4 class="mb-0 fw-bold">
+                    <i class="fas fa-heartbeat me-2"></i>Recommended Activities
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-4">
+                    {% for activity in recommendations.activities %}
+                        <div class="col-md-4">
+                            <div class="card border-0 bg-light rounded-4 text-center p-3">
+                                <i class="fas fa-smile fa-3x text-success mb-2"></i>
+                                <h5 class="fw-bold mb-1">{{ activity.name }}</h5>
+                                <p class="text-muted small mb-1">{{ activity.duration }}</p>
+                                <small class="text-success">{{ activity.benefit }}</small>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    {% endif %}
+
+    <div class="text-center mt-4">
+        <a href="{{ path('recommendations_refresh') }}" class="btn btn-outline-success rounded-pill px-4">
+            <i class="fas fa-sync-alt me-2"></i>Refresh Recommendations
+        </a>
+        <a href="{{ path('app_dashboard') }}" class="btn btn-outline-secondary rounded-pill px-4 ms-2">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+.hover-card {
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+.hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
+}
+.card {
+    border-radius: 20px;
+}
+</style>
+{% endblock %}

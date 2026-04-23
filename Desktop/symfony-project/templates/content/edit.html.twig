@@ -3,83 +3,28 @@
 {% block title %}Edit Content{% endblock %}
 
 {% block body %}
-<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
-<style>
-    .ts-control {
-        border-radius: 10px !important;
-        padding: 10px 15px !important;
-        border: 1px solid #ced4da !important;
-    }
-    .ts-dropdown {
-        border-radius: 10px !important;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
-        border: none !important;
-        margin-top: 5px !important;
-    }
-    .ts-wrapper.multi .ts-control > div {
-        background: #50C878 !important;
-        color: white !important;
-        border-radius: 5px !important;
-        padding: 2px 10px !important;
-    }
-</style>
-
 <div class="content-dashboard p-4">
     <div class="container-lg">
-        <div class="card border-0 shadow-sm" style="border-radius: 20px; overflow: hidden;">
-            <div class="card-header bg-white p-4 border-0 d-flex justify-content-between align-items-center">
-                <div>
-                    <h2 class="h4 mb-1 fw-bold text-dark">Edit Content</h2>
-                    <p class="text-muted mb-0 small">Update content details and user assignments.</p>
-                </div>
-                <a class="btn btn-light border" href="{{ path('content_index') }}" style="border-radius: 10px;">
-                    <i class="bi bi-arrow-left me-1"></i> Back to Library
-                </a>
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h2 class="h4 mb-0">Edit Content</h2>
+                <a class="btn btn-outline-secondary" href="{{ path('content_index') }}"><i class="bi bi-arrow-left"></i> Back to Library</a>
             </div>
-            <div class="card-body p-4">
+            <div class="card-body">
                 {{ form_start(form) }}
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Title</label>
-                        {{ form_widget(form.title, {attr: {class: 'form-control', style: 'border-radius: 10px; padding: 12px;'}}) }}
-                        {{ form_errors(form.title) }}
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">PDF File</label>
-                        {% if contentNode.pdfPath %}
-                            <div class="mb-2">
-                                <small class="text-muted">Current PDF: <a href="{{ asset(contentNode.pdfPublicPath) }}" target="_blank" class="text-primary text-decoration-none"><i class="bi bi-file-pdf"></i> {{ contentNode.pdfPath|split('/')|last }}</a></small>
-                            </div>
-                        {% endif %}
-                        {{ form_widget(form.pdfFile, {attr: {class: 'form-control', style: 'border-radius: 10px; padding: 12px;'}}) }}
-                        <small class="form-text text-muted">Leave empty to keep current PDF, or upload a new one to replace it.</small>
-                        {{ form_errors(form.pdfFile) }}
-                    </div>
+                <div class="row g-3">
+                    <div class="col-md-6">{{ form_label(form.title) }} {{ form_widget(form.title, {attr: {class: 'form-control'}}) }} {{ form_errors(form.title) }}</div>
+                    <div class="col-md-6">{{ form_label(form.pdfPath) }} {{ form_widget(form.pdfPath, {attr: {class: 'form-control'}}) }} {{ form_errors(form.pdfPath) }}</div>
 
-                    <div class="col-12">
-                        <label class="form-label fw-semibold">Description</label>
-                        {{ form_widget(form.description, {attr: {class: 'form-control', rows: 4, style: 'border-radius: 15px; padding: 15px;'}}) }}
-                        {{ form_errors(form.description) }}
-                    </div>
+                    <div class="col-12">{{ form_label(form.description) }} {{ form_widget(form.description, {attr: {class: 'form-control', rows: 5}}) }} {{ form_errors(form.description) }}</div>
 
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Parent Module</label>
-                        {{ form_widget(form.parentNode, {attr: {class: 'form-select', style: 'border-radius: 10px; padding: 12px;'}}) }}
-                        {{ form_errors(form.parentNode) }}
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Assign to Patients</label>
-                        {{ form_widget(form.assignedUsers) }}
-                        <div class="form-text text-muted mt-2">Search and select multiple patients to assign this content.</div>
-                        {{ form_errors(form.assignedUsers) }}
-                    </div>
+                    <div class="col-md-6">{{ form_label(form.parentNode) }} {{ form_widget(form.parentNode, {attr: {class: 'form-select'}}) }} {{ form_errors(form.parentNode) }}</div>
+                    <div class="col-md-6">{{ form_label(form.assignedUsers) }} <div class="border rounded p-2" style="max-height: 230px; overflow-y: auto;">{{ form_widget(form.assignedUsers) }}</div> {{ form_errors(form.assignedUsers) }}</div>
                 </div>
 
-                <div class="mt-5 d-flex justify-content-end gap-3">
-                    <a class="btn btn-light px-4 py-2" href="{{ path('content_index') }}" style="border-radius: 10px;">Cancel</a>
-                    <button class="btn btn-success px-4 py-2 fw-bold" type="submit" style="border-radius: 10px; background: linear-gradient(135deg, #50C878 0%, #3A9B5E 100%); border: none;">
-                        <i class="bi bi-save me-1"></i> Save Changes
-                    </button>
+                <div class="mt-4 d-flex justify-content-end gap-2">
+                    <a class="btn btn-outline-danger" href="{{ path('content_index') }}"><i class="bi bi-x-circle"></i> Cancel</a>
+                    <button class="btn btn-success" type="submit"><i class="bi bi-save"></i> Save Changes</button>
                 </div>
 
                 {{ form_end(form) }}
@@ -87,26 +32,4 @@
         </div>
     </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const select = document.querySelector('.select-users');
-        if (select) {
-            new TomSelect(select, {
-                plugins: ['remove_button', 'dropdown_input'],
-                maxItems: null,
-                placeholder: select.getAttribute('data-placeholder'),
-                render: {
-                    option: function(data, escape) {
-                        return `<div><span class="fw-bold text-dark">${escape(data.text.split('(')[0])}</span> <span class="text-muted small">(${escape(data.text.split('(')[1])}</span></div>`;
-                    },
-                    item: function(data, escape) {
-                        return `<div>${escape(data.text.split('(')[0])}</div>`;
-                    }
-                }
-            });
-        }
-    });
-</script>
 {% endblock %}

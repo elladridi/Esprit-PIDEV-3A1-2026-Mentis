@@ -6,10 +6,7 @@ use App\Repository\ContentNodeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\HttpFoundation\File\File;
-use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
-#[Vich\Uploadable]
 #[ORM\Entity(repositoryClass: ContentNodeRepository::class)]
 #[ORM\Table(name: 'content_node')]
 class ContentNode
@@ -28,14 +25,8 @@ class ContentNode
     #[ORM\Column(name: 'pdf_path', length: 500, nullable: true)]
     private ?string $pdfPath = null;
 
-    #[Vich\UploadableField(mapping: 'content_pdf', fileNameProperty: 'pdfPath')]
-    private ?File $pdfFile = null;
-
     #[ORM\Column(name: 'created_at', type: 'datetime')]
     private \DateTimeInterface $createdAt;
-
-    #[ORM\Column(name: 'updated_at', type: 'datetime', nullable: true)]
-    private ?\DateTimeInterface $updatedAt = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'created_by', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
@@ -102,22 +93,6 @@ class ContentNode
         return $this;
     }
 
-    public function getPdfFile(): ?File
-    {
-        return $this->pdfFile;
-    }
-
-    public function setPdfFile(?File $pdfFile = null): self
-    {
-        $this->pdfFile = $pdfFile;
-
-        if ($pdfFile !== null) {
-            $this->updatedAt = new \DateTime();
-        }
-
-        return $this;
-    }
-
     public function getCreatedAt(): \DateTimeInterface
     {
         return $this->createdAt;
@@ -126,18 +101,6 @@ class ContentNode
     public function setCreatedAt(\DateTimeInterface $createdAt): self
     {
         $this->createdAt = $createdAt;
-
-        return $this;
-    }
-
-    public function getUpdatedAt(): ?\DateTimeInterface
-    {
-        return $this->updatedAt;
-    }
-
-    public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
-    {
-        $this->updatedAt = $updatedAt;
 
         return $this;
     }
@@ -231,22 +194,5 @@ class ContentNode
         }
 
         return $this;
-    }
-
-    public function getPdfPublicPath(): ?string
-    {
-        if ($this->pdfPath === null || $this->pdfPath === '') {
-            return null;
-        }
-
-        if (str_starts_with($this->pdfPath, '/uploads/')) {
-            return ltrim($this->pdfPath, '/');
-        }
-
-        if (str_starts_with($this->pdfPath, 'uploads/')) {
-            return $this->pdfPath;
-        }
-
-        return 'uploads/' . ltrim($this->pdfPath, '/');
     }
 }

@@ -1,19 +1,12 @@
-# yaml-language-server: $schema=../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
-
+# config/services.yaml
 parameters:
-    # Email configuration
-    env(SENDER_EMAIL): 'noreply@mentis.com'
-    env(GOOGLE_MAPS_API_KEY): ''
-    env(ZAI_API_KEY): ''
-    env(AI_API_KEY): ''
-    env(AI_API_URL): 'https://api.z.ai/v1/chat/completions'
+    locale: 'en'
+    app.supported_locales: ['en', 'fr', 'es', 'ar']
 
 services:
     _defaults:
         autowire: true
         autoconfigure: true
-        public: false
-
 
     App\:
         resource: '../src/'
@@ -22,25 +15,8 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
-    # Explicit service configuration for EmailNotificationService
-    App\Service\EmailNotificationService:
-        arguments:
-            $mailer: '@mailer.mailer'
-            $senderEmail: '%env(SENDER_EMAIL)%'
-
-    # Explicit service configuration for GoogleMapsService
-    App\Service\GoogleMapsService:
-        arguments:
-            $apiKey: '%env(GOOGLE_MAPS_API_KEY)%'
-
-    # AIChatService uses http_client and reads API key from environment
-    App\Service\AIChatService:
+    # Geocoder Service for OpenStreetMap
+    App\Service\GeocoderService:
+        autowire: true
         arguments:
             $httpClient: '@http_client'
-            
-    App\Service\FaceRecognitionService:
-        arguments:
-            $projectDir: '%kernel.project_dir%'
-    App\Service\BanNotificationService:
-        arguments:
-            $senderEmail: '%env(SENDER_EMAIL)%'

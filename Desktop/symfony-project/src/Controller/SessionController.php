@@ -6,7 +6,12 @@ use App\Entity\Session;
 use App\Entity\User;
 use App\Form\SessionType;
 use App\Repository\SessionRepository;
+use App\Service\ReminderPopupService;
+use App\Service\GeocoderService;
 use Doctrine\ORM\EntityManagerInterface;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\PngWriter;
+use Flasher\SweetAlert\Prime\SweetAlertInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,52 +30,28 @@ class SessionController extends AbstractController
         $this->repo = $repo;
     }
 
-    // ==================== ADMIN & PSYCHOLOGIST: Full Session Management ====================
-    
     #[Route('/', name: 'session_index', methods: ['GET'])]
     public function index(): Response
     {
-        /** @var User $user */
         $user = $this->getUser();
         
-        // For psychologists: show only their sessions
-        if ($this->isGranted('ROLE_PSYCHOLOGIST')) {
-            return $this->render('session/index.html.twig', [
-                'sessions' => $this->repo->findBy(['reservedBy' => $user->getId()]),
-                'isPsychologist' => true,
-            ]);
+        // Si l'utilisateur est un patient, rediriger vers ses propres sessions
+        if ($user && $user->getType() === 'Patient') {
+            return $this->redirectToRoute('session_by_patient', ['patientId' => $user->getId()]);
         }
         
-        // For admin: show all sessions
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        // Pour admin et psychologue, afficher toutes les sessions
         return $this->render('session/index.html.twig', [
             'sessions' => $this->repo->findAllSessions(),
-            'isPsychologist' => false,
         ]);
     }
 
     #[Route('/active', name: 'session_active', methods: ['GET'])]
+    #[IsGranted('ROLE_ADMIN')]
     public function active(): Response
     {
-        /** @var User $user */
-        $user = $this->getUser();
-        
-        // For psychologists: show only their active sessions
-        if ($this->isGranted('ROLE_PSYCHOLOGIST')) {
-            return $this->render('session/active.html.twig', [
-                'sessions' => $this->repo->findBy([
-                    'reservedBy' => $user->getId(),
-                    'status' => 'active'
-                ]),
-                'isPsychologist' => true,
-            ]);
-        }
-        
-        // For admin: show all active sessions
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
         return $this->render('session/active.html.twig', [
             'sessions' => $this->repo->findActiveSessions(),
-            'isPsychologist' => false,
         ]);
     }
 
@@ -93,7 +74,6 @@ class SessionController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $this->em->persist($session);
             $this->em->flush();
-
             $this->addFlash('success', 'Session created successfully!');
             return $this->redirectToRoute('session_index');
         }
@@ -103,8 +83,41 @@ class SessionController extends AbstractController
         ]);
     }
 
+    #[Route('/{id}/qr', name: 'session_qr', methods: ['GET'])]
+    public function generateQrCode(int $id): Response
+    {
+        $session = $this->repo->find($id);
+        
+        if (!$session) {
+            throw $this->createNotFoundException('Session not found');
+        }
+        
+        $text = sprintf(
+            "Session: %s\nDate: %s\nTime: %s - %s\nLocation: %s\nType: %s\nPrice: %s €\nStatus: %s\nPlaces: %d/%d",
+            $session->getTitle(),
+            $session->getSessionDate() ? $session->getSessionDate()->format('d/m/Y') : 'TBD',
+            $session->getStartTime() ? $session->getStartTime()->format('H:i') : 'TBD',
+            $session->getEndTime() ? $session->getEndTime()->format('H:i') : 'TBD',
+            $session->getLocation(),
+            $session->getSessionType(),
+            $session->getPrice(),
+            $session->getStatus(),
+            $session->getCurrentParticipants(),
+            $session->getMaxParticipants()
+        );
+        
+        $qrCode = new QrCode($text);
+        $qrCode->setSize(300);
+        $qrCode->setMargin(10);
+        
+        $writer = new PngWriter();
+        $result = $writer->write($qrCode);
+        
+        return new Response($result->getString(), 200, ['Content-Type' => 'image/png']);
+    }
+
     #[Route('/{id}', name: 'session_show', methods: ['GET'])]
-    public function show(int $id): Response
+    public function show(int $id, ReminderPopupService $reminderPopupService, GeocoderService $geocoderService): Response
     {
         $session = $this->repo->find($id);
 
@@ -112,8 +125,22 @@ class SessionController extends AbstractController
             throw $this->createNotFoundException('Session not found');
         }
 
+        // Get coordinates for the session location (FREE OpenStreetMap)
+        $coordinates = $geocoderService->getSessionLocation($session);
+        
+        // Get reminder popup data (only for reserved sessions)
+        /** @var User $user */
+        $user = $this->getUser();
+        $reminderData = null;
+        
+        if ($user && $session->getReservedBy() === $user->getId()) {
+            $reminderData = $reminderPopupService->getReminderData($session, new \DateTime());
+        }
+
         return $this->render('session/show.html.twig', [
             'session' => $session,
+            'reminderData' => $reminderData,
+            'coordinates' => $coordinates,
         ]);
     }
 
@@ -182,12 +209,9 @@ class SessionController extends AbstractController
         return $this->redirectToRoute('session_index');
     }
 
-    // ==================== PATIENT: Reserve/Cancel Sessions ====================
-
     #[Route('/{id}/reserve', name: 'session_reserve', methods: ['POST'])]
     public function reserve(Request $request, int $id): Response
     {
-        /** @var User $user */
         $user = $this->getUser();
         
         if (!$user || $user->getType() !== 'Patient') {
@@ -211,6 +235,11 @@ class SessionController extends AbstractController
             return $this->redirectToRoute('session_available');
         }
 
+        if (!$session->hasAvailableSpots()) {
+            $this->addFlash('error', 'No available spots for this session.');
+            return $this->redirectToRoute('session_available');
+        }
+
         $session->setReservedBy($user->getId());
         $session->setReservedAt(new \DateTime());
         $session->incrementPopularity();
@@ -225,7 +254,6 @@ class SessionController extends AbstractController
     #[Route('/{id}/cancel-reservation', name: 'session_cancel_reservation', methods: ['POST'])]
     public function cancelReservation(Request $request, int $id): Response
     {
-        /** @var User $user */
         $user = $this->getUser();
         
         if (!$user) {
@@ -266,12 +294,68 @@ class SessionController extends AbstractController
         return $this->redirectToRoute('session_by_patient', ['patientId' => $user->getId()]);
     }
 
-    // ==================== PATIENT: View Their Sessions ====================
+    #[Route('/{id}/create-meeting', name: 'session_create_meeting', methods: ['POST'])]
+    public function createMeeting(int $id): Response
+    {
+        $session = $this->repo->find($id);
+        $user = $this->getUser();
+        
+        if (!$session || !$user) {
+            $this->addFlash('error', 'Session or user not found');
+            return $this->redirectToRoute('session_available');
+        }
+        
+        // Vérifier que le patient a réservé cette session
+        if ($session->getReservedBy() !== $user->getId()) {
+            $this->addFlash('error', 'You can only create meetings for your reserved sessions');
+            return $this->redirectToRoute('session_available');
+        }
+        
+        // Vérifier si un meeting existe déjà
+        if ($session->getMeetingLink()) {
+            $this->addFlash('info', 'A meeting already exists for this session');
+            return $this->redirectToRoute('session_show', ['id' => $id]);
+        }
+        
+        // Créer un nom de salle unique pour Jitsi Meet
+        $roomName = sprintf(
+            "mentis_%s_%d_%d",
+            preg_replace('/[^a-zA-Z0-9]/', '_', $session->getTitle()),
+            $session->getSessionId(),
+            time()
+        );
+        
+        // Créer le lien Jitsi Meet (gratuit, sans inscription)
+        $meetingLink = "https://meet.jit.si/" . $roomName;
+        $meetingLink .= "?config.startWithVideoMuted=true&config.startWithAudioMuted=false";
+        
+        $session->setMeetingLink($meetingLink);
+        $session->setMeetingRoomName($roomName);
+        $session->setMeetingCreatedAt(new \DateTime());
+        $session->setMeetingStarted(true);
+        
+        $this->em->flush();
+        
+        $this->addFlash('success', 'Video meeting created successfully!');
+        return $this->redirectToRoute('session_show', ['id' => $id]);
+    }
+
+    #[Route('/{id}/join-meeting', name: 'session_join_meeting', methods: ['GET'])]
+    public function joinMeeting(int $id): Response
+    {
+        $session = $this->repo->find($id);
+        
+        if (!$session || !$session->getMeetingLink()) {
+            $this->addFlash('error', 'No meeting available for this session');
+            return $this->redirectToRoute('session_show', ['id' => $id]);
+        }
+        
+        return $this->redirect($session->getMeetingLink());
+    }
 
     #[Route('/patient/{patientId}', name: 'session_by_patient', methods: ['GET'])]
     public function getByPatient(int $patientId): Response
     {
-        /** @var User $currentUser */
         $currentUser = $this->getUser();
         
         if (!$currentUser) {
@@ -293,8 +377,6 @@ class SessionController extends AbstractController
             'patientId' => $patientId,
         ]);
     }
-
-    // ==================== SEARCH & FILTER ====================
 
     #[Route('/search/available', name: 'session_search_available', methods: ['GET'])]
     public function searchAvailable(Request $request): Response

@@ -7,23 +7,21 @@ use Psr\Log\LoggerInterface;
 
 class CVSummarizationService
 {
-    private const API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+    private const API_URL = 'https://api.openai.com/v1/chat/completions';
     private HttpClientInterface $httpClient;
     private LoggerInterface $logger;
     private bool $useMockMode;
     private ?string $apiKey;
-    private string $model;
 
     public function __construct(HttpClientInterface $httpClient, LoggerInterface $logger)
     {
         $this->httpClient = $httpClient;
         $this->logger = $logger;
-        $this->apiKey = $_ENV['GROQ_API_KEY'] ?? null;
-        $this->model = $_ENV['GROQ_MODEL'] ?? 'llama-3.1-8b-instant';
-        $this->useMockMode = empty($this->apiKey);
+        $this->apiKey = $_ENV['OPENAI_API_KEY'] ?? null;
+        $this->useMockMode = empty($this->apiKey) || $this->apiKey === 'your-api-key-here';
         
         if ($this->useMockMode) {
-            $this->logger->warning('⚠️ GROQ_API_KEY not set. Using MOCK MODE for CV summarization.');
+            $this->logger->warning('⚠️ OPENAI_API_KEY not set. Using MOCK MODE for CV summarization.');
         }
     }
 
@@ -107,12 +105,11 @@ Return ONLY valid JSON:
                     'Content-Type' => 'application/json',
                 ],
                 'json' => [
-                    'model' => $this->model,
+                    'model' => 'gpt-3.5-turbo',
                     'messages' => [
                         ['role' => 'user', 'content' => $prompt]
                     ],
-                    'response_format' => ['type' => 'json_object'],
-                    'temperature' => 0.1,
+                    'temperature' => 0.3,
                     'max_tokens' => 500,
                 ],
                 'timeout' => 30,

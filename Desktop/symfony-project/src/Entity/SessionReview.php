@@ -31,6 +31,9 @@ class SessionReview
     #[ORM\Column(name: 'review_date', type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $reviewDate = null;
 
+    #[ORM\Column(name: 'is_appropriate', type: 'boolean', nullable: true, options: ['default' => true])]
+    private ?bool $isAppropriate = true;
+
     // Not mapped in database - joined from Session entity
     private ?string $sessionTitle = null;
     private ?\DateTimeInterface $sessionDate = null;
@@ -55,6 +58,7 @@ class SessionReview
     public function getRating(): ?int { return $this->rating; }
     public function getComment(): ?string { return $this->comment; }
     public function getReviewDate(): ?\DateTimeInterface { return $this->reviewDate; }
+    public function getIsAppropriate(): ?bool { return $this->isAppropriate; }
     public function getSessionTitle(): ?string { return $this->sessionTitle; }
     public function getSessionDate(): ?\DateTimeInterface { return $this->sessionDate; }
     public function getStartTime(): ?\DateTimeInterface { return $this->startTime; }
@@ -71,6 +75,7 @@ class SessionReview
     public function setRating(int $rating): self { $this->rating = $rating; return $this; }
     public function setComment(?string $comment): self { $this->comment = $comment; return $this; }
     public function setReviewDate(?\DateTimeInterface $reviewDate): self { $this->reviewDate = $reviewDate; return $this; }
+    public function setIsAppropriate(?bool $isAppropriate): self { $this->isAppropriate = $isAppropriate; return $this; }
     public function setSessionTitle(?string $sessionTitle): self { $this->sessionTitle = $sessionTitle; return $this; }
     public function setSessionDate(?\DateTimeInterface $sessionDate): self { $this->sessionDate = $sessionDate; return $this; }
     public function setStartTime(?\DateTimeInterface $startTime): self { $this->startTime = $startTime; return $this; }

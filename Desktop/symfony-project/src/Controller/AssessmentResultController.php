@@ -1,11 +1,9 @@
 <?php
-// src/Controller/AssessmentResultController.php
 
 namespace App\Controller;
 
 use App\Entity\AssessmentResult;
 use App\Entity\User;
-use App\Service\CrisisAlertService;
 use App\Repository\AssessmentRepository;
 use App\Repository\AssessmentResultRepository;
 use App\Repository\QuestionRepository;
@@ -13,8 +11,6 @@ use App\Repository\UserRepository;
 use App\Service\GroqService;
 use App\Service\YouTubeService;
 use App\Service\PdfExportService;
-use App\Service\SpotifyService;
-use App\Service\MeditationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,9 +27,6 @@ class AssessmentResultController extends AbstractController
     private GroqService $groqService;
     private YouTubeService $youtubeService;
     private PdfExportService $pdfExportService;
-    private SpotifyService $spotifyService;
-    private MeditationService $meditationService;
-    private CrisisAlertService $crisisAlertService;
 
     public function __construct(
         EntityManagerInterface $em,
@@ -42,55 +35,22 @@ class AssessmentResultController extends AbstractController
         QuestionRepository $questionRepo,
         GroqService $groqService,
         YouTubeService $youtubeService,
-        PdfExportService $pdfExportService,
-        SpotifyService $spotifyService,
-        MeditationService $meditationService,
-        CrisisAlertService $crisisAlertService
+        PdfExportService $pdfExportService
     ) {
-        $this->em = $em;
-        $this->resultRepo = $resultRepo;
-        $this->assessmentRepo = $assessmentRepo;
-        $this->questionRepo = $questionRepo;
-        $this->groqService = $groqService;
-        $this->youtubeService = $youtubeService;
+        $this->em               = $em;
+        $this->resultRepo       = $resultRepo;
+        $this->assessmentRepo   = $assessmentRepo;
+        $this->questionRepo     = $questionRepo;
+        $this->groqService      = $groqService;
+        $this->youtubeService   = $youtubeService;
         $this->pdfExportService = $pdfExportService;
-        $this->spotifyService = $spotifyService;
-        $this->meditationService = $meditationService;
-        $this->crisisAlertService = $crisisAlertService;
     }
 
-    private function getCurrentUser(): ?User
-    {
-        $user = $this->getUser();
-        if ($user instanceof User) {
-            return $user;
-        }
-        return null;
-    }
-
-    private function isPatient(): bool
-    {
-        $user = $this->getCurrentUser();
-        return $user !== null && $user->getType() === 'Patient';
-    }
-
-    private function resultBelongsToCurrentUser(AssessmentResult $result): bool
-    {
-        $user = $this->getCurrentUser();
-        if ($user === null) return false;
-        return $result->getUser()?->getId() === $user->getId();
-    }
-
+    // ── LIST ALL RESULTS ──────────────────────────────────────────
     #[Route('/', name: 'result_index', methods: ['GET'])]
     public function index(): Response
     {
-        $currentUser = $this->getCurrentUser();
-
-        if ($this->isPatient() && $currentUser !== null) {
-            $results = $this->resultRepo->findByUser($currentUser->getId());
-        } else {
-            $results = $this->resultRepo->findAllOrderedByDate();
-        }
+        $results = $this->resultRepo->findAllOrderedByDate();
 
         $users = [];
         foreach ($results as $result) {
@@ -106,18 +66,10 @@ class AssessmentResultController extends AbstractController
         ]);
     }
 
+    // ── USER RESULTS ──────────────────────────────────────────────
     #[Route('/user/{userId}', name: 'result_by_user', methods: ['GET'])]
     public function byUser(int $userId, UserRepository $userRepo): Response
     {
-        $currentUser = $this->getCurrentUser();
-
-        if ($this->isPatient() && $currentUser !== null
-            && $currentUser->getId() !== $userId) {
-
-            $this->addFlash('error', 'You can only view your own results.');
-            return $this->redirectToRoute('result_index');
-        }
-
         $results = $this->resultRepo->findByUser($userId);
         $user    = $userRepo->find($userId);
 
@@ -133,13 +85,13 @@ class AssessmentResultController extends AbstractController
         ]);
     }
 
+    // ── SUBMIT ASSESSMENT ─────────────────────────────────────────
     #[Route('/submit', name: 'result_submit', methods: ['POST'])]
     public function submit(Request $request, UserRepository $userRepo): Response
     {
         $userId       = $request->request->get('user_id');
         $assessmentId = $request->request->get('assessment_id');
         $answers      = $request->request->all('answers');
-        $freeText     = trim($request->request->get('free_text', ''));
 
         $assessment = $this->assessmentRepo->find($assessmentId);
         if (!$assessment) {
@@ -162,28 +114,11 @@ class AssessmentResultController extends AbstractController
             $totalScore           += $score;
         }
 
-        $riskLevel      = $this->determineRiskLevel($totalScore, (int)$assessmentId);
-        $aiAnalysis     = $this->generateAIAnalysis($questions, $scores, $originalAnswers, $totalScore, $riskLevel);
-        $interpretation = $this->generateInterpretation($riskLevel);
-        $suggestSession = $this->shouldSuggestSession($riskLevel, $aiAnalysis);
-
-        $sentimentData = [];
-        if (!empty($freeText)) {
-            try {
-                $sentimentData = $this->groqService->analyzeSentiment($freeText);
-
-                if (!empty($sentimentData['crisis_detected'])) {
-                    $suggestSession = true;
-                    if (!in_array(strtolower($riskLevel), ['high', 'severe'])) {
-                        $riskLevel = 'High';
-                    }
-                }
-            } catch (\Exception $e) {
-                $sentimentData = [];
-            }
-        }
-
+        $riskLevel          = $this->determineRiskLevel($totalScore, (int)$assessmentId);
+        $aiAnalysis         = $this->generateAIAnalysis($questions, $scores, $originalAnswers, $totalScore, $riskLevel);
+        $interpretation     = $this->generateInterpretation($riskLevel);
         $recommendedContent = $this->generateRecommendedContent($riskLevel, $aiAnalysis);
+        $suggestSession     = $this->shouldSuggestSession($riskLevel, $aiAnalysis);
 
         $result = new AssessmentResult();
         $user   = $this->em->getRepository(User::class)->find((int)$userId);
@@ -199,40 +134,21 @@ class AssessmentResultController extends AbstractController
         $this->em->persist($result);
         $this->em->flush();
 
-        // ── ADD CRISIS ALERT IF HIGH RISK ─────────────────
-        if (in_array(strtolower($riskLevel), ['high', 'severe', 'critical'])) {
-            $this->crisisAlertService->addCrisisAlert($result);
-        }
-
-        $videos      = $this->youtubeService->fetchVideos($assessment->getType() ?? 'general', $riskLevel);
-        $playlists   = $this->spotifyService->fetchPlaylists($assessment->getType() ?? 'general', $riskLevel);
-        $meditations = $this->meditationService->getSessions($assessment->getType() ?? 'general', $riskLevel);
+        $videos = $this->youtubeService->fetchVideos($assessment->getType() ?? 'general', $riskLevel);
 
         return $this->render('result/show.html.twig', [
-            'result'        => $result,
-            'aiAnalysis'    => $aiAnalysis,
-            'assessment'    => $assessment,
-            'user'          => $user,
-            'videos'        => $videos,
-            'playlists'     => $playlists,
-            'meditations'   => $meditations,
-            'sentimentData' => $sentimentData,
-            'freeText'      => $freeText,
+            'result'     => $result,
+            'aiAnalysis' => $aiAnalysis,
+            'assessment' => $assessment,
+            'user'       => $user,
+            'videos'     => $videos,
         ]);
     }
 
+    // ── USER STATISTICS / PROGRESS DASHBOARD ─────────────────────
     #[Route('/stats/{userId}', name: 'result_stats', methods: ['GET'])]
     public function stats(int $userId, UserRepository $userRepo): Response
     {
-        $currentUser = $this->getCurrentUser();
-
-        if ($this->isPatient() && $currentUser !== null
-            && $currentUser->getId() !== $userId) {
-
-            $this->addFlash('error', 'You can only view your own statistics.');
-            return $this->redirectToRoute('result_index');
-        }
-
         $results = $this->resultRepo->findByUser($userId);
         $user    = $userRepo->find($userId);
 
@@ -288,6 +204,7 @@ class AssessmentResultController extends AbstractController
         ]);
     }
 
+    // ── EXPORT PDF ────────────────────────────────────────────────
     #[Route('/{id}/export-pdf', name: 'result_export_pdf', methods: ['GET'])]
     public function exportPdf(int $id): Response
     {
@@ -297,19 +214,18 @@ class AssessmentResultController extends AbstractController
             throw $this->createNotFoundException('Result not found');
         }
 
-        if ($this->isPatient() && !$this->resultBelongsToCurrentUser($result)) {
-            $this->addFlash('error', 'You can only export your own results.');
-            return $this->redirectToRoute('result_index');
-        }
-
-        $user        = $result->getUser();
-        $assessment  = $result->getAssessment();
-        $aiAnalysis  = $result->getInterpretation() ?? '';
+        $user       = $result->getUser();
+        $assessment = $result->getAssessment();
+        
+        // Get AI analysis - you might want to fetch this from somewhere
+        // For now, we'll use an empty string or fetch from result if stored
+        $aiAnalysis = $result->getInterpretation() ?? '';
 
         $pdfContent = $this->pdfExportService->generateResultPdf(
             $result, $aiAnalysis, $user, $assessment
         );
 
+        // FIXED: Use getResultId() instead of getId()
         $filename = 'mentis-result-' . $result->getResultId() . '-' . date('Ymd') . '.pdf';
 
         return new Response($pdfContent, 200, [
@@ -319,6 +235,7 @@ class AssessmentResultController extends AbstractController
         ]);
     }
 
+    // ── DELETE ────────────────────────────────────────────────────
     #[Route('/{id}/delete', name: 'result_delete', methods: ['POST'])]
     public function delete(int $id): Response
     {
@@ -328,11 +245,6 @@ class AssessmentResultController extends AbstractController
             throw $this->createNotFoundException('Result not found');
         }
 
-        if ($this->isPatient() && !$this->resultBelongsToCurrentUser($result)) {
-            $this->addFlash('error', 'You can only delete your own results.');
-            return $this->redirectToRoute('result_index');
-        }
-
         $this->em->remove($result);
         $this->em->flush();
 
@@ -340,6 +252,7 @@ class AssessmentResultController extends AbstractController
         return $this->redirectToRoute('result_index');
     }
 
+    // ── VIEW SINGLE RESULT ────────────────────────────────────────
     #[Route('/{id}', name: 'result_show', methods: ['GET'])]
     public function show(int $id): Response
     {
@@ -349,47 +262,34 @@ class AssessmentResultController extends AbstractController
             throw $this->createNotFoundException('Result not found');
         }
 
-        if ($this->isPatient() && !$this->resultBelongsToCurrentUser($result)) {
-            $this->addFlash('error', 'You can only view your own results.');
-            return $this->redirectToRoute('result_index');
-        }
-
-        $user        = $result->getUser();
-        $assessment  = $result->getAssessment();
-        $riskLevel   = $result->getRiskLevel() ?? 'low';
-        $type        = $assessment?->getType() ?? 'general';
-
-        $videos      = $this->youtubeService->fetchVideos($type, $riskLevel);
-        $playlists   = $this->spotifyService->fetchPlaylists($type, $riskLevel);
-        $meditations = $this->meditationService->getSessions($type, $riskLevel);
+        $user   = $result->getUser();
+        $videos = $this->youtubeService->fetchVideos(
+            $result->getAssessment()?->getType() ?? 'general',
+            $result->getRiskLevel() ?? 'low'
+        );
 
         return $this->render('result/show.html.twig', [
-            'result'        => $result,
-            'aiAnalysis'    => $result->getInterpretation() ?? '',
-            'assessment'    => $assessment,
-            'user'          => $user,
-            'videos'        => $videos,
-            'playlists'     => $playlists,
-            'meditations'   => $meditations,
-            'sentimentData' => [],
-            'freeText'      => '',
+            'result'     => $result,
+            'aiAnalysis' => $result->getInterpretation() ?? '',
+            'assessment' => $result->getAssessment(),
+            'user'       => $user,
+            'videos'     => $videos,
         ]);
     }
 
-    // ═══════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════
     //  PRIVATE HELPERS
-    // ═══════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════
 
     private function generateAIAnalysis(array $questions, array $scores, array $originalAnswers, int $totalScore, string $riskLevel): string
-{
-    try {
-        $prompt = $this->buildGroqPrompt($questions, $scores, $originalAnswers, $totalScore, $riskLevel);
-        // Use generateAnalysis() NOT generateContent()
-        return $this->groqService->generateAnalysis($prompt);
-    } catch (\Exception $e) {
-        return $this->generateRuleBasedAnalysis($questions, $scores, $originalAnswers, $totalScore, $riskLevel);
+    {
+        try {
+            $prompt = $this->buildGroqPrompt($questions, $scores, $originalAnswers, $totalScore, $riskLevel);
+            return $this->groqService->generateContent($prompt);
+        } catch (\Exception $e) {
+            return $this->generateRuleBasedAnalysis($questions, $scores, $originalAnswers, $totalScore, $riskLevel);
+        }
     }
-}
 
     private function buildGroqPrompt(array $questions, array $scores, array $originalAnswers, int $totalScore, string $riskLevel): string
     {
@@ -428,10 +328,7 @@ class AssessmentResultController extends AbstractController
         $averageScore = count($questions) > 0 ? $totalScore / count($questions) : 0;
 
         $analysis  = "OVERALL SUMMARY\n\n";
-        $analysis .= sprintf(
-            "You completed %d questions with a total score of %d out of %d points (%.0f%%). ",
-            count($questions), $totalScore, $maxPossible, $percentage
-        );
+        $analysis .= sprintf("You completed %d questions with a total score of %d out of %d points (%.0f%%). ", count($questions), $totalScore, $maxPossible, $percentage);
         $analysis .= "Your overall risk level has been assessed as: " . strtoupper($riskLevel) . ".\n\n";
 
         if ($averageScore <= 1.0) {
@@ -493,10 +390,10 @@ class AssessmentResultController extends AbstractController
         if (is_numeric(trim($answer))) return (int)trim($answer);
 
         if (str_contains($answerLower, 'always') || str_contains($answerLower, 'very often') || str_contains($answerLower, 'nearly every day')) return 4;
-        if (str_contains($answerLower, 'often')  || str_contains($answerLower, 'frequently')  || str_contains($answerLower, 'more than half'))   return 3;
-        if (str_contains($answerLower, 'sometimes') || str_contains($answerLower, 'occasionally') || str_contains($answerLower, 'moderate'))      return 2;
-        if (str_contains($answerLower, 'rarely') || str_contains($answerLower, 'seldom')   || str_contains($answerLower, 'a little'))             return 1;
-        if (str_contains($answerLower, 'never')  || str_contains($answerLower, 'not at all'))                                                     return 0;
+        if (str_contains($answerLower, 'often') || str_contains($answerLower, 'frequently') || str_contains($answerLower, 'more than half')) return 3;
+        if (str_contains($answerLower, 'sometimes') || str_contains($answerLower, 'occasionally') || str_contains($answerLower, 'moderate')) return 2;
+        if (str_contains($answerLower, 'rarely') || str_contains($answerLower, 'seldom') || str_contains($answerLower, 'a little')) return 1;
+        if (str_contains($answerLower, 'never') || str_contains($answerLower, 'not at all')) return 0;
         if (str_contains($answerLower, 'yes')) return 1;
         if (str_contains($answerLower, 'no'))  return 0;
 
@@ -506,7 +403,7 @@ class AssessmentResultController extends AbstractController
     private function generateInterpretation(string $riskLevel): string
     {
         return match(strtolower($riskLevel)) {
-            'low', 'minimal'   => 'Your scores indicate minimal concerns. Please review your AI analysis for personalized insights.',
+            'low', 'minimal'   => 'Your scores indicate minimal concerns in this area. Please review your AI analysis for personalized insights.',
             'moderate', 'mild' => 'Your scores suggest some areas that may need attention. Please review your AI analysis for personalized insights.',
             'high', 'severe'   => 'Your scores indicate significant concerns that should be addressed. Please review your AI analysis for personalized insights.',
             default            => 'Assessment completed. Please review your AI analysis for personalized insights.',

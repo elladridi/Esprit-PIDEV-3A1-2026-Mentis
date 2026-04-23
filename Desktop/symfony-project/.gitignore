@@ -61,7 +61,3 @@ composer.lock
 
 # Z.ai configuration
 .z-ai-config
-.env
-.env.local
-.env.*.local
-.env.*.dev

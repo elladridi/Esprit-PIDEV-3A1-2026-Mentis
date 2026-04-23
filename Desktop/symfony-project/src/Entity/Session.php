@@ -18,13 +18,13 @@ class Session
     #[ORM\Column(name: 'title', type: 'string', length: 255)]
     private ?string $title = null;
 
-    #[ORM\Column(name: 'session_date', type: 'date')]
+    #[ORM\Column(name: 'session_date', type: 'date', nullable: true)]
     private ?\DateTimeInterface $sessionDate = null;
 
-    #[ORM\Column(name: 'start_time', type: 'time')]
+    #[ORM\Column(name: 'start_time', type: 'time', nullable: true)]
     private ?\DateTimeInterface $startTime = null;
 
-    #[ORM\Column(name: 'end_time', type: 'time')]
+    #[ORM\Column(name: 'end_time', type: 'time', nullable: true)]
     private ?\DateTimeInterface $endTime = null;
 
     #[ORM\Column(name: 'location', type: 'string', length: 255)]
@@ -54,10 +54,15 @@ class Session
     #[ORM\Column(name: 'meeting_link', type: 'string', length: 500, nullable: true)]
     private ?string $meetingLink = null;
 
+    #[ORM\Column(name: 'meeting_room_name', type: 'string', length: 255, nullable: true)]
+    private ?string $meetingRoomName = null;
+
+    #[ORM\Column(name: 'meeting_created_at', type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $meetingCreatedAt = null;
+
     #[ORM\Column(name: 'meeting_started', type: 'boolean', nullable: true, options: ['default' => 0])]
     private ?bool $meetingStarted = false;
 
-    // FIXED: Changed from 'meeting_end' to 'meeting_ended'
     #[ORM\Column(name: 'meeting_ended', type: 'boolean', nullable: true, options: ['default' => 0])]
     private ?bool $meetingEnd = false;
 
@@ -78,6 +83,9 @@ class Session
 
     #[ORM\Column(name: 'price', type: 'decimal', precision: 10, scale: 2, nullable: true, options: ['default' => '0.00'])]
     private ?string $price = '0.00';
+
+    #[ORM\Column(name: 'qr_code', type: 'text', nullable: true)]
+    private ?string $qrCode = null;
 
     // ========== CONSTRUCTOR ==========
     
@@ -112,6 +120,8 @@ class Session
     public function getPopularity(): ?int { return $this->popularity; }
     public function getAverageRating(): ?float { return $this->averageRating; }
     public function getMeetingLink(): ?string { return $this->meetingLink; }
+    public function getMeetingRoomName(): ?string { return $this->meetingRoomName; }
+    public function getMeetingCreatedAt(): ?\DateTimeInterface { return $this->meetingCreatedAt; }
     public function isMeetingStarted(): ?bool { return $this->meetingStarted; }
     public function isMeetingEnd(): ?bool { return $this->meetingEnd; }
     public function isReminderSent(): ?bool { return $this->reminderSent; }
@@ -120,14 +130,15 @@ class Session
     public function getMaxParticipants(): ?int { return $this->maxParticipants; }
     public function getCurrentParticipants(): ?int { return $this->currentParticipants; }
     public function getPrice(): ?string { return $this->price; }
+    public function getQrCode(): ?string { return $this->qrCode; }
 
     // ========== SETTERS ==========
 
     public function setSessionId(int $sessionId): self { $this->sessionId = $sessionId; return $this; }
     public function setTitle(string $title): self { $this->title = $title; return $this; }
-    public function setSessionDate(\DateTimeInterface $sessionDate): self { $this->sessionDate = $sessionDate; return $this; }
-    public function setStartTime(\DateTimeInterface $startTime): self { $this->startTime = $startTime; return $this; }
-    public function setEndTime(\DateTimeInterface $endTime): self { $this->endTime = $endTime; return $this; }
+    public function setSessionDate(?\DateTimeInterface $sessionDate): self { $this->sessionDate = $sessionDate; return $this; }
+    public function setStartTime(?\DateTimeInterface $startTime): self { $this->startTime = $startTime; return $this; }
+    public function setEndTime(?\DateTimeInterface $endTime): self { $this->endTime = $endTime; return $this; }
     public function setLocation(string $location): self { $this->location = $location; return $this; }
     public function setSessionType(string $sessionType): self { $this->sessionType = $sessionType; return $this; }
     public function setStatus(?string $status): self { $this->status = $status; return $this; }
@@ -137,6 +148,8 @@ class Session
     public function setPopularity(int $popularity): self { $this->popularity = $popularity; return $this; }
     public function setAverageRating(float $averageRating): self { $this->averageRating = $averageRating; return $this; }
     public function setMeetingLink(?string $meetingLink): self { $this->meetingLink = $meetingLink; return $this; }
+    public function setMeetingRoomName(?string $meetingRoomName): self { $this->meetingRoomName = $meetingRoomName; return $this; }
+    public function setMeetingCreatedAt(?\DateTimeInterface $meetingCreatedAt): self { $this->meetingCreatedAt = $meetingCreatedAt; return $this; }
     public function setMeetingStarted(bool $meetingStarted): self { $this->meetingStarted = $meetingStarted; return $this; }
     public function setMeetingEnd(bool $meetingEnd): self { $this->meetingEnd = $meetingEnd; return $this; }
     public function setReminderSent(bool $reminderSent): self { $this->reminderSent = $reminderSent; return $this; }
@@ -145,6 +158,7 @@ class Session
     public function setMaxParticipants(int $maxParticipants): self { $this->maxParticipants = $maxParticipants; return $this; }
     public function setCurrentParticipants(int $currentParticipants): self { $this->currentParticipants = $currentParticipants; return $this; }
     public function setPrice(string $price): self { $this->price = $price; return $this; }
+    public function setQrCode(?string $qrCode): self { $this->qrCode = $qrCode; return $this; }
 
     // ========== HELPER METHODS ==========
 
@@ -194,5 +208,15 @@ class Session
     public function getRemainingSpots(): int
     {
         return $this->maxParticipants - $this->currentParticipants;
+    }
+
+    public function hasMeeting(): bool
+    {
+        return $this->meetingLink !== null && $this->meetingRoomName !== null;
+    }
+
+    public function canCreateMeeting(): bool
+    {
+        return $this->reservedBy !== null && $this->meetingLink === null;
     }
 }
