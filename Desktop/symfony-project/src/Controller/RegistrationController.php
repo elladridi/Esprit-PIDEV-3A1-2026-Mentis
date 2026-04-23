@@ -32,7 +32,7 @@ class RegistrationController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
 
-            // ── STEP 1: Hash password FIRST ───────────────────────────────
+            // ── STEP 1: Hash password ─────────────────────────────────────
             $user->setPassword(
                 $userPasswordHasher->hashPassword(
                     $user,
@@ -54,7 +54,7 @@ class RegistrationController extends AbstractController
                     $cvFile->move($tempDir, $tempFileName);
                     $tempFilePath = $tempDir . $tempFileName;
 
-                    $cvText  = $this->extractTextFromPDF($tempFilePath);
+                    $cvText   = $this->extractTextFromPDF($tempFilePath);
                     $analysis = $this->analyzeCVWithZai($cvText);
 
                     @unlink($tempFilePath);
@@ -115,79 +115,14 @@ class RegistrationController extends AbstractController
                 }
             }
 
-            // ── STEP 3: Persist user (need ID before face processing) ─────
+            // ── STEP 3: Persist user ──────────────────────────────────────
             $entityManager->persist($user);
             $entityManager->flush();
 
-            // ── STEP 4: Face ID (optional) ────────────────────────────────
-            $faceSamplesJson = $request->request->get('face_samples');
-
-            if ($faceSamplesJson && !empty($faceSamplesJson)) {
-                $samples = json_decode($faceSamplesJson, true);
-
-                if (is_array($samples) && count($samples) >= 3) {
-
-                    $projectDir = $this->getParameter('kernel.project_dir');
-                    $facesDir   = $projectDir . DIRECTORY_SEPARATOR . 'public'
-                                . DIRECTORY_SEPARATOR . 'uploads'
-                                . DIRECTORY_SEPARATOR . 'faces'
-                                . DIRECTORY_SEPARATOR;
-
-                    $userDir = $facesDir . $user->getId() . DIRECTORY_SEPARATOR;
-                    if (!is_dir($userDir)) {
-                        mkdir($userDir, 0755, true);
-                    }
-
-                    $savedCount = 0;
-                    foreach ($samples as $sampleData) {
-                        if (str_contains($sampleData, 'base64,')) {
-                            $sampleData = explode('base64,', $sampleData)[1];
-                        }
-
-                        $imageData = base64_decode($sampleData);
-                        if (!$imageData || strlen($imageData) < 1000) continue;
-
-                        $tempName = 'reg_tmp_' . uniqid() . '.jpg';
-                        $tempPath = $facesDir . $tempName;
-                        file_put_contents($tempPath, $imageData);
-
-                        $scriptPath  = $projectDir . DIRECTORY_SEPARATOR . 'scripts' . DIRECTORY_SEPARATOR . 'face.py';
-                        $cascadePath = $projectDir . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'haarcascade_frontalface_default.xml';
-                        $python      = 'C:\\Users\\DELL\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe';
-
-                        $cmd    = sprintf('"%s" "%s" detect "%s" "%s" 2>&1', $python, $scriptPath, $tempPath, $cascadePath);
-                        $output = shell_exec($cmd);
-                        @unlink($tempPath);
-
-                        if (!$output) continue;
-
-                        $lines     = array_filter(array_map('trim', explode("\n", $output)));
-                        $detection = json_decode(end($lines), true);
-
-                        if (!($detection['face_detected'] ?? false)) continue;
-
-                        $processedPath = $detection['processed_path'] ?? '';
-                        if (!file_exists($processedPath)) continue;
-
-                        rename($processedPath, $userDir . 'sample_' . $savedCount . '.jpg');
-                        $savedCount++;
-                    }
-
-                    if ($savedCount >= 3) {
-                        $user->setFaceEnabled(true);
-                        if (method_exists($user, 'setFaceRegisteredAt')) {
-                            $user->setFaceRegisteredAt(new \DateTime());
-                        }
-                        $entityManager->flush();
-                        $this->addFlash('success', '✓ Face ID registered successfully!');
-                    } else {
-                        $this->addFlash('warning', "Only $savedCount face samples were valid. Face ID not enabled.");
-                    }
-                }
-            }
-
-            // ── STEP 5: Always redirect from one place ────────────────────
+            // ── STEP 4: Redirect with Face ID tip ────────────────────────
             $this->addFlash('success', 'Registration successful! Please login.');
+            $this->addFlash('info', '🔐 Tip: You can enable Face ID login from your dashboard after logging in for faster and more secure access.');
+
             return $this->redirectToRoute('app_login');
         }
 
@@ -215,7 +150,7 @@ class RegistrationController extends AbstractController
             $cvFile->move($tempDir, $tempFileName);
             $tempFilePath = $tempDir . $tempFileName;
 
-            $cvText  = $this->extractTextFromPDF($tempFilePath);
+            $cvText   = $this->extractTextFromPDF($tempFilePath);
             $analysis = $this->analyzeCVWithZai($cvText);
 
             @unlink($tempFilePath);
@@ -236,7 +171,6 @@ class RegistrationController extends AbstractController
 
     private function extractTextFromPDF(string $pdfPath): string
     {
-        // Strategy 1: smalot/pdf-parser (preserves line breaks — important for name extraction)
         if (class_exists('Smalot\PdfParser\Parser')) {
             try {
                 $parser = new Parser();
@@ -255,7 +189,6 @@ class RegistrationController extends AbstractController
             }
         }
 
-        // Strategy 2: pdftotext CLI (best quality, preserves layout)
         if (function_exists('shell_exec')) {
             $commands = [
                 'pdftotext -layout ' . escapeshellarg($pdfPath) . ' - 2>/dev/null',
@@ -269,7 +202,6 @@ class RegistrationController extends AbstractController
             }
         }
 
-        // Strategy 3: raw PDF string extraction (last resort)
         $content = file_get_contents($pdfPath);
         if ($content) {
             preg_match_all('/\(([^)]+)\)/', $content, $matches);
@@ -289,7 +221,6 @@ class RegistrationController extends AbstractController
 
     private function analyzeCVWithZai(string $cvText): array
     {
-        // ── CLEAN: strip PDF font garbage (cid:xxx) injected by smalot ───
         $text      = preg_replace('/\(cid:\d+\)\s*/i', '', $cvText);
         $lines     = array_values(array_filter(array_map('trim', explode("\n", $text))));
         $textLower = mb_strtolower($text);
@@ -298,11 +229,9 @@ class RegistrationController extends AbstractController
         $email    = '';
         $emailPat = '/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/';
 
-        // 1. Labeled: "Email: x@y.com"
         if (preg_match('/(?:email|e-mail|courriel)\s*[:\s]\s*(' . substr($emailPat, 1, -1) . ')/i', $text, $m)) {
             $email = $m[1];
         }
-        // 2. Line-by-line, split on | , ; — strip spaces per part (fixes smalot corruption)
         if (empty($email)) {
             foreach ($lines as $line) {
                 foreach (preg_split('/[|,;]/', $line) as $part) {
@@ -317,7 +246,6 @@ class RegistrationController extends AbstractController
                 }
             }
         }
-        // 3. Bare fallback
         if (empty($email) && preg_match($emailPat, $text, $m)) {
             $email = $m[0];
         }
@@ -363,24 +291,24 @@ class RegistrationController extends AbstractController
 
             $hasSkip = false;
             foreach ($words as $w) {
-                if (in_array(rtrim(strtolower($w), 's'), $skipWords)) { $hasSkip = true; break; }
+                if (in_array(rtrim(strtolower($w), 's'), $skipWords)) {
+                    $hasSkip = true;
+                    break;
+                }
             }
             if ($hasSkip) continue;
             if (!$onlyAlphaHyphen($cl)) continue;
 
-            // ALL CAPS
             if ($cl === mb_strtoupper($cl)) {
                 $firstName = mb_convert_case($words[0], MB_CASE_TITLE, 'UTF-8');
                 $lastName  = implode(' ', array_map(fn($w) => mb_convert_case($w, MB_CASE_TITLE, 'UTF-8'), array_slice($words, 1)));
                 break;
             }
-            // Title Case
             if (mb_strtoupper($cl[0]) === $cl[0]) {
                 $firstName = $words[0];
                 $lastName  = implode(' ', array_slice($words, 1));
                 break;
             }
-            // lowercase
             if ($cl === mb_strtolower($cl)) {
                 $firstName = mb_convert_case($words[0], MB_CASE_TITLE, 'UTF-8');
                 $lastName  = implode(' ', array_map(fn($w) => mb_convert_case($w, MB_CASE_TITLE, 'UTF-8'), array_slice($words, 1)));
@@ -388,7 +316,6 @@ class RegistrationController extends AbstractController
             }
         }
 
-        // Labeled fallback: "Name: First Last"
         if (empty($firstName)) {
             if (preg_match('/(?:name|full\s*name|nom(?:\s*complet)?)\s*[:\s]\s*(\S+)\s+(\S+)/i', $text, $m)) {
                 if ($onlyAlphaHyphen($m[1] . $m[2])) {
@@ -421,18 +348,28 @@ class RegistrationController extends AbstractController
         // ── GENDER ────────────────────────────────────────────────────────
         $gender    = '';
         $genderMap = [
-            'female' => 'female', 'femme' => 'female', 'féminin' => 'female',
-            ' male ' => 'male', 'masculin' => 'male', ' homme ' => 'male',
+            'female'   => 'female',
+            'femme'    => 'female',
+            'féminin'  => 'female',
+            ' male '   => 'male',
+            'masculin' => 'male',
+            ' homme '  => 'male',
         ];
         foreach ($genderMap as $keyword => $value) {
-            if (str_contains($textLower, $keyword)) { $gender = $value; break; }
+            if (str_contains($textLower, $keyword)) {
+                $gender = $value;
+                break;
+            }
         }
 
         // ── PSYCHOLOGY VALIDATION ─────────────────────────────────────────
         $degreeKeywords = ['master', 'phd', 'doctorate', 'doctorat', "master's", 'masters', 'maîtrise', 'doctor'];
         $degreeFound    = false;
         foreach ($degreeKeywords as $kw) {
-            if (str_contains($textLower, $kw)) { $degreeFound = true; break; }
+            if (str_contains($textLower, $kw)) {
+                $degreeFound = true;
+                break;
+            }
         }
 
         $experienceYears = 0;
@@ -443,7 +380,9 @@ class RegistrationController extends AbstractController
         $specKeywords    = ['cbt' => 'CBT', 'clinical' => 'Clinical', 'therapy' => 'Therapy'];
         $specializations = [];
         foreach ($specKeywords as $kw => $label) {
-            if (str_contains($textLower, $kw)) $specializations[] = $label;
+            if (str_contains($textLower, $kw)) {
+                $specializations[] = $label;
+            }
         }
         $specializations = array_unique($specializations);
 
@@ -455,8 +394,12 @@ class RegistrationController extends AbstractController
         );
 
         $missing = [];
-        if (!$degreeFound)              $missing[] = 'Master or PhD degree in Psychology';
-        if ($experienceYears < $minExp) $missing[] = "Minimum {$minExp} years experience (found: {$experienceYears})";
+        if (!$degreeFound) {
+            $missing[] = 'Master or PhD degree in Psychology';
+        }
+        if ($experienceYears < $minExp) {
+            $missing[] = "Minimum {$minExp} years experience (found: {$experienceYears})";
+        }
 
         return [
             'firstname'            => $firstName,

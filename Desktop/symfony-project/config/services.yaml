@@ -21,7 +21,22 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
+    filesystem.original.adapter:
+        class: League\Flysystem\Local\LocalFilesystemAdapter
+        arguments: ['%kernel.project_dir%/public/uploads/faces/original']
 
+    filesystem.original.storage:
+        class: League\Flysystem\Filesystem
+        arguments: ['@filesystem.original.adapter']
+
+    # Processed images storage
+    filesystem.cache.adapter:
+        class: League\Flysystem\Local\LocalFilesystemAdapter
+        arguments: ['%kernel.project_dir%/public/uploads/faces/cache']
+
+    filesystem.cache.storage:
+        class: League\Flysystem\Filesystem
+        arguments: ['@filesystem.cache.adapter']
     # Explicit service configuration for EmailNotificationService
     App\Service\EmailNotificationService:
         arguments:

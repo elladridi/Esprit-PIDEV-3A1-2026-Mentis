@@ -20,6 +20,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Service\BadgeService;
+
 
 #[Route('/result')]
 class AssessmentResultController extends AbstractController
@@ -134,92 +136,129 @@ class AssessmentResultController extends AbstractController
     }
 
     #[Route('/submit', name: 'result_submit', methods: ['POST'])]
-    public function submit(Request $request, UserRepository $userRepo): Response
-    {
-        $userId       = $request->request->get('user_id');
-        $assessmentId = $request->request->get('assessment_id');
-        $answers      = $request->request->all('answers');
-        $freeText     = trim($request->request->get('free_text', ''));
+public function submit(Request $request, UserRepository $userRepo, BadgeService $badgeService): Response
+{
+    $userId       = $request->request->get('user_id');
+    $assessmentId = $request->request->get('assessment_id');
+    $answers      = $request->request->all('answers');
+    $freeText     = trim($request->request->get('free_text', ''));
 
-        $assessment = $this->assessmentRepo->find($assessmentId);
-        if (!$assessment) {
-            $this->addFlash('error', 'Assessment not found');
-            return $this->redirectToRoute('take_assessment_index');
-        }
+    $assessment = $this->assessmentRepo->find($assessmentId);
+    if (!$assessment) {
+        $this->addFlash('error', 'Assessment not found');
+        return $this->redirectToRoute('take_assessment_index');
+    }
 
-        $questions = $this->questionRepo->findByAssessment($assessmentId);
+    $questions = $this->questionRepo->findByAssessment($assessmentId);
 
-        $scores          = [];
-        $originalAnswers = [];
-        $totalScore      = 0;
+    $scores          = [];
+    $originalAnswers = [];
+    $totalScore      = 0;
 
-        foreach ($questions as $question) {
-            $qId                   = $question->getQuestionId();
-            $answer                = $answers[$qId] ?? '';
-            $score                 = $this->parseAnswerToScore($answer, $question->getScale());
-            $scores[$qId]          = $score;
-            $originalAnswers[$qId] = $answer;
-            $totalScore           += $score;
-        }
+    foreach ($questions as $question) {
+        $qId                   = $question->getQuestionId();
+        $answer                = $answers[$qId] ?? '';
+        $score                 = $this->parseAnswerToScore($answer, $question->getScale());
+        $scores[$qId]          = $score;
+        $originalAnswers[$qId] = $answer;
+        $totalScore           += $score;
+    }
 
-        $riskLevel      = $this->determineRiskLevel($totalScore, (int)$assessmentId);
-        $aiAnalysis     = $this->generateAIAnalysis($questions, $scores, $originalAnswers, $totalScore, $riskLevel);
-        $interpretation = $this->generateInterpretation($riskLevel);
-        $suggestSession = $this->shouldSuggestSession($riskLevel, $aiAnalysis);
+    $riskLevel      = $this->determineRiskLevel($totalScore, (int)$assessmentId);
+    $aiAnalysis     = $this->generateAIAnalysis($questions, $scores, $originalAnswers, $totalScore, $riskLevel);
+    $interpretation = $this->generateInterpretation($riskLevel);
+    $suggestSession = $this->shouldSuggestSession($riskLevel, $aiAnalysis);
 
-        $sentimentData = [];
-        if (!empty($freeText)) {
-            try {
-                $sentimentData = $this->groqService->analyzeSentiment($freeText);
+    $sentimentData = [];
+    if (!empty($freeText)) {
+        try {
+            $sentimentData = $this->groqService->analyzeSentiment($freeText);
 
-                if (!empty($sentimentData['crisis_detected'])) {
-                    $suggestSession = true;
-                    if (!in_array(strtolower($riskLevel), ['high', 'severe'])) {
-                        $riskLevel = 'High';
-                    }
+            if (!empty($sentimentData['crisis_detected'])) {
+                $suggestSession = true;
+                if (!in_array(strtolower($riskLevel), ['high', 'severe'])) {
+                    $riskLevel = 'High';
                 }
-            } catch (\Exception $e) {
-                $sentimentData = [];
+            }
+        } catch (\Exception $e) {
+            $sentimentData = [];
+        }
+    }
+
+    $recommendedContent = $this->generateRecommendedContent($riskLevel, $aiAnalysis);
+
+    $result = new AssessmentResult();
+    $user   = $this->em->getRepository(User::class)->find((int)$userId);
+    $result->setUser($user);
+    $result->setAssessment($assessment);
+    $result->setTotalScore($totalScore);
+    $result->setRiskLevel($riskLevel);
+    $result->setInterpretation($interpretation);
+    $result->setRecommendedContent($recommendedContent);
+    $result->setSuggestSession($suggestSession);
+    $result->setTakenAt(new \DateTime());
+
+    $this->em->persist($result);
+    $this->em->flush();
+
+    // ── ADD CRISIS ALERT IF HIGH RISK ─────────────────
+    if (in_array(strtolower($riskLevel), ['high', 'severe', 'critical'])) {
+        $this->crisisAlertService->addCrisisAlert($result);
+    }
+
+    // ==================== BADGE NOTIFICATION ====================
+    // Check for newly earned badges
+    $oldBadges = $badgeService->getUserBadges($user);
+    $oldEarnedCount = $badgeService->getEarnedCount($user);
+    
+    // Refresh entity to get latest data (in case assessment count changed)
+    $this->em->refresh($user);
+    
+    $newBadges = $badgeService->getUserBadges($user);
+    $newEarnedCount = $badgeService->getEarnedCount($user);
+    
+    // Find newly earned badges
+    $newlyEarned = [];
+    foreach ($newBadges as $newBadge) {
+        if ($newBadge['earned']) {
+            $found = false;
+            foreach ($oldBadges as $oldBadge) {
+                if ($oldBadge['id'] === $newBadge['id'] && $oldBadge['earned']) {
+                    $found = true;
+                    break;
+                }
+            }
+            if (!$found) {
+                $newlyEarned[] = $newBadge;
             }
         }
-
-        $recommendedContent = $this->generateRecommendedContent($riskLevel, $aiAnalysis);
-
-        $result = new AssessmentResult();
-        $user   = $this->em->getRepository(User::class)->find((int)$userId);
-        $result->setUser($user);
-        $result->setAssessment($assessment);
-        $result->setTotalScore($totalScore);
-        $result->setRiskLevel($riskLevel);
-        $result->setInterpretation($interpretation);
-        $result->setRecommendedContent($recommendedContent);
-        $result->setSuggestSession($suggestSession);
-        $result->setTakenAt(new \DateTime());
-
-        $this->em->persist($result);
-        $this->em->flush();
-
-        // ── ADD CRISIS ALERT IF HIGH RISK ─────────────────
-        if (in_array(strtolower($riskLevel), ['high', 'severe', 'critical'])) {
-            $this->crisisAlertService->addCrisisAlert($result);
-        }
-
-        $videos      = $this->youtubeService->fetchVideos($assessment->getType() ?? 'general', $riskLevel);
-        $playlists   = $this->spotifyService->fetchPlaylists($assessment->getType() ?? 'general', $riskLevel);
-        $meditations = $this->meditationService->getSessions($assessment->getType() ?? 'general', $riskLevel);
-
-        return $this->render('result/show.html.twig', [
-            'result'        => $result,
-            'aiAnalysis'    => $aiAnalysis,
-            'assessment'    => $assessment,
-            'user'          => $user,
-            'videos'        => $videos,
-            'playlists'     => $playlists,
-            'meditations'   => $meditations,
-            'sentimentData' => $sentimentData,
-            'freeText'      => $freeText,
-        ]);
     }
+    
+    // Store in session for notification
+    if (!empty($newlyEarned)) {
+        $session = $request->getSession();
+        $session->set('new_badges_earned', $newlyEarned);
+        $this->addFlash('badge_success', '🎉 Congratulations! You earned new achievements!');
+    }
+    // ==================== END BADGE NOTIFICATION ====================
+
+    $videos      = $this->youtubeService->fetchVideos($assessment->getType() ?? 'general', $riskLevel);
+    $playlists   = $this->spotifyService->fetchPlaylists($assessment->getType() ?? 'general', $riskLevel);
+    $meditations = $this->meditationService->getSessions($assessment->getType() ?? 'general', $riskLevel);
+
+    return $this->render('result/show.html.twig', [
+        'result'        => $result,
+        'aiAnalysis'    => $aiAnalysis,
+        'assessment'    => $assessment,
+        'user'          => $user,
+        'videos'        => $videos,
+        'playlists'     => $playlists,
+        'meditations'   => $meditations,
+        'sentimentData' => $sentimentData,
+        'freeText'      => $freeText,
+        'newlyEarnedBadges' => $newlyEarned, // Pass to template for immediate display
+    ]);
+}
 
     #[Route('/stats/{userId}', name: 'result_stats', methods: ['GET'])]
     public function stats(int $userId, UserRepository $userRepo): Response

@@ -3,88 +3,177 @@
 {% block title %}Admin Dashboard - Mentis{% endblock %}
 
 {% block body %}
-<div class="container-lg py-4">
+<div class="admin-dashboard">
+    <div class="animated-bg"></div>
 
-    <!-- Welcome Section -->
-    <div class="app-hero mb-4">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h1 class="display-5 fw-bold">👋 Welcome, {{ user.firstname }}!</h1>
-                <p class="lead">Manage patients, psychologists, system settings, and security.</p>
-            </div>
-            <div>
-                <i class="bi bi-shield-lock fs-1" style="color: #50C878;"></i>
-            </div>
-        </div>
-    </div>
-
-    <!-- Security Dashboard Button -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow-sm border-0 overflow-hidden" style="background: linear-gradient(135deg, #50C878 0%, #2E7D32 100%); border-radius: 16px;">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="rounded-circle bg-white bg-opacity-25 p-3">
-                                <i class="bi bi-shield-lock-fill fs-1 text-white"></i>
-                            </div>
-                            <div>
-                                <h4 class="text-white mb-1 fw-bold">Security Dashboard</h4>
-                                <p class="text-white-50 mb-0">
-                                    <i class="bi bi-eye me-1"></i> Monitor suspicious activities & manage user bans
-                                </p>
+    <div class="container-lg py-4 position-relative">
+        <!-- Welcome -->
+        <div class="welcome-section mb-5">
+            <div class="glass-panel p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="welcome-badge">
+                            <span class="admin-rank">🎖️ MASTER ADMIN</span>
+                            <h1 class="display-4 fw-bold mt-2">
+                                Welcome back,
+                                <span class="gradient-text">{{ user.firstname }}!</span>
+                            </h1>
+                            <p class="text-white-50 mb-3">
+                                Empower minds, transform lives, and lead the wellness revolution.
+                            </p>
+                            <div class="admin-stats mt-3">
+                                <div class="stat-chip">
+                                    <i class="fas fa-calendar-alt"></i> {{ "now"|date("F j, Y") }}
+                                </div>
+                                <div class="stat-chip">
+                                    <i class="fas fa-clock"></i> {{ "now"|date("g:i A") }}
+                                </div>
                             </div>
                         </div>
-                        <div class="d-flex gap-3 align-items-center">
-                            <div class="text-center px-3 border-end border-white-50">
-                                <small class="text-white-50 d-block">Login Attempts</small>
-                                <strong class="text-white fs-4">{{ stats.total_attempts|default(0) }}</strong>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="admin-avatar">
+                            <div class="avatar-ring">
+                                <div class="avatar-inner">
+                                    <i class="fas fa-crown"></i>
+                                </div>
                             </div>
-                            <div class="text-center px-3 border-end border-white-50">
-                                <small class="text-white-50 d-block">Failed Attempts</small>
-                                <strong class="text-warning fs-4">{{ stats.failed_attempts|default(0) }}</strong>
-                            </div>
-                            <div class="text-center px-3">
-                                <small class="text-white-50 d-block">Banned Users</small>
-                                <strong class="text-danger fs-4">{{ bannedUsers|default([])|length }}</strong>
-                            </div>
-                            <a href="{{ path('admin_security_dashboard') }}" class="btn btn-light px-4 py-2 fw-bold rounded-pill">
-                                <i class="bi bi-box-arrow-up-right me-2"></i> Go to Dashboard
-                                <i class="bi bi-arrow-right ms-1"></i>
-                            </a>
+                            <div class="avatar-status online"></div>
                         </div>
                     </div>
                 </div>
-                <div style="height: 4px; background: linear-gradient(90deg, #FFD700, #FFA500, #FFD700); background-size: 200% 100%; animation: shimmer 2s infinite;"></div>
             </div>
         </div>
-    </div>
 
-    <!-- Patients Section -->
-    <div class="info-card p-0 bg-white overflow-hidden mb-4">
-        <div class="p-3 border-bottom d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #f8f9fa, #e9ecef);">
-            <h5 class="mb-0"><i class="bi bi-people me-2"></i> Patients Management</h5>
-            <a href="{{ path('app_admin_patient_new') }}" class="btn-modern btn-sm">
-                <i class="bi bi-plus-circle me-1"></i> Add Patient
+        <!-- KPI -->
+        <div class="kpi-grid mb-5">
+            <div class="kpi-card" data-target="{{ stats.total_attempts|default(0) }}">
+                <div class="kpi-icon bg-gradient-blue">
+                    <i class="fas fa-sign-in-alt"></i>
+                </div>
+                <div class="kpi-info">
+                    <h3 class="kpi-value counter" data-count="{{ stats.total_attempts|default(0) }}">0</h3>
+                    <p class="kpi-label">Total Login Attempts</p>
+                    <span class="trend up"><i class="fas fa-arrow-up"></i> +12%</span>
+                </div>
+                <div class="kpi-progress"><div class="progress-bar" style="width: 75%"></div></div>
+            </div>
+
+            <div class="kpi-card" data-target="{{ stats.failed_attempts|default(0) }}">
+                <div class="kpi-icon bg-gradient-red">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <div class="kpi-info">
+                    <h3 class="kpi-value counter" data-count="{{ stats.failed_attempts|default(0) }}">0</h3>
+                    <p class="kpi-label">Failed Attempts</p>
+                    <span class="trend down"><i class="fas fa-arrow-down"></i> -5%</span>
+                </div>
+                <div class="kpi-progress"><div class="progress-bar" style="width: 30%"></div></div>
+            </div>
+
+            <div class="kpi-card" data-target="{{ patients|length|default(0) }}">
+                <div class="kpi-icon bg-gradient-green">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="kpi-info">
+                    <h3 class="kpi-value counter" data-count="{{ patients|length|default(0) }}">0</h3>
+                    <p class="kpi-label">Active Patients</p>
+                    <span class="trend up"><i class="fas fa-arrow-up"></i> +8%</span>
+                </div>
+                <div class="kpi-progress"><div class="progress-bar" style="width: 85%"></div></div>
+            </div>
+
+            <div class="kpi-card" data-target="{{ bannedUsers|default([])|length }}">
+                <div class="kpi-icon bg-gradient-orange">
+                    <i class="fas fa-ban"></i>
+                </div>
+                <div class="kpi-info">
+                    <h3 class="kpi-value counter" data-count="{{ bannedUsers|default([])|length }}">0</h3>
+                    <p class="kpi-label">Banned Users</p>
+                    <span class="trend down"><i class="fas fa-arrow-down"></i> -2%</span>
+                </div>
+                <div class="kpi-progress"><div class="progress-bar" style="width: 15%"></div></div>
+            </div>
+        </div>
+
+        <!-- Security -->
+        <div class="security-card mb-3">
+            <div class="security-card-inner">
+                <div class="row align-items-center">
+                    <div class="col-md-7">
+                        <div class="security-content">
+                            <div class="security-badge">
+                                <i class="fas fa-shield-alt"></i> REAL-TIME PROTECTION
+                            </div>
+                            <h2 class="text-white mt-3 mb-2">Security Command Center</h2>
+                            <p class="text-white-70">
+                                Monitor suspicious activities, analyze login patterns, and manage user bans in real-time.
+                            </p>
+                            <div class="security-features mt-3">
+                                <span><i class="fas fa-check-circle"></i> Threat Detection</span>
+                                <span><i class="fas fa-check-circle"></i> Login Analytics</span>
+                                <span><i class="fas fa-check-circle"></i> Auto-ban System</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-5 text-center">
+                        <div class="security-stats">
+                            <div class="stat-circle">
+                                <div class="circle-value">{{ stats.failed_attempts|default(0) }}</div>
+                                <div class="circle-label">Threats Blocked</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="security-particles"></div>
+            </div>
+        </div>
+
+        <div class="text-center mb-5">
+            <a href="{{ path('admin_security_dashboard') }}" class="btn-security btn-large">
+                Launch Security Dashboard <i class="fas fa-arrow-right"></i>
+                <div class="btn-shine"></div>
             </a>
         </div>
 
-        <!-- Search and Filter Bar -->
-        <div class="p-3 bg-light border-bottom">
-            <div class="row g-2">
-                <div class="col-md-4">
-                    <input type="text" id="patientSearch" class="form-control" placeholder="🔍 Search by name, email, phone...">
+        <!-- Patients -->
+        <div class="section-card mb-4">
+            <div class="section-header">
+                <div class="header-left">
+                    <div class="header-icon">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0">Patient Wellness Hub</h3>
+                        <p class="text-muted small mb-0">Manage and monitor patient progress</p>
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <select id="patientGenderFilter" class="form-select">
+                <div class="header-right">
+                    <a href="{{ path('app_admin_patient_new') }}" class="btn-primary-modern">
+                        <i class="fas fa-plus-circle"></i> New Patient
+                    </a>
+                </div>
+            </div>
+
+            <div class="filters-panel">
+                <div class="filter-group">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="patientSearch" placeholder="Search patients..." class="filter-input">
+                </div>
+                <div class="filter-group">
+                    <i class="fas fa-venus-mars"></i>
+                    <select id="patientGenderFilter" class="filter-select">
                         <option value="">All Genders</option>
                         <option value="male">👨 Male</option>
                         <option value="female">👩 Female</option>
                         <option value="other">👤 Other</option>
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <select id="patientAgeFilter" class="form-select">
+                <div class="filter-group">
+                    <i class="fas fa-chart-line"></i>
+                    <select id="patientAgeFilter" class="filter-select">
                         <option value="">All Ages</option>
                         <option value="0-18">0-18 years</option>
                         <option value="19-30">19-30 years</option>
@@ -93,264 +182,298 @@
                         <option value="60+">60+ years</option>
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <button class="btn btn-secondary w-100" onclick="resetPatientFilters()">
-                        <i class="bi bi-arrow-repeat"></i> Reset
-                    </button>
+                <button onclick="resetPatientFilters()" class="btn-reset">
+                    <i class="fas fa-sync-alt"></i> Reset
+                </button>
+            </div>
+
+            <div class="stats-grid-modern" id="patientStats">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-details">
+                        <span class="stat-label">Total Patients</span>
+                        <h4 class="stat-number" id="patientTotal">0</h4>
+                    </div>
                 </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-details">
+                        <span class="stat-label">Average Age</span>
+                        <h4 class="stat-number" id="patientAvgAge">0</h4>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div class="stat-details">
+                        <span class="stat-label">Age Range</span>
+                        <h4 class="stat-number" id="patientAgeRange">0-0</h4>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
+                        <i class="fas fa-venus-mars"></i>
+                    </div>
+                    <div class="stat-details">
+                        <span class="stat-label">Gender Ratio</span>
+                        <h4 class="stat-number" id="patientGenderRatio">👨 0 | 👩 0</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="patientAgeChart" height="100"></canvas>
+            </div>
+
+            <div class="table-container">
+                <div class="table-responsive">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th onclick="sortPatients('id')">ID <i class="fas fa-sort"></i></th>
+                                <th onclick="sortPatients('firstname')">Patient <i class="fas fa-sort"></i></th>
+                                <th onclick="sortPatients('email')">Contact <i class="fas fa-sort"></i></th>
+                                <th onclick="sortPatients('createdAt')">Registered <i class="fas fa-sort"></i></th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="patientsTableBody">
+                            <tr>
+                                <td colspan="6" class="text-center py-5">
+                                    <div class="loader"></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="patientPagination" class="pagination-modern"></div>
             </div>
         </div>
 
-        <!-- Patient Statistics -->
-        <div id="patientStats" class="row g-3 p-3 bg-light border-bottom">
-            <div class="col-md-3">
-                <div class="chart-stat text-center">
-                    <small class="text-muted">Total Patients</small>
-                    <strong id="patientTotal">0</strong>
+        <!-- Psychologists -->
+        <div class="section-card mb-4 psychologist-section-card">
+            <div class="section-header psychologist-header">
+                <div class="header-left">
+                    <div class="header-icon psychologist-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0">Psychology Experts</h3>
+                        <p class="text-muted small mb-0">Manage mental health professionals with a richer specialist view</p>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <a href="{{ path('app_admin_psychologist_new') }}" class="btn-primary-modern psychologist-btn">
+                        <i class="fas fa-user-md"></i> Add Psychologist
+                    </a>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="chart-stat text-center">
-                    <small class="text-muted">Average Age</small>
-                    <strong id="patientAvgAge">0</strong>
+
+            <div class="filters-panel">
+                <div class="filter-group">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="psychologistSearch" placeholder="Search psychologists, email, specialty..." class="filter-input">
                 </div>
-            </div>
-            <div class="col-md-3">
-                <div class="chart-stat text-center">
-                    <small class="text-muted">Age Range</small>
-                    <strong id="patientAgeRange">0 - 0</strong>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="chart-stat text-center">
-                    <small class="text-muted">Gender Ratio</small>
-                    <strong id="patientGenderRatio">👨 0 | 👩 0</strong>
-                </div>
-            </div>
-        </div>
-
-        <!-- Age Distribution Chart -->
-        <div class="p-3 border-bottom">
-            <canvas id="patientAgeChart" height="120"></canvas>
-        </div>
-
-        <!-- Patients Table -->
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th><a href="#" onclick="sortPatients('id')">ID <i class="bi bi-arrow-down-up"></i></a></th>
-                        <th><a href="#" onclick="sortPatients('firstname')">Name <i class="bi bi-arrow-down-up"></i></a></th>
-                        <th><a href="#" onclick="sortPatients('email')">Email <i class="bi bi-arrow-down-up"></i></a></th>
-                        <th><a href="#" onclick="sortPatients('phone')">Phone <i class="bi bi-arrow-down-up"></i></a></th>
-                        <th>Date of Birth</th>
-                        <th>Age</th>
-                        <th>Gender</th>
-                        <th><a href="#" onclick="sortPatients('createdAt')">Registered <i class="bi bi-arrow-down-up"></i></a></th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="patientsTableBody">
-                    <tr>
-                        <td colspan="9" class="text-center py-4">
-                            <div class="spinner-border text-success" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Patient Pagination -->
-        <div id="patientPagination" class="d-flex justify-content-center py-3"></div>
-    </div>
-
-    <!-- Psychologists Section -->
-    <div class="info-card p-0 bg-white overflow-hidden mb-4">
-        <div class="p-3 border-bottom d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #f8f9fa, #e9ecef);">
-            <h5 class="mb-0"><i class="bi bi-person-badge me-2"></i> Psychologists Management</h5>
-            <a href="{{ path('app_admin_psychologist_new') }}" class="btn-modern btn-sm">
-                <i class="bi bi-plus-circle me-1"></i> Add Psychologist
-            </a>
-        </div>
-
-        <!-- Search and Filter Bar for Psychologists -->
-        <div class="p-3 bg-light border-bottom">
-            <div class="row g-2">
-                <div class="col-md-6">
-                    <input type="text" id="psychologistSearch" class="form-control" placeholder="🔍 Search by name, email, phone...">
-                </div>
-                <div class="col-md-4">
-                    <select id="psychologistGenderFilter" class="form-select">
+                <div class="filter-group">
+                    <i class="fas fa-venus-mars"></i>
+                    <select id="psychologistGenderFilter" class="filter-select">
                         <option value="">All Genders</option>
                         <option value="male">👨 Male</option>
                         <option value="female">👩 Female</option>
                         <option value="other">👤 Other</option>
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <button class="btn btn-secondary w-100" onclick="resetPsychologistFilters()">
-                        <i class="bi bi-arrow-repeat"></i> Reset
-                    </button>
+                <button onclick="resetPsychologistFilters()" class="btn-reset">
+                    <i class="fas fa-sync-alt"></i> Reset
+                </button>
+            </div>
+
+            <div class="expert-stats-grid" id="psychologistStats">
+                <div class="expert-stat-card">
+                    <span class="expert-stat-label">Total Experts</span>
+                    <strong id="psychologistTotal">0</strong>
+                </div>
+                <div class="expert-stat-card">
+                    <span class="expert-stat-label">Active</span>
+                    <strong id="psychologistActive">0</strong>
+                </div>
+                <div class="expert-stat-card">
+                    <span class="expert-stat-label">Banned</span>
+                    <strong id="psychologistBanned">0</strong>
+                </div>
+                <div class="expert-stat-card">
+                    <span class="expert-stat-label">Recently Joined</span>
+                    <strong id="psychologistRecent">0</strong>
                 </div>
             </div>
-        </div>
 
-        <!-- Psychologists Table -->
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th><a href="#" onclick="sortPsychologists('id')">ID <i class="bi bi-arrow-down-up"></i></a></th>
-                        <th><a href="#" onclick="sortPsychologists('firstname')">Name <i class="bi bi-arrow-down-up"></i></a></th>
-                        <th><a href="#" onclick="sortPsychologists('email')">Email <i class="bi bi-arrow-down-up"></i></a></th>
-                        <th><a href="#" onclick="sortPsychologists('phone')">Phone <i class="bi bi-arrow-down-up"></i></a></th>
-                        <th>Date of Birth</th>
-                        <th>Age</th>
-                        <th>Gender</th>
-                        <th><a href="#" onclick="sortPsychologists('createdAt')">Registered <i class="bi bi-arrow-down-up"></i></a></th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="psychologistsTableBody">
-                    <tr>
-                        <td colspan="9" class="text-center py-4">
-                            <div class="spinner-border text-success" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Psychologist Pagination -->
-        <div id="psychologistPagination" class="d-flex justify-content-center py-3"></div>
-    </div>
-
-    <!-- Access Logs Section -->
-    <div class="info-card p-0 bg-white overflow-hidden mb-4">
-        <div class="p-3 border-bottom d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #f8f9fa, #e9ecef);">
-            <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i> Content Access Logs</h5>
-            <div class="d-flex gap-2">
-                <a href="{{ path('app_admin_logs_pdf') }}" class="btn btn-outline-danger btn-sm">
-                    <i class="bi bi-file-earmark-pdf me-1"></i> Export PDF
-                </a>
-                <a href="{{ path('app_admin_logs_excel') }}" class="btn btn-outline-success btn-sm">
-                    <i class="bi bi-file-earmark-excel me-1"></i> Export CSV
-                </a>
+            <div class="table-container">
+                <div class="table-responsive">
+                    <table class="modern-table modern-table-psychologists">
+                        <thead>
+                            <tr>
+                                <th onclick="sortPsychologists('id')">ID <i class="fas fa-sort"></i></th>
+                                <th onclick="sortPsychologists('firstname')">Psychologist <i class="fas fa-sort"></i></th>
+                                <th>Professional Snapshot</th>
+                                <th onclick="sortPsychologists('email')">Contact <i class="fas fa-sort"></i></th>
+                                <th onclick="sortPsychologists('createdAt')">Joined <i class="fas fa-sort"></i></th>
+                                <th>Availability</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="psychologistsTableBody">
+                            <tr>
+                                <td colspan="8" class="text-center py-5">
+                                    <div class="loader"></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="psychologistPagination" class="pagination-modern"></div>
             </div>
         </div>
 
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>ID</th>
-                        <th>User</th>
-                        <th>Content</th>
-                        <th>Accessed At</th>
-                        <th class="text-end">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for log in logs %}
-                    <tr>
-                        <td>{{ log.id }}</td>
-                        <td>
-                            <div><strong>{{ log.user.firstname }} {{ log.user.lastname }}</strong></div>
-                            <small class="text-muted">{{ log.user.email }}</small>
-                        </td>
-                        <td>
-                            <span class="badge bg-light text-dark border">{{ log.contentNode.title }}</span>
-                        </td>
-                        <td>
-                            <span class="text-muted">
-                                <i class="bi bi-calendar3 me-1"></i>
-                                {{ log.accessedAt|date('Y-m-d H:i:s') }}
-                            </span>
-                        </td>
-                        <td class="text-end">
-                            <form method="post" action="{{ path('app_admin_log_delete', {id: log.id}) }}" style="display: inline-block;">
-                                <input type="hidden" name="_token" value="{{ csrf_token('delete_log' ~ log.id) }}">
-                                <button class="btn btn-sm btn-outline-danger"
-                                    onclick="return confirm('Delete this log entry?')" title="Delete Log">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="5" class="text-center py-4 text-muted">No access logs found.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        <!-- Logs -->
+        <div class="section-card">
+            <div class="section-header">
+                <div class="header-left">
+                    <div class="header-icon" style="background: linear-gradient(135deg, #fa709a, #fee140);">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0">Activity Timeline</h3>
+                        <p class="text-muted small mb-0">Recent content access history</p>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="btn-group-modern">
+                        <a href="{{ path('app_admin_logs_pdf') }}" class="btn-outline-modern">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </a>
+                        <a href="{{ path('app_admin_logs_excel') }}" class="btn-outline-modern">
+                            <i class="fas fa-file-excel"></i> CSV
+                        </a>
+                    </div>
+                </div>
+            </div>
 
-        <!-- Logs Pagination -->
-        <div class="d-flex justify-content-center py-3">
-            {{ knp_pagination_render(logs) }}
+            <div class="timeline-modern">
+                {% for log in logs %}
+                    <div class="timeline-item">
+                        <div class="timeline-badge">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="timeline-header">
+                                <strong class="timeline-title">{{ log.user.firstname }} {{ log.user.lastname }}</strong>
+                                <span class="timeline-date">{{ log.accessedAt|date('M d, Y H:i') }}</span>
+                            </div>
+                            <div class="timeline-body">
+                                <span class="badge-modern">{{ log.contentNode.title }}</span>
+                                <span class="email-badge">{{ log.user.email }}</span>
+                            </div>
+                            <div class="timeline-footer">
+                                <form method="post" action="{{ path('app_admin_log_delete', {id: log.id}) }}" style="display: inline-block;">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_log' ~ log.id) }}">
+                                    <button class="btn-icon" onclick="return confirm('Delete this log entry?')">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>No activity logs found</p>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="d-flex justify-content-center pt-3">
+                {{ knp_pagination_render(logs) }}
+            </div>
         </div>
     </div>
-
 </div>
 {% endblock %}
 
 {% block javascripts %}
-<style>
-    .pagination .page-item.active .page-link {
-        background-color: #50C878;
-        border-color: #50C878;
-        color: white;
-    }
-    .pagination .page-link {
-        color: #50C878;
-    }
-    .pagination .page-link:hover {
-        color: #3A9B5E;
-        background-color: #f0fff4;
-    }
-    .pagination .page-item.disabled .page-link {
-        color: #adb5bd;
-    }
-    @keyframes shimmer {
-        0% { background-position: -200% 0; }
-        100% { background-position: 200% 0; }
-    }
-</style>
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    // ==================== GLOBAL STATE ====================
-    let patientChart = null;
-    let currentPatientSort      = 'id';
-    let currentPatientOrder     = 'DESC';
-    let currentPsychologistSort  = 'id';
-    let currentPsychologistOrder = 'DESC';
-    let currentPatientPage       = 1;
-    let currentPsychologistPage  = 1;
-    const ITEMS_PER_PAGE = 10;
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
 
-    // ==================== INIT ====================
+<script>
+    let patientChart = null;
+    let currentPatientSort = 'id';
+    let currentPatientOrder = 'DESC';
+    let currentPsychologistSort = 'id';
+    let currentPsychologistOrder = 'DESC';
+    let currentPatientPage = 1;
+    let currentPsychologistPage = 1;
+    const ITEMS_PER_PAGE = 8;
+
     document.addEventListener('DOMContentLoaded', function () {
+        animateCounters();
         loadPatients(1);
         loadPsychologists(1);
+        createParticles();
 
-        const patientSearch      = document.getElementById('patientSearch');
-        const patientGender      = document.getElementById('patientGenderFilter');
-        const patientAge         = document.getElementById('patientAgeFilter');
+        const patientSearch = document.getElementById('patientSearch');
+        const patientGender = document.getElementById('patientGenderFilter');
+        const patientAge = document.getElementById('patientAgeFilter');
         const psychologistSearch = document.getElementById('psychologistSearch');
         const psychologistGender = document.getElementById('psychologistGenderFilter');
 
-        if (patientSearch)      patientSearch.addEventListener('input', debounce(() => loadPatients(1), 500));
-        if (patientGender)      patientGender.addEventListener('change', () => loadPatients(1));
-        if (patientAge)         patientAge.addEventListener('change', () => loadPatients(1));
+        if (patientSearch) patientSearch.addEventListener('input', debounce(() => loadPatients(1), 500));
+        if (patientGender) patientGender.addEventListener('change', () => loadPatients(1));
+        if (patientAge) patientAge.addEventListener('change', () => loadPatients(1));
+
         if (psychologistSearch) psychologistSearch.addEventListener('input', debounce(() => loadPsychologists(1), 500));
         if (psychologistGender) psychologistGender.addEventListener('change', () => loadPsychologists(1));
     });
+
+    function animateCounters() {
+        const counters = document.querySelectorAll('.counter');
+        counters.forEach(counter => {
+            const target = parseInt(counter.getAttribute('data-count')) || 0;
+            let current = 0;
+            const increment = target / 50 || 1;
+
+            const updateCounter = () => {
+                if (current < target) {
+                    current += increment;
+                    counter.innerText = Math.ceil(current);
+                    setTimeout(updateCounter, 20);
+                } else {
+                    counter.innerText = target;
+                }
+            };
+
+            updateCounter();
+        });
+    }
+
+    function createParticles() {
+        const container = document.querySelector('.security-particles');
+        if (!container) return;
+
+        for (let i = 0; i < 50; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 5 + 's';
+            particle.style.animationDuration = (3 + Math.random() * 4) + 's';
+            container.appendChild(particle);
+        }
+    }
 
     function debounce(func, delay) {
         let timeout;
@@ -360,19 +483,16 @@
         };
     }
 
-    // ==================== LOAD DATA ====================
     function loadPatients(page) {
         page = page || 1;
         currentPatientPage = page;
-        const search   = document.getElementById('patientSearch')?.value || '';
-        const gender   = document.getElementById('patientGenderFilter')?.value || '';
+
+        const search = document.getElementById('patientSearch')?.value || '';
+        const gender = document.getElementById('patientGenderFilter')?.value || '';
         const ageGroup = document.getElementById('patientAgeFilter')?.value || '';
 
-            fetch(`/dashboard/admin/patients/data?search=${encodeURIComponent(search)}&sortField=${currentPatientSort}&sortOrder=${currentPatientOrder}&gender=${encodeURIComponent(gender)}&ageGroup=${encodeURIComponent(ageGroup)}&page=${page}&limit=${ITEMS_PER_PAGE}`)
-            .then(r => {
-                if (!r.ok) throw new Error('HTTP ' + r.status);
-                return r.json();
-            })
+        fetch(`/dashboard/admin/patients/data?search=${encodeURIComponent(search)}&sortField=${currentPatientSort}&sortOrder=${currentPatientOrder}&gender=${encodeURIComponent(gender)}&ageGroup=${encodeURIComponent(ageGroup)}&page=${page}&limit=${ITEMS_PER_PAGE}`)
+            .then(r => r.json())
             .then(data => {
                 updatePatientsTable(data.patients);
                 if (data.stats) {
@@ -381,106 +501,122 @@
                 }
                 renderPagination('patientPagination', data.totalPages, data.currentPage, 'loadPatients');
             })
-            .catch(err => {
-                console.error('Patients error:', err);
-                document.getElementById('patientsTableBody').innerHTML =
-                    '<tr><td colspan="9" class="text-center text-danger py-4">Failed to load patients. Please refresh.</td></tr>';
-            });
+            .catch(err => console.error('Patients error:', err));
     }
 
     function loadPsychologists(page) {
         page = page || 1;
         currentPsychologistPage = page;
+
         const search = document.getElementById('psychologistSearch')?.value || '';
         const gender = document.getElementById('psychologistGenderFilter')?.value || '';
 
-            fetch(`/dashboard/admin/psychologists/data?search=${encodeURIComponent(search)}&sortField=${currentPsychologistSort}&sortOrder=${currentPsychologistOrder}&gender=${encodeURIComponent(gender)}&page=${page}&limit=${ITEMS_PER_PAGE}`)
-            .then(r => {
-                if (!r.ok) throw new Error('HTTP ' + r.status);
-                return r.json();
-            })
+        fetch(`/dashboard/admin/psychologists/data?search=${encodeURIComponent(search)}&sortField=${currentPsychologistSort}&sortOrder=${currentPsychologistOrder}&gender=${encodeURIComponent(gender)}&page=${page}&limit=${ITEMS_PER_PAGE}`)
+            .then(r => r.json())
             .then(data => {
-                updatePsychologistsTable(data.psychologists);
+                updatePsychologistsTable(data.psychologists || []);
+                updatePsychologistStats(data.psychologists || [], data);
                 renderPagination('psychologistPagination', data.totalPages, data.currentPage, 'loadPsychologists');
             })
-            .catch(err => {
-                console.error('Psychologists error:', err);
-                document.getElementById('psychologistsTableBody').innerHTML =
-                    '<tr><td colspan="9" class="text-center text-danger py-4">Failed to load psychologists. Please refresh.</td></tr>';
-            });
+            .catch(err => console.error('Psychologists error:', err));
     }
 
-    // ==================== PAGINATION ====================
     function renderPagination(containerId, totalPages, currentPage, fnName) {
         const container = document.getElementById(containerId);
-        if (!container) return;
-
-        if (!totalPages || totalPages <= 1) {
-            container.innerHTML = '';
+        if (!container || !totalPages || totalPages <= 1) {
+            if (container) container.innerHTML = '';
             return;
         }
 
-        let html = '<nav aria-label="Page navigation"><ul class="pagination mb-0">';
+        let html = '<div class="pagination-wrapper"><ul class="pagination-list">';
 
-        // Previous
         html += `<li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
-            <a class="page-link" href="#" onclick="event.preventDefault(); if(${currentPage} > 1) ${fnName}(${currentPage - 1})">
-                <i class="bi bi-chevron-left"></i>
+            <a href="#" onclick="event.preventDefault(); if (${currentPage} > 1) ${fnName}(${currentPage - 1})">
+                <i class="fas fa-chevron-left"></i>
             </a>
         </li>`;
 
-        // Page numbers with ellipsis
         for (let i = 1; i <= totalPages; i++) {
             if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
                 html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
-                    <a class="page-link" href="#" onclick="event.preventDefault(); ${fnName}(${i})">${i}</a>
+                    <a href="#" onclick="event.preventDefault(); ${fnName}(${i})">${i}</a>
                 </li>`;
             } else if (i === currentPage - 2 || i === currentPage + 2) {
-                html += `<li class="page-item disabled"><span class="page-link">…</span></li>`;
+                html += `<li class="page-item dots"><span>...</span></li>`;
             }
         }
 
-        // Next
         html += `<li class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
-            <a class="page-link" href="#" onclick="event.preventDefault(); if(${currentPage} < ${totalPages}) ${fnName}(${currentPage + 1})">
-                <i class="bi bi-chevron-right"></i>
+            <a href="#" onclick="event.preventDefault(); if (${currentPage} < ${totalPages}) ${fnName}(${currentPage + 1})">
+                <i class="fas fa-chevron-right"></i>
             </a>
         </li>`;
 
-        html += '</ul></nav>';
+        html += '</ul></div>';
         container.innerHTML = html;
     }
 
-    // ==================== TABLE UPDATES ====================
     function updatePatientsTable(patients) {
         const tbody = document.getElementById('patientsTableBody');
         if (!tbody) return;
 
         if (!patients || patients.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-muted">No patients found.</td></tr>';
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center py-5">
+                        <div class="empty-state-small">
+                            <i class="fas fa-user-friends"></i>
+                            <p>No patients found</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
             return;
         }
 
         tbody.innerHTML = patients.map(patient => `
             <tr>
-                <td>${patient.id}</td>
-                <td><strong>${escapeHtml(patient.firstname)} ${escapeHtml(patient.lastname)}</strong></td>
-                <td>${escapeHtml(patient.email)}</td>
-                <td>${escapeHtml(patient.phone)}</td>
-                <td>${patient.dateofbirth || 'N/A'}</td>
-                <td>${patient.age !== null ? patient.age + ' yrs' : 'N/A'}</td>
-                <td>${getGenderBadge(patient.gender)}</td>
-                <td>${patient.createdAt ? patient.createdAt.split(' ')[0] : 'N/A'}</td>
+                <td><span class="id-badge">#${patient.id}</span></td>
+
                 <td>
-                    <a href="/dashboard/admin/user/${patient.id}/edit" class="btn btn-sm btn-warning me-1" title="Edit">
-                        <i class="bi bi-pencil"></i>
-                    </a>
-                    <form method="post" action="/dashboard/admin/user/${patient.id}/delete" style="display:inline-block;">
-                        <input type="hidden" name="_token" value="{{ csrf_token('delete') }}">
-                        <button class="btn btn-sm btn-danger" onclick="return confirm('Delete this patient permanently?')" title="Delete">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </form>
+                    <div class="user-info">
+                        <div class="user-avatar" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                            ${getInitials(patient.firstname, patient.lastname)}
+                        </div>
+                        <div class="user-details">
+                            <strong>${escapeHtml(patient.firstname)} ${escapeHtml(patient.lastname)}</strong>
+                            <small>Patient profile</small>
+                        </div>
+                    </div>
+                </td>
+
+                <td>
+                    <div class="contact-info">
+                        <div><i class="fas fa-envelope"></i> ${escapeHtml(patient.email || 'N/A')}</div>
+                        <div><i class="fas fa-phone"></i> ${escapeHtml(patient.phone || 'N/A')}</div>
+                    </div>
+                </td>
+
+                <td>${patient.createdAt ? formatDate(patient.createdAt) : 'N/A'}</td>
+
+                <td>
+                    ${patient.isBanned
+                        ? '<span class="status-badge banned">Banned</span>'
+                        : '<span class="status-badge active">Active</span>'}
+                </td>
+
+                <td>
+                    <div class="action-group">
+                        <a href="/dashboard/admin/user/${patient.id}/edit" class="action-btn edit" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <form method="post" action="/dashboard/admin/user/${patient.id}/delete" style="display:inline-block;">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete') }}">
+                            <button type="submit" class="action-btn delete" onclick="return confirm('Delete this patient?')" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
                 </td>
             </tr>
         `).join('');
@@ -491,50 +627,128 @@
         if (!tbody) return;
 
         if (!psychologists || psychologists.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-muted">No psychologists found.</td></tr>';
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="text-center py-5">
+                        <div class="empty-state-small">
+                            <i class="fas fa-user-md"></i>
+                            <p>No psychologists found</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
             return;
         }
 
-        tbody.innerHTML = psychologists.map(psych => `
-            <tr>
-                <td>${psych.id}</td>
-                <td><strong>${escapeHtml(psych.firstname)} ${escapeHtml(psych.lastname)}</strong></td>
-                <td>${escapeHtml(psych.email)}</td>
-                <td>${escapeHtml(psych.phone)}</td>
-                <td>${psych.dateofbirth || 'N/A'}</td>
-                <td>${psych.age !== null ? psych.age + ' yrs' : 'N/A'}</td>
-                <td>${getGenderBadge(psych.gender)}</td>
-                <td>${psych.createdAt ? psych.createdAt.split(' ')[0] : 'N/A'}</td>
-                <td>
-                    <a href="/dashboard/admin/user/${psych.id}/edit" class="btn btn-sm btn-warning me-1" title="Edit">
-                        <i class="bi bi-pencil"></i>
-                    </a>
-                    <form method="post" action="/dashboard/admin/user/${psych.id}/delete" style="display:inline-block;">
-                        <input type="hidden" name="_token" value="{{ csrf_token('delete') }}">
-                        <button class="btn btn-sm btn-danger" onclick="return confirm('Delete this psychologist permanently?')" title="Delete">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </form>
-                </td>
-            </tr>
-        `).join('');
+        tbody.innerHTML = psychologists.map(psych => {
+            const fullName = `${escapeHtml(psych.firstname || '')} ${escapeHtml(psych.lastname || '')}`.trim();
+            const specialty = escapeHtml(psych.specialization || psych.specialty || psych.domain || 'General Psychology');
+            const license = escapeHtml(psych.license || psych.registrationNumber || 'Not provided');
+            const availability = psych.isBanned
+                ? '<span class="availability-badge unavailable"><i class="fas fa-user-slash"></i> Unavailable</span>'
+                : '<span class="availability-badge available"><i class="fas fa-check-circle"></i> Accepting</span>';
+
+            return `
+                <tr class="psychologist-row">
+                    <td><span class="id-badge psych-id">#${psych.id}</span></td>
+
+                    <td>
+                        <div class="expert-profile">
+                            <div class="expert-avatar">
+                                ${getInitials(psych.firstname, psych.lastname)}
+                            </div>
+                            <div class="expert-details">
+                                <strong>${fullName || 'Unnamed Psychologist'}</strong>
+                                <div class="expert-subline">${specialty}</div>
+                                <div class="expert-mini-meta">
+                                    <span><i class="fas fa-id-card"></i> ${license}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+
+                    <td>
+                        <div class="expert-snapshot">
+                            <span class="soft-chip"><i class="fas fa-brain"></i> ${specialty}</span>
+                            <span class="soft-chip"><i class="fas fa-user-check"></i> Professional</span>
+                            <span class="soft-chip"><i class="fas fa-calendar-plus"></i> ${psych.createdAt ? formatDateShort(psych.createdAt) : 'N/A'}</span>
+                        </div>
+                    </td>
+
+                    <td>
+                        <div class="contact-info contact-info-vertical">
+                            <div><i class="fas fa-envelope"></i> ${escapeHtml(psych.email || 'N/A')}</div>
+                            <div><i class="fas fa-phone"></i> ${escapeHtml(psych.phone || 'N/A')}</div>
+                        </div>
+                    </td>
+
+                    <td>
+                        <div class="joined-cell">
+                            <strong>${psych.createdAt ? formatDate(psych.createdAt) : 'N/A'}</strong>
+                            <small>${psych.createdAt ? getRelativeDate(psych.createdAt) : ''}</small>
+                        </div>
+                    </td>
+
+                    <td>${availability}</td>
+
+                    <td>
+                        ${psych.isBanned
+                            ? '<span class="status-badge banned">Suspended</span>'
+                            : '<span class="status-badge active">Active</span>'}
+                    </td>
+
+                    <td>
+                        <div class="action-group">
+                            <a href="/dashboard/admin/user/${psych.id}/edit" class="action-btn edit" title="Edit psychologist">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form method="post" action="/dashboard/admin/user/${psych.id}/delete" style="display:inline-block;">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete') }}">
+                                <button type="submit" class="action-btn delete" onclick="return confirm('Delete this psychologist?')" title="Delete psychologist">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
     }
 
-    // ==================== STATS & CHART ====================
     function updatePatientStats(stats) {
         const el = (id) => document.getElementById(id);
-        if (el('patientTotal'))       el('patientTotal').innerText    = stats.total || 0;
-        if (el('patientAvgAge'))      el('patientAvgAge').innerText   = stats.averageAge || 0;
-        if (el('patientAgeRange'))    el('patientAgeRange').innerHTML = `${stats.minAge || 0} - ${stats.maxAge || 0}`;
-        if (el('patientGenderRatio')) el('patientGenderRatio').innerHTML =
-            `👨 ${stats.gender?.male || 0} | 👩 ${stats.gender?.female || 0}`;
+        if (el('patientTotal')) el('patientTotal').innerText = stats.total || 0;
+        if (el('patientAvgAge')) el('patientAvgAge').innerText = stats.averageAge || 0;
+        if (el('patientAgeRange')) el('patientAgeRange').innerHTML = `${stats.minAge || 0} - ${stats.maxAge || 0}`;
+        if (el('patientGenderRatio')) el('patientGenderRatio').innerHTML = `👨 ${stats.gender?.male || 0} | 👩 ${stats.gender?.female || 0}`;
+    }
+
+    function updatePsychologistStats(psychologists, data) {
+        const total = data.totalItems || psychologists.length || 0;
+        const banned = psychologists.filter(p => !!p.isBanned).length;
+        const active = psychologists.filter(p => !p.isBanned).length;
+
+        const now = new Date();
+        const recent = psychologists.filter(p => {
+            if (!p.createdAt) return false;
+            const created = new Date(p.createdAt);
+            const diff = (now - created) / (1000 * 60 * 60 * 24);
+            return diff <= 30;
+        }).length;
+
+        setText('psychologistTotal', total);
+        setText('psychologistActive', active);
+        setText('psychologistBanned', banned);
+        setText('psychologistRecent', recent);
     }
 
     function updatePatientChart(ageGroups) {
         if (!ageGroups) return;
         const ctx = document.getElementById('patientAgeChart')?.getContext('2d');
         if (!ctx) return;
+
         if (patientChart) patientChart.destroy();
+
         patientChart = new Chart(ctx, {
             type: 'bar',
             data: {
@@ -542,33 +756,46 @@
                 datasets: [{
                     label: 'Number of Patients',
                     data: [
-                        ageGroups['0-18']  || 0,
+                        ageGroups['0-18'] || 0,
                         ageGroups['19-30'] || 0,
                         ageGroups['31-45'] || 0,
                         ageGroups['46-60'] || 0,
-                        ageGroups['60+']   || 0
+                        ageGroups['60+'] || 0
                     ],
-                    backgroundColor: '#50C878',
-                    borderColor: '#3a9b5e',
-                    borderWidth: 1,
-                    borderRadius: 8
+                    backgroundColor: ['#667eea', '#f093fb', '#4facfe', '#43e97b', '#fa709a'],
+                    borderRadius: 10,
+                    barPercentage: 0.7
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: true,
-                plugins: { legend: { position: 'top' } },
-                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { usePointStyle: true, boxWidth: 10 }
+                    },
+                    tooltip: {
+                        backgroundColor: '#1a1a2e',
+                        titleColor: '#50C878'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#e9ecef' },
+                        ticks: { stepSize: 1 }
+                    }
+                }
             }
         });
     }
 
-    // ==================== SORT ====================
     function sortPatients(column) {
         if (currentPatientSort === column) {
             currentPatientOrder = currentPatientOrder === 'ASC' ? 'DESC' : 'ASC';
         } else {
-            currentPatientSort  = column;
+            currentPatientSort = column;
             currentPatientOrder = 'ASC';
         }
         loadPatients(1);
@@ -578,51 +805,1135 @@
         if (currentPsychologistSort === column) {
             currentPsychologistOrder = currentPsychologistOrder === 'ASC' ? 'DESC' : 'ASC';
         } else {
-            currentPsychologistSort  = column;
+            currentPsychologistSort = column;
             currentPsychologistOrder = 'ASC';
         }
         loadPsychologists(1);
     }
 
-    // ==================== RESET FILTERS ====================
     function resetPatientFilters() {
-        document.getElementById('patientSearch').value        = '';
-        document.getElementById('patientGenderFilter').value  = '';
-        document.getElementById('patientAgeFilter').value     = '';
-        currentPatientSort  = 'id';
+        document.getElementById('patientSearch').value = '';
+        document.getElementById('patientGenderFilter').value = '';
+        document.getElementById('patientAgeFilter').value = '';
+        currentPatientSort = 'id';
         currentPatientOrder = 'DESC';
         loadPatients(1);
     }
 
     function resetPsychologistFilters() {
-        document.getElementById('psychologistSearch').value       = '';
+        document.getElementById('psychologistSearch').value = '';
         document.getElementById('psychologistGenderFilter').value = '';
-        currentPsychologistSort  = 'id';
+        currentPsychologistSort = 'id';
         currentPsychologistOrder = 'DESC';
         loadPsychologists(1);
     }
 
-    // ==================== HELPERS ====================
+    function formatDate(dateStr) {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
+    }
+
+    function formatDateShort(dateStr) {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-US', {
+            month: 'short',
+            year: 'numeric'
+        });
+    }
+
+    function getRelativeDate(dateStr) {
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+
+        if (diffDays <= 0) return 'Today';
+        if (diffDays === 1) return '1 day ago';
+        if (diffDays < 30) return `${diffDays} days ago`;
+
+        const diffMonths = Math.floor(diffDays / 30);
+        if (diffMonths === 1) return '1 month ago';
+        return `${diffMonths} months ago`;
+    }
+
+    function getInitials(firstname, lastname) {
+        const first = (firstname || '').trim().charAt(0);
+        const last = (lastname || '').trim().charAt(0);
+        return `${first}${last}`.toUpperCase() || 'NA';
+    }
+
+    function setText(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.innerText = value;
+    }
+
     function escapeHtml(str) {
         if (!str) return '';
-        return str
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;');
+        return String(str).replace(/[&<>]/g, function (m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
     }
 
-    function getGenderBadge(gender) {
-        if (gender === 'male')   return '<span class="badge" style="background:#d4f5e8;color:#2d6a4f;">👨 Male</span>';
-        if (gender === 'female') return '<span class="badge" style="background:#fce4e4;color:#c92a2a;">👩 Female</span>';
-        return '<span class="badge" style="background:#e9ecef;color:#6c757d;">👤 Other</span>';
-    }
-
-    // Expose to global scope for onclick attributes
-    window.sortPatients          = sortPatients;
-    window.sortPsychologists     = sortPsychologists;
-    window.resetPatientFilters   = resetPatientFilters;
+    window.sortPatients = sortPatients;
+    window.sortPsychologists = sortPsychologists;
+    window.resetPatientFilters = resetPatientFilters;
     window.resetPsychologistFilters = resetPsychologistFilters;
-    window.loadPatients          = loadPatients;
-    window.loadPsychologists     = loadPsychologists;
+    window.loadPatients = loadPatients;
+    window.loadPsychologists = loadPsychologists;
 </script>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+    .admin-dashboard {
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        position: relative;
+        overflow-x: hidden;
+    }
+
+    .animated-bg {
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(125deg, #e0f7fa 0%, #e8f5e9 100%);
+        z-index: -1;
+    }
+
+    .glass-panel {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 30px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .admin-rank {
+        background: linear-gradient(135deg, #F1C40F, #E67E22);
+        padding: 5px 15px;
+        border-radius: 50px;
+        color: white;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 1px;
+    }
+
+    .gradient-text {
+        background: linear-gradient(135deg, #50C878, #2E7D32);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .stat-chip {
+        background: rgba(0,0,0,0.05);
+        padding: 8px 16px;
+        border-radius: 50px;
+        display: inline-block;
+        margin-right: 10px;
+        font-size: 14px;
+    }
+
+    .admin-avatar {
+        position: relative;
+        display: inline-block;
+    }
+
+    .avatar-ring {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, #50C878, #2E7D32);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: pulse-ring 2s infinite;
+    }
+
+    .avatar-inner {
+        width: 85px;
+        height: 85px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        color: #50C878;
+    }
+
+    .avatar-status {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        width: 18px;
+        height: 18px;
+        background: #50C878;
+        border: 2px solid white;
+        border-radius: 50%;
+    }
+
+    .avatar-status.online {
+        animation: blink 1.5s infinite;
+    }
+
+    @keyframes pulse-ring {
+        0% { box-shadow: 0 0 0 0 rgba(80, 200, 120, 0.4); }
+        70% { box-shadow: 0 0 0 20px rgba(80, 200, 120, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(80, 200, 120, 0); }
+    }
+
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 20px;
+    }
+
+    .kpi-card {
+        background: white;
+        border-radius: 25px;
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+
+    .kpi-icon {
+        width: 55px;
+        height: 55px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: white;
+        margin-bottom: 15px;
+    }
+
+    .bg-gradient-blue { background: linear-gradient(135deg, #667eea, #764ba2); }
+    .bg-gradient-red { background: linear-gradient(135deg, #f093fb, #f5576c); }
+    .bg-gradient-green { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+    .bg-gradient-orange { background: linear-gradient(135deg, #fa709a, #fee140); }
+
+    .kpi-value {
+        font-size: 32px;
+        font-weight: 800;
+        margin: 0;
+    }
+
+    .kpi-label {
+        color: #6c757d;
+        margin: 5px 0 0;
+        font-size: 13px;
+    }
+
+    .trend {
+        font-size: 12px;
+        display: inline-block;
+        margin-top: 5px;
+    }
+
+    .trend.up { color: #50C878; }
+    .trend.down { color: #dc3545; }
+
+    .kpi-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: #e9ecef;
+    }
+
+    .kpi-progress .progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #50C878, #2E7D32);
+    }
+
+    .security-card {
+        background: linear-gradient(135deg, #1a1a2e, #16213e);
+        border-radius: 30px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .security-card-inner {
+        padding: 40px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .security-badge {
+        background: rgba(80, 200, 120, 0.2);
+        display: inline-block;
+        padding: 5px 15px;
+        border-radius: 50px;
+        color: #50C878;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 1px;
+    }
+
+    .text-white-70 {
+        color: rgba(255,255,255,0.7);
+    }
+
+    .security-features span {
+        display: inline-block;
+        margin-right: 20px;
+        color: rgba(255,255,255,0.6);
+        font-size: 13px;
+    }
+
+    .security-features i {
+        color: #50C878;
+        margin-right: 5px;
+    }
+
+    .stat-circle {
+        width: 150px;
+        height: 150px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        border: 2px solid rgba(80,200,120,0.3);
+    }
+
+    .circle-value {
+        font-size: 48px;
+        font-weight: 800;
+        color: #50C878;
+    }
+
+    .circle-label {
+        font-size: 12px;
+        color: rgba(255,255,255,0.7);
+    }
+
+    .btn-security {
+        display: inline-block;
+        background: linear-gradient(135deg, #50C878, #2E7D32);
+        color: white;
+        padding: 12px 30px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s;
+    }
+
+    .btn-security:hover {
+        transform: translateY(-2px);
+        color: white;
+        box-shadow: 0 10px 25px rgba(80,200,120,0.4);
+    }
+
+    .btn-shine {
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn-security:hover .btn-shine {
+        left: 100%;
+    }
+
+    .btn-large {
+        padding: 14px 40px;
+        font-size: 16px;
+        box-shadow: 0 10px 30px rgba(80,200,120,0.3);
+    }
+
+    .security-particles {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    .particle {
+        position: absolute;
+        width: 3px;
+        height: 3px;
+        background: rgba(255,255,255,0.3);
+        border-radius: 50%;
+        animation: floatParticle linear infinite;
+    }
+
+    @keyframes floatParticle {
+        0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+    }
+
+    .section-card {
+        background: white;
+        border-radius: 30px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    .section-header {
+        padding: 20px 25px;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .header-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+
+    .btn-primary-modern {
+        background: linear-gradient(135deg, #50C878, #2E7D32);
+        color: white;
+        padding: 10px 25px;
+        border-radius: 12px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+
+    .btn-primary-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(80,200,120,0.3);
+        color: white;
+    }
+
+    .filters-panel {
+        padding: 20px 25px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .filter-group {
+        position: relative;
+        flex: 1;
+        min-width: 180px;
+    }
+
+    .filter-group i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #adb5bd;
+    }
+
+    .filter-input,
+    .filter-select {
+        width: 100%;
+        padding: 10px 15px 10px 40px;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        font-size: 14px;
+        transition: all 0.3s;
+    }
+
+    .filter-input:focus,
+    .filter-select:focus {
+        outline: none;
+        border-color: #50C878;
+        box-shadow: 0 0 0 3px rgba(80,200,120,0.1);
+    }
+
+    .btn-reset {
+        background: #e9ecef;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 12px;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+
+    .btn-reset:hover {
+        background: #dee2e6;
+        transform: translateY(-1px);
+    }
+
+    .stats-grid-modern {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        padding: 20px 25px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 15px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        transition: all 0.3s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        color: white;
+    }
+
+    .stat-details {
+        flex: 1;
+    }
+
+    .stat-label {
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    .stat-number {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .chart-container {
+        padding: 20px 25px;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .table-container {
+        padding: 0 25px 25px;
+    }
+
+    .modern-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 10px;
+    }
+
+    .modern-table thead th {
+        text-align: left;
+        padding: 15px 10px;
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #2d3748;
+        cursor: pointer;
+        transition: all 0.3s;
+        border-radius: 12px;
+        white-space: nowrap;
+    }
+
+    .modern-table th:hover {
+        color: #50C878;
+    }
+
+    .modern-table tbody tr {
+        background: white;
+        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+        transition: all 0.25s ease;
+    }
+
+    .modern-table tbody tr:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    .modern-table td {
+        padding: 15px 10px;
+        border-top: 1px solid #eef2f7;
+        border-bottom: 1px solid #eef2f7;
+        vertical-align: middle;
+    }
+
+    .modern-table tbody tr td:first-child {
+        border-left: 1px solid #eef2f7;
+        border-top-left-radius: 16px;
+        border-bottom-left-radius: 16px;
+    }
+
+    .modern-table tbody tr td:last-child {
+        border-right: 1px solid #eef2f7;
+        border-top-right-radius: 16px;
+        border-bottom-right-radius: 16px;
+    }
+
+    .user-info,
+    .expert-profile {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .user-avatar,
+    .expert-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 15px;
+        flex-shrink: 0;
+    }
+
+    .expert-avatar {
+        background: linear-gradient(135deg, #9b5de5, #f15bb5);
+        box-shadow: 0 8px 18px rgba(155, 93, 229, 0.25);
+    }
+
+    .user-details,
+    .expert-details {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .user-details small,
+    .expert-subline,
+    .joined-cell small {
+        font-size: 11px;
+        color: #6c757d;
+    }
+
+    .expert-mini-meta {
+        margin-top: 4px;
+        font-size: 11px;
+        color: #64748b;
+    }
+
+    .expert-mini-meta i {
+        margin-right: 4px;
+        color: #9b5de5;
+    }
+
+    .expert-snapshot {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .soft-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: linear-gradient(135deg, #f8f1ff, #eef7ff);
+        color: #5b5877;
+        border: 1px solid #ece7fb;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .contact-info {
+        font-size: 13px;
+    }
+
+    .contact-info div {
+        margin-bottom: 4px;
+    }
+
+    .contact-info i {
+        width: 20px;
+        color: #adb5bd;
+    }
+
+    .contact-info-vertical div {
+        white-space: nowrap;
+    }
+
+    .joined-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .id-badge {
+        background: #e9ecef;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .psych-id {
+        background: linear-gradient(135deg, #f4ebff, #ffe9f3);
+        color: #7c3aed;
+    }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-badge.active {
+        background: #d4f5e8;
+        color: #2d6a4f;
+    }
+
+    .status-badge.banned {
+        background: #fce4e4;
+        color: #c92a2a;
+    }
+
+    .availability-badge {
+        padding: 7px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+    }
+
+    .availability-badge.available {
+        background: #e7f8ee;
+        color: #218c5b;
+    }
+
+    .availability-badge.unavailable {
+        background: #fff0f0;
+        color: #c0392b;
+    }
+
+    .action-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .action-btn {
+        width: 35px;
+        height: 35px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+    }
+
+    .action-btn.edit {
+        background: #e9ecef;
+        color: #50C878;
+    }
+
+    .action-btn.edit:hover {
+        background: #50C878;
+        color: white;
+    }
+
+    .action-btn.delete {
+        background: #e9ecef;
+        color: #dc3545;
+    }
+
+    .action-btn.delete:hover {
+        background: #dc3545;
+        color: white;
+    }
+
+    .expert-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        padding: 18px 25px;
+        background: linear-gradient(135deg, #fcfbff, #f8fbff);
+        border-bottom: 1px solid #edf1f7;
+    }
+
+    .expert-stat-card {
+        background: white;
+        border: 1px solid #eef2f7;
+        border-radius: 18px;
+        padding: 16px 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+    }
+
+    .expert-stat-label {
+        font-size: 12px;
+        color: #64748b;
+    }
+
+    .expert-stat-card strong {
+        font-size: 24px;
+        color: #1e293b;
+    }
+
+    .psychologist-header {
+        background: linear-gradient(135deg, #fbf7ff, #f4f9ff);
+    }
+
+    .psychologist-icon {
+        background: linear-gradient(135deg, #e9d5ff, #fbcfe8);
+        color: #7c3aed;
+    }
+
+    .psychologist-btn {
+        background: linear-gradient(135deg, #9b5de5, #f15bb5);
+    }
+
+    .psychologist-btn:hover {
+        box-shadow: 0 10px 25px rgba(155, 93, 229, 0.25);
+    }
+
+    .pagination-modern {
+        margin-top: 20px;
+    }
+
+    .pagination-wrapper {
+        display: flex;
+        justify-content: center;
+    }
+
+    .pagination-list {
+        display: flex;
+        gap: 8px;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .page-item a,
+    .page-item span {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        background: #f8f9fa;
+        color: #2d3748;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+
+    .page-item.active a {
+        background: linear-gradient(135deg, #50C878, #2E7D32);
+        color: white;
+    }
+
+    .page-item a:hover {
+        background: #50C878;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .page-item.disabled a {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    .timeline-modern {
+        padding: 25px;
+    }
+
+    .timeline-item {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 25px;
+        position: relative;
+    }
+
+    .timeline-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: 27px;
+        top: 40px;
+        bottom: -25px;
+        width: 2px;
+        background: linear-gradient(180deg, #50C878, #e9ecef);
+    }
+
+    .timeline-item:last-child::before {
+        display: none;
+    }
+
+    .timeline-badge {
+        width: 55px;
+        height: 55px;
+        background: linear-gradient(135deg, #50C878, #2E7D32);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 20px;
+        flex-shrink: 0;
+        z-index: 1;
+    }
+
+    .timeline-content {
+        flex: 1;
+        background: #f8f9fa;
+        border-radius: 16px;
+        padding: 15px 20px;
+    }
+
+    .timeline-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+    }
+
+    .timeline-title {
+        color: #2d3748;
+    }
+
+    .timeline-date {
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    .timeline-body {
+        margin-bottom: 10px;
+    }
+
+    .badge-modern {
+        background: #e9ecef;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+    }
+
+    .email-badge {
+        font-size: 12px;
+        color: #6c757d;
+        margin-left: 10px;
+    }
+
+    .btn-icon {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #dc3545;
+        font-size: 14px;
+        transition: all 0.3s;
+    }
+
+    .btn-icon:hover {
+        transform: scale(1.1);
+    }
+
+    .btn-outline-modern {
+        background: white;
+        color: #2d3748;
+        border: 1px solid #e9ecef;
+        padding: 9px 14px;
+        border-radius: 12px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+    }
+
+    .btn-outline-modern:hover {
+        color: #50C878;
+        border-color: #50C878;
+        transform: translateY(-1px);
+    }
+
+    .btn-group-modern {
+        display: flex;
+        gap: 10px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px;
+        color: #adb5bd;
+    }
+
+    .empty-state i {
+        font-size: 64px;
+        margin-bottom: 15px;
+        display: block;
+    }
+
+    .empty-state-small {
+        text-align: center;
+        padding: 40px;
+        color: #adb5bd;
+    }
+
+    .empty-state-small i {
+        font-size: 48px;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .loader {
+        width: 40px;
+        height: 40px;
+        border: 3px solid #e9ecef;
+        border-top: 3px solid #50C878;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 1200px) {
+        .expert-stats-grid,
+        .stats-grid-modern {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 992px) {
+        .kpi-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .modern-table-psychologists thead {
+            display: none;
+        }
+
+        .modern-table-psychologists,
+        .modern-table-psychologists tbody,
+        .modern-table-psychologists tr,
+        .modern-table-psychologists td {
+            display: block;
+            width: 100%;
+        }
+
+        .modern-table-psychologists tbody tr {
+            margin-bottom: 16px;
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        .modern-table-psychologists td {
+            border: none !important;
+            padding: 12px 16px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .stats-grid-modern,
+        .expert-stats-grid,
+        .kpi-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .filters-panel {
+            flex-direction: column;
+        }
+
+        .filter-group {
+            width: 100%;
+        }
+
+        .modern-table {
+            font-size: 12px;
+        }
+
+        .user-avatar,
+        .expert-avatar {
+            width: 38px;
+            height: 38px;
+            font-size: 12px;
+        }
+
+        .timeline-item {
+            flex-direction: column;
+        }
+
+        .timeline-item::before {
+            display: none;
+        }
+
+        .timeline-badge {
+            width: 40px;
+            height: 40px;
+            font-size: 16px;
+        }
+
+        .section-header {
+            gap: 14px;
+        }
+
+        .btn-group-modern {
+            width: 100%;
+            flex-wrap: wrap;
+        }
+    }
+</style>
 {% endblock %}

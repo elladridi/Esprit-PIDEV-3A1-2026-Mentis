@@ -22,6 +22,7 @@ use App\Entity\ContentPath;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Knp\Component\Pager\PaginatorInterface;
+use App\Service\BadgeService;
 
 #[Route('/dashboard')]
 class DashboardController extends AbstractController
@@ -49,42 +50,57 @@ class DashboardController extends AbstractController
 
     // ==================== PATIENT DASHBOARD ====================
 
-    #[Route('/patient', name: 'app_dashboard_patient')]
-    public function patientDashboard(
-        ContentNodeRepository $contentNodeRepository,
-        AssessmentResultRepository $resultRepository,
-        PaginatorInterface $paginator,
-        Request $request
-    ): Response {
-        /** @var User $user */
-        $user = $this->getUser();
+// In DashboardController.php, update the patientDashboard method:
 
-        if (!$user || !in_array('ROLE_USER', $user->getRoles())) {
-            return $this->redirectToRoute('app_home');
-        }
+#[Route('/patient', name: 'app_dashboard_patient')]
+public function patientDashboard(
+    ContentNodeRepository $contentNodeRepository,
+    AssessmentResultRepository $resultRepository,
+    PaginatorInterface $paginator,
+    BadgeService $badgeService,
+    Request $request
+): Response {
+    /** @var User $user */
+    $user = $this->getUser();
 
-        $assignedContent = $contentNodeRepository->findAssignedToUserPhp($user->getId());
-
-        $resultsQuery = $resultRepository->createQueryBuilder('r')
-            ->where('r.user = :user')
-            ->setParameter('user', $user)
-            ->orderBy('r.takenAt', 'DESC')
-            ->getQuery();
-
-        $recentResults = $paginator->paginate(
-            $resultsQuery,
-            $request->query->getInt('page', 1),
-            5
-        );
-
-        return $this->render('dashboard/patient.html.twig', [
-            'user'            => $user,
-            'assignedContent' => $assignedContent,
-            'recentResults'   => $recentResults,
-        ]);
+    if (!$user || !in_array('ROLE_USER', $user->getRoles())) {
+        return $this->redirectToRoute('app_home');
     }
 
-    // ==================== PSYCHOLOGIST DASHBOARD ====================
+    $assignedContent = $contentNodeRepository->findAssignedToUserPhp($user->getId());
+
+    $resultsQuery = $resultRepository->createQueryBuilder('r')
+        ->where('r.user = :user')
+        ->setParameter('user', $user)
+        ->orderBy('r.takenAt', 'DESC')
+        ->getQuery();
+
+    $recentResults = $paginator->paginate(
+        $resultsQuery,
+        $request->query->getInt('page', 1),
+        5
+    );
+    
+    // Get badges
+    $badges = $badgeService->getUserBadges($user);
+    $earnedBadges = array_filter($badges, fn($b) => $b['earned']);
+    $totalBadges = count($badges);
+    
+    // Get newly earned badges from session (if any)
+    $session = $request->getSession();
+    $newlyEarnedBadges = $session->get('new_badges_earned', []);
+    $session->remove('new_badges_earned'); // Clear after retrieving
+
+    return $this->render('dashboard/patient.html.twig', [
+        'user' => $user,
+        'assignedContent' => $assignedContent,
+        'recentResults' => $recentResults,
+        'badges' => $badges,
+        'earnedBadges' => $earnedBadges,
+        'totalBadges' => $totalBadges,
+        'newlyEarnedBadges' => $newlyEarnedBadges,
+    ]);
+}    // ==================== PSYCHOLOGIST DASHBOARD ====================
 
     #[Route('/psychologist', name: 'app_dashboard_psychologist')]
     public function psychologistDashboard(
@@ -590,4 +606,5 @@ class DashboardController extends AbstractController
             'maxAge'     => !empty($ages) ? max($ages) : 0,
         ];
     }
+    
 }

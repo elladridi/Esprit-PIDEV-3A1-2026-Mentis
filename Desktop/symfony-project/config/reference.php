@@ -1314,7 +1314,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     convert_exception?: bool|Param, // Default: false
  *     remove_first_page_param?: bool|Param, // Default: false
  * }
-
  * @psalm-type KnpSnappyConfig = array{
  *     temporary_folder?: scalar|Param|null,
  *     process_timeout?: int|Param, // Generator process timeout in seconds.
@@ -1426,7 +1425,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     twig?: TwigConfig,
  *     doctrine_migrations?: DoctrineMigrationsConfig,
  *     knp_paginator?: KnpPaginatorConfig,
-
  *     knp_snappy?: KnpSnappyConfig,
  *     twig_extra?: TwigExtraConfig,
  *     vich_uploader?: VichUploaderConfig,
@@ -1441,7 +1439,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         doctrine_migrations?: DoctrineMigrationsConfig,
  *         maker?: MakerConfig,
  *         knp_paginator?: KnpPaginatorConfig,
-
  *         knp_snappy?: KnpSnappyConfig,
  *         twig_extra?: TwigExtraConfig,
  *         vich_uploader?: VichUploaderConfig,
@@ -1456,7 +1453,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         twig?: TwigConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
  *         knp_paginator?: KnpPaginatorConfig,
-
  *         knp_snappy?: KnpSnappyConfig,
  *         twig_extra?: TwigExtraConfig,
  *         vich_uploader?: VichUploaderConfig,
@@ -1471,7 +1467,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         twig?: TwigConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
  *         knp_paginator?: KnpPaginatorConfig,
-
  *         knp_snappy?: KnpSnappyConfig,
  *         twig_extra?: TwigExtraConfig,
  *         vich_uploader?: VichUploaderConfig,

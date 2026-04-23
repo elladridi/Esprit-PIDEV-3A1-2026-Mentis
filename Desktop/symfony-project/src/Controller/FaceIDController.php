@@ -157,7 +157,7 @@ class FaceIDController extends AbstractController
         $user = $this->getUser();
         return $this->json([
             'user_authenticated' => $user !== null,
-            'user_id'            => $user?->getId(),
+            'user_id'            => $user instanceof \App\Entity\User ? $user->getId() : null,
             'user_email'         => $user?->getUserIdentifier(),
         ]);
     }

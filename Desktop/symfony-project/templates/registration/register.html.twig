@@ -152,116 +152,20 @@
                         {{ form_errors(registrationForm.plainPassword.second) }}
                     </div>
 
-                    <!-- ==================== FACE ID SECTION ==================== -->
-                    <div class="card mb-4" style="border: 2px dashed #50C878; background: #F8FFF8;">
-                        <div class="card-header bg-transparent text-center">
-                            <h5 class="mb-0" style="color: #2E7D32;">
-                                <i class="fas fa-face-smile me-2"></i> Face ID Registration
-                                <span class="badge bg-secondary ms-2" style="font-size: 11px;">Optional</span>
-                            </h5>
-                            <p class="small text-muted mb-0">Take 3 photos following the instructions for faster login</p>
-                        </div>
-                        <div class="card-body text-center p-3">
-
-                            <!-- Camera View -->
-                            <div id="cameraView">
-                                <div style="position: relative; display: inline-block; width: 100%; max-width: 300px;">
-                                    <video id="faceVideo" autoplay muted
-                                        style="width: 100%; border-radius: 10px; background: #111; display: block; min-height: 200px;"></video>
-
-                                    <!-- SVG Oval overlay -->
-                                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
-                                        <svg width="100%" height="100%" viewBox="0 0 300 240" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-                                            <defs>
-                                                <mask id="ovalMask">
-                                                    <rect width="300" height="240" fill="white"/>
-                                                    <ellipse cx="150" cy="115" rx="75" ry="95" fill="black"/>
-                                                </mask>
-                                            </defs>
-                                            <rect width="300" height="240" fill="rgba(0,0,0,0.5)" mask="url(#ovalMask)"/>
-                                            <ellipse cx="150" cy="115" rx="75" ry="95"
-                                                fill="none" stroke="#50C878" stroke-width="3"
-                                                id="ovalBorder"
-                                                style="transition: stroke 0.3s; filter: drop-shadow(0 0 6px #50C878);"/>
-                                        </svg>
-                                    </div>
-
-                                    <!-- Counter badge -->
-                                    <div id="sampleCounter" style="
-                                        display: none; position: absolute; top: 8px; right: 8px;
-                                        background: rgba(0,0,0,0.65); color: white;
-                                        border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 600;">
-                                        <span id="sampleCountText">0 / 3</span>
-                                    </div>
+                    <!-- Face ID Info Banner -->
+                    <div class="mb-4" style="background: linear-gradient(135deg, #f0fff4, #e8f5e9); border: 1px solid #a5d6a7; border-left: 4px solid #50C878; border-radius: 12px; padding: 16px 20px;">
+                        <div class="d-flex align-items-center gap-3">
+                            <div style="font-size: 32px;">🔐</div>
+                            <div>
+                                <div style="font-weight: 700; color: #2E7D32; font-size: 14px;">
+                                    Want faster & more secure login?
                                 </div>
-
-                                <canvas id="faceCanvas" style="display: none;"></canvas>
-
-                                <!-- Instruction box -->
-                                <div id="instructionBox" style="
-                                    background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
-                                    border-left: 4px solid #50C878; border-radius: 8px;
-                                    padding: 10px 14px; margin: 12px auto; max-width: 300px; text-align: left;">
-                                    <div style="display: flex; align-items: center; gap: 10px;">
-                                        <div style="font-size: 26px;" id="instructionIcon">📷</div>
-                                        <div>
-                                            <div style="font-weight: 700; color: #2E7D32; font-size: 13px;" id="instructionTitle">Ready to start</div>
-                                            <div style="color: #555; font-size: 12px;" id="instructionText">Click Start Camera to begin face registration</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Progress dots -->
-                                <div style="display: flex; justify-content: center; align-items: center; gap: 12px; margin: 8px 0;">
-                                    <div id="dot0" class="face-dot"></div>
-                                    <div id="dot1" class="face-dot"></div>
-                                    <div id="dot2" class="face-dot"></div>
-                                </div>
-
-                                <!-- Buttons -->
-                                <div class="mt-2 d-flex justify-content-center gap-2">
-                                    <button type="button" id="startCameraBtn" class="btn btn-success px-4">
-                                        <i class="fas fa-camera me-1"></i> Start Camera
-                                    </button>
-                                    <button type="button" id="captureSampleBtn" class="btn btn-primary px-4" style="display: none;">
-                                        <i class="fas fa-camera me-1"></i> <span id="captureLabel">Capture</span>
-                                    </button>
+                                <div style="color: #555; font-size: 13px; margin-top: 2px;">
+                                    You can enable <strong>Face ID login</strong> anytime from your dashboard after creating your account.
                                 </div>
                             </div>
-
-                            <!-- Preview View -->
-                            <div id="previewView" style="display: none;">
-                                <div style="position: relative; display: inline-block; margin-bottom: 10px;">
-                                    <img id="samplePreview" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 3px solid #50C878;">
-                                    <div style="position: absolute; bottom: 5px; right: 5px; background: #50C878; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px;">✓</div>
-                                </div>
-                                <p class="text-muted small" id="previewLabel">Looks good?</p>
-                                <div class="d-flex justify-content-center gap-2">
-                                    <button type="button" id="saveSampleBtn" class="btn btn-success px-4">
-                                        <i class="fas fa-check me-1"></i> Save & Continue
-                                    </button>
-                                    <button type="button" id="retakeSampleBtn" class="btn btn-secondary px-3">
-                                        <i class="fas fa-redo me-1"></i> Retake
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Completion View -->
-                            <div id="completionView" style="display: none; padding: 10px;">
-                                <div style="font-size: 48px; margin-bottom: 8px;">✅</div>
-                                <h6 style="color: #2E7D32; margin-bottom: 4px; font-weight: 700;">Face ID Ready!</h6>
-                                <p class="text-muted small mb-0">3 samples captured. Face ID will be activated when you create your account.</p>
-                                <div style="display: flex; justify-content: center; gap: 8px; margin-top: 10px;">
-                                    <div style="width:14px;height:14px;border-radius:50%;background:#50C878;border:2px solid #3A9B5E;"></div>
-                                    <div style="width:14px;height:14px;border-radius:50%;background:#50C878;border:2px solid #3A9B5E;"></div>
-                                    <div style="width:14px;height:14px;border-radius:50%;background:#50C878;border:2px solid #3A9B5E;"></div>
-                                </div>
-                            </div>
-
-                            <p id="faceStatus" class="mt-2 small text-muted">Optional — skip if you prefer password-only login</p>
                         </div>
                     </div>
-                    <!-- ==================== END FACE ID ==================== -->
 
                     <button type="submit" class="btn btn-primary-custom w-100 py-2">
                         <i class="fas fa-user-plus me-2"></i> Create Account
@@ -296,349 +200,193 @@
         border: none; border-radius: 10px; font-weight: 600;
         transition: transform 0.3s, box-shadow 0.3s; color: white;
     }
-    .btn-primary-custom:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(80,200,120,0.4); color: white; }
+    .btn-primary-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(80,200,120,0.4);
+        color: white;
+    }
     .is-invalid { border-color: #dc3545 !important; }
     .invalid-feedback { display: block; color: #dc3545; font-size: 0.875rem; margin-top: 0.25rem; }
     .alert { border-radius: 10px; margin-bottom: 20px; }
     input[type="date"]::-webkit-calendar-picker-indicator {
         background-color: #50C878; padding: 8px; border-radius: 8px; cursor: pointer; opacity: 0.8;
     }
-    input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; background-color: #3A9B5E; }
-    .face-dot {
-        width: 14px; height: 14px; border-radius: 50%;
-        background: #ddd; border: 2px solid #ccc;
-        transition: all 0.4s ease;
+    input[type="date"]::-webkit-calendar-picker-indicator:hover {
+        opacity: 1; background-color: #3A9B5E;
     }
     @keyframes fadeInUp {
         from { opacity: 0; transform: translateY(20px); }
         to   { opacity: 1; transform: translateY(0); }
     }
-    @keyframes pulse {
-        0%, 100% { box-shadow: 0 0 0 0 rgba(80,200,120,0.4); }
-        50%       { box-shadow: 0 0 0 6px rgba(80,200,120,0); }
-    }
-    .face-dot.active { animation: pulse 1.5s infinite; }
 </style>
+{% endblock %}
 
 {% block javascripts %}
+{{ parent() }}
 <script>
-// ==================== CV SECTION TOGGLE ====================
-const typeSelect = document.getElementById('registration_form_type');
-const cvSection  = document.getElementById('cvUploadSection');
+(function () {
+    // ==================== CV SECTION TOGGLE ====================
+    const registerTypeSelect = document.getElementById('registration_form_type');
+    const registerCvSection  = document.getElementById('cvUploadSection');
 
-if (typeSelect && cvSection) {
-    function toggleCVSection() {
-        cvSection.style.display = typeSelect.value === 'Psychologist' ? 'block' : 'none';
+    if (registerTypeSelect && registerCvSection) {
+        function toggleCVSection() {
+            registerCvSection.style.display = registerTypeSelect.value === 'Psychologist' ? 'block' : 'none';
+        }
+        registerTypeSelect.addEventListener('change', toggleCVSection);
+        toggleCVSection();
     }
-    typeSelect.addEventListener('change', toggleCVSection);
-    toggleCVSection(); // run on page load
-}
 
-// ==================== CV AUTO-FILL ====================
-const cvFileInput  = document.getElementById('registration_form_cvFile');
-const cvStatusEl   = document.getElementById('cvAnalysisStatus');
+    // ==================== CV AUTO-FILL ====================
+    const registerCvFileInput = document.getElementById('registration_form_cvFile');
+    const registerCvStatusEl  = document.getElementById('cvAnalysisStatus');
 
-if (cvFileInput && cvStatusEl) {
-    cvFileInput.addEventListener('change', async function () {
-        const file = this.files[0];
-        if (!file || file.type !== 'application/pdf') return;
+    if (registerCvFileInput && registerCvStatusEl) {
+        registerCvFileInput.addEventListener('change', async function () {
+            const file = this.files[0];
+            if (!file || file.type !== 'application/pdf') return;
 
-        cvStatusEl.style.display = 'block';
-        cvStatusEl.innerHTML = '<span style="color:#50C878;">⏳ Analyzing CV with AI...</span>';
+            registerCvStatusEl.style.display = 'block';
+            registerCvStatusEl.innerHTML = '<span style="color:#50C878;">⏳ Analyzing CV with AI...</span>';
 
-        const formData = new FormData();
-        formData.append('cv', file);
+            const formData = new FormData();
+            formData.append('cv', file);
 
-        try {
-            const res  = await fetch('/analyze-cv', { method: 'POST', body: formData });
-            const data = await res.json();
+            try {
+                const res  = await fetch('/analyze-cv', { method: 'POST', body: formData });
+                const data = await res.json();
 
-            if (!data.success) {
-                cvStatusEl.innerHTML = '<span style="color:#dc3545;">❌ ' + (data.error || 'Analysis failed') + '</span>';
-                return;
+                if (!data.success) {
+                    registerCvStatusEl.innerHTML = '<span style="color:#dc3545;">❌ ' + (data.error || 'Analysis failed') + '</span>';
+                    return;
+                }
+
+                const fields = {
+                    'registration_form_firstname':   data.firstname,
+                    'registration_form_lastname':    data.lastname,
+                    'registration_form_email':       data.email,
+                    'registration_form_phone':       data.phone,
+                    'registration_form_dateofbirth': data.dateofbirth,
+                };
+
+                let filled = [];
+                for (const [id, value] of Object.entries(fields)) {
+                    if (!value) continue;
+                    const el = document.getElementById(id);
+                    if (el && !el.value.trim()) {
+                        el.value = value;
+                        el.style.transition = 'background 0.4s';
+                        el.style.background = '#e8f5e9';
+                        setTimeout(() => { el.style.background = ''; }, 2000);
+                        filled.push(id.replace('registration_form_', ''));
+                    }
+                }
+
+                if (filled.length > 0) {
+                    registerCvStatusEl.innerHTML = `<span style="color:#2E7D32;">✅ Auto-filled: ${filled.join(', ')}</span>`;
+                } else {
+                    registerCvStatusEl.innerHTML = '<span style="color:#888;">ℹ️ CV analyzed — fields already filled or no data found.</span>';
+                }
+
+            } catch (err) {
+                registerCvStatusEl.innerHTML = '<span style="color:#dc3545;">❌ Network error: ' + err.message + '</span>';
+            }
+        });
+    }
+
+    // ==================== FORM VALIDATION ====================
+    const registerForm = document.getElementById('registerForm');
+
+    if (registerForm) {
+        registerForm.addEventListener('submit', function (event) {
+            let isValid = true;
+            document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+
+            const firstname = document.getElementById('registration_form_firstname');
+            if (firstname && !firstname.value.trim()) {
+                firstname.classList.add('is-invalid');
+                document.getElementById('firstnameError').innerText = 'First name is required';
+                isValid = false;
             }
 
-            const fields = {
-                'registration_form_firstname':   data.firstname,
-                'registration_form_lastname':    data.lastname,
-                'registration_form_email':       data.email,
-                'registration_form_phone':       data.phone,
-                'registration_form_dateofbirth': data.dateofbirth,
-            };
+            const lastname = document.getElementById('registration_form_lastname');
+            if (lastname && !lastname.value.trim()) {
+                lastname.classList.add('is-invalid');
+                document.getElementById('lastnameError').innerText = 'Last name is required';
+                isValid = false;
+            }
 
-            let filled = [];
-            for (const [id, value] of Object.entries(fields)) {
-                if (!value) continue;
-                const el = document.getElementById(id);
-                if (el && !el.value.trim()) {
-                    el.value = value;
-                    el.style.transition = 'background 0.4s';
-                    el.style.background = '#e8f5e9';
-                    setTimeout(() => { el.style.background = ''; }, 2000);
-                    filled.push(id.replace('registration_form_', ''));
+            const email      = document.getElementById('registration_form_email');
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (email) {
+                if (!email.value.trim()) {
+                    email.classList.add('is-invalid');
+                    document.getElementById('emailError').innerText = 'Email is required';
+                    isValid = false;
+                } else if (!emailRegex.test(email.value)) {
+                    email.classList.add('is-invalid');
+                    document.getElementById('emailError').innerText = 'Please enter a valid email address';
+                    isValid = false;
                 }
             }
 
-            if (filled.length > 0) {
-                cvStatusEl.innerHTML = `<span style="color:#2E7D32;">✅ Auto-filled: ${filled.join(', ')}</span>`;
-            } else {
-                cvStatusEl.innerHTML = '<span style="color:#888;">ℹ️ CV analyzed — fields already filled or no data found.</span>';
-            }
-
-        } catch (err) {
-            cvStatusEl.innerHTML = '<span style="color:#dc3545;">❌ Network error: ' + err.message + '</span>';
-        }
-    });
-}
-
-// ==================== FORM VALIDATION ====================
-const form = document.getElementById('registerForm');
-
-if (form) {
-    form.addEventListener('submit', function(event) {
-        let isValid = true;
-        document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-
-        const firstname = document.getElementById('registration_form_firstname');
-        if (firstname && !firstname.value.trim()) {
-            firstname.classList.add('is-invalid');
-            document.getElementById('firstnameError').innerText = 'First name is required';
-            isValid = false;
-        }
-
-        const lastname = document.getElementById('registration_form_lastname');
-        if (lastname && !lastname.value.trim()) {
-            lastname.classList.add('is-invalid');
-            document.getElementById('lastnameError').innerText = 'Last name is required';
-            isValid = false;
-        }
-
-        const email = document.getElementById('registration_form_email');
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (email) {
-            if (!email.value.trim()) {
-                email.classList.add('is-invalid');
-                document.getElementById('emailError').innerText = 'Email is required';
+            const phone      = document.getElementById('registration_form_phone');
+            const phoneRegex = /^[0-9+\-\s()]{8,20}$/;
+            if (phone && !phone.value.trim()) {
+                phone.classList.add('is-invalid');
+                document.getElementById('phoneError').innerText = 'Phone number is required';
                 isValid = false;
-            } else if (!emailRegex.test(email.value)) {
-                email.classList.add('is-invalid');
-                document.getElementById('emailError').innerText = 'Please enter a valid email address';
+            } else if (phone && !phoneRegex.test(phone.value)) {
+                phone.classList.add('is-invalid');
+                document.getElementById('phoneError').innerText = 'Please enter a valid phone number';
                 isValid = false;
             }
-        }
 
-        const phone = document.getElementById('registration_form_phone');
-        const phoneRegex = /^[0-9+\-\s()]{8,20}$/;
-        if (phone && !phone.value.trim()) {
-            phone.classList.add('is-invalid');
-            document.getElementById('phoneError').innerText = 'Phone number is required';
-            isValid = false;
-        } else if (phone && !phoneRegex.test(phone.value)) {
-            phone.classList.add('is-invalid');
-            document.getElementById('phoneError').innerText = 'Please enter a valid phone number';
-            isValid = false;
-        }
-
-        const dob = document.getElementById('registration_form_dateofbirth');
-        if (dob && !dob.value) {
-            dob.classList.add('is-invalid');
-            document.getElementById('dobError').innerText = 'Date of birth is required';
-            isValid = false;
-        }
-
-        const gender = document.getElementById('registration_form_gender');
-        if (gender && !gender.value) {
-            gender.classList.add('is-invalid');
-            document.getElementById('genderError').innerText = 'Gender is required';
-            isValid = false;
-        }
-
-        const password        = document.getElementById('registration_form_plainPassword_first');
-        const confirmPassword = document.getElementById('registration_form_plainPassword_second');
-
-        if (password) {
-            if (!password.value) {
-                password.classList.add('is-invalid');
-                document.getElementById('passwordError').innerText = 'Password is required';
-                isValid = false;
-            } else if (password.value.length < 6) {
-                password.classList.add('is-invalid');
-                document.getElementById('passwordError').innerText = 'Password must be at least 6 characters';
+            const dob = document.getElementById('registration_form_dateofbirth');
+            if (dob && !dob.value) {
+                dob.classList.add('is-invalid');
+                document.getElementById('dobError').innerText = 'Date of birth is required';
                 isValid = false;
             }
-        }
 
-        if (confirmPassword && password && password.value !== confirmPassword.value) {
-            confirmPassword.classList.add('is-invalid');
-            document.getElementById('confirmPasswordError').innerText = 'Passwords do not match';
-            isValid = false;
-        }
+            const gender = document.getElementById('registration_form_gender');
+            if (gender && !gender.value) {
+                gender.classList.add('is-invalid');
+                document.getElementById('genderError').innerText = 'Gender is required';
+                isValid = false;
+            }
 
-        const cvFile = document.getElementById('registration_form_cvFile');
-        if (typeSelect && typeSelect.value === 'Psychologist' && cvFile && !cvFile.files.length) {
-            cvFile.classList.add('is-invalid');
-            document.getElementById('cvError').innerText = 'Please upload your CV';
-            isValid = false;
-        }
+            const password        = document.getElementById('registration_form_plainPassword_first');
+            const confirmPassword = document.getElementById('registration_form_plainPassword_second');
 
-        if (!isValid) event.preventDefault();
-    });
-}
+            if (password) {
+                if (!password.value) {
+                    password.classList.add('is-invalid');
+                    document.getElementById('passwordError').innerText = 'Password is required';
+                    isValid = false;
+                } else if (password.value.length < 6) {
+                    password.classList.add('is-invalid');
+                    document.getElementById('passwordError').innerText = 'Password must be at least 6 characters';
+                    isValid = false;
+                }
+            }
 
-// ==================== FACE ID ====================
-const REQUIRED_SAMPLES = 3;
-let faceStream        = null;
-let samples           = [];
-let capturedImageData = null;
+            if (confirmPassword && password && password.value !== confirmPassword.value) {
+                confirmPassword.classList.add('is-invalid');
+                document.getElementById('confirmPasswordError').innerText = 'Passwords do not match';
+                isValid = false;
+            }
 
-const instructions = [
-    { icon: '😐', title: 'Look straight at the camera',    text: 'Keep your face centered in the oval, neutral expression' },
-    { icon: '↩️', title: 'Turn your head slightly left',   text: 'Rotate about 20° to the left, keep eyes on camera' },
-    { icon: '↪️', title: 'Turn your head slightly right',  text: 'Rotate about 20° to the right, keep eyes on camera' },
-];
+            const registerCvFile = document.getElementById('registration_form_cvFile');
+            if (registerTypeSelect && registerTypeSelect.value === 'Psychologist' && registerCvFile && !registerCvFile.files.length) {
+                registerCvFile.classList.add('is-invalid');
+                document.getElementById('cvError').innerText = 'Please upload your CV';
+                isValid = false;
+            }
 
-const startCameraBtn   = document.getElementById('startCameraBtn');
-const captureSampleBtn = document.getElementById('captureSampleBtn');
-const saveSampleBtn    = document.getElementById('saveSampleBtn');
-const retakeSampleBtn  = document.getElementById('retakeSampleBtn');
-const cameraView       = document.getElementById('cameraView');
-const previewView      = document.getElementById('previewView');
-const completionView   = document.getElementById('completionView');
-const faceVideo        = document.getElementById('faceVideo');
-const faceCanvas       = document.getElementById('faceCanvas');
-const samplePreview    = document.getElementById('samplePreview');
-const faceStatus       = document.getElementById('faceStatus');
-const sampleCounter    = document.getElementById('sampleCounter');
-const sampleCountText  = document.getElementById('sampleCountText');
-const ovalBorder       = document.getElementById('ovalBorder');
-
-function setDot(index, state) {
-    const dot = document.getElementById('dot' + index);
-    if (!dot) return;
-    dot.classList.remove('active');
-    if (state === 'done') {
-        dot.style.background = '#50C878';
-        dot.style.border     = '2px solid #3A9B5E';
-        dot.style.boxShadow  = 'none';
-    } else if (state === 'active') {
-        dot.style.background = '#fff';
-        dot.style.border     = '3px solid #50C878';
-        dot.style.boxShadow  = '0 0 8px rgba(80,200,120,0.6)';
-        dot.classList.add('active');
-    } else {
-        dot.style.background = '#ddd';
-        dot.style.border     = '2px solid #ccc';
-        dot.style.boxShadow  = 'none';
-    }
-}
-
-function updateInstruction(sampleIndex) {
-    if (sampleIndex >= REQUIRED_SAMPLES) return;
-    const inst = instructions[sampleIndex];
-    document.getElementById('instructionIcon').textContent  = inst.icon;
-    document.getElementById('instructionTitle').textContent = inst.title;
-    document.getElementById('instructionText').textContent  = inst.text;
-    document.getElementById('captureLabel').textContent     = `Capture ${sampleIndex + 1} of ${REQUIRED_SAMPLES}`;
-    sampleCountText.textContent = `${sampleIndex} / ${REQUIRED_SAMPLES}`;
-
-    for (let i = 0; i < REQUIRED_SAMPLES; i++) {
-        if (i < sampleIndex)        setDot(i, 'done');
-        else if (i === sampleIndex) setDot(i, 'active');
-        else                        setDot(i, 'idle');
-    }
-}
-
-function flashOval(color, duration) {
-    if (!ovalBorder) return;
-    ovalBorder.style.stroke = color;
-    setTimeout(() => { ovalBorder.style.stroke = '#50C878'; }, duration);
-}
-
-startCameraBtn.addEventListener('click', function () {
-    navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240, facingMode: 'user' } })
-        .then(stream => {
-            faceStream = stream;
-            faceVideo.srcObject = stream;
-            startCameraBtn.style.display   = 'none';
-            captureSampleBtn.style.display = 'inline-block';
-            sampleCounter.style.display    = 'block';
-            faceStatus.textContent         = '';
-            updateInstruction(0);
-        })
-        .catch(err => {
-            faceStatus.textContent = '❌ Camera error: ' + err.message;
+            if (!isValid) event.preventDefault();
         });
-});
-
-captureSampleBtn.addEventListener('click', function () {
-    const ctx = faceCanvas.getContext('2d');
-    faceCanvas.width  = faceVideo.videoWidth  || 320;
-    faceCanvas.height = faceVideo.videoHeight || 240;
-    ctx.drawImage(faceVideo, 0, 0);
-    capturedImageData = faceCanvas.toDataURL('image/jpeg', 0.9);
-    samplePreview.src = capturedImageData;
-    document.getElementById('previewLabel').textContent =
-        `Sample ${samples.length + 1} of ${REQUIRED_SAMPLES} — Save or retake?`;
-    cameraView.style.display  = 'none';
-    previewView.style.display = 'block';
-});
-
-retakeSampleBtn.addEventListener('click', function () {
-    cameraView.style.display  = 'block';
-    previewView.style.display = 'none';
-    capturedImageData = null;
-});
-
-saveSampleBtn.addEventListener('click', function () {
-    if (!capturedImageData) return;
-
-    saveSampleBtn.disabled  = true;
-    saveSampleBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
-
-    let imageData = capturedImageData;
-    if (imageData.startsWith('data:image')) {
-        imageData = imageData.split(',')[1];
     }
-    samples.push(imageData);
-    flashOval('#ffffff', 300);
-
-    if (samples.length >= REQUIRED_SAMPLES) {
-        if (faceStream) {
-            faceStream.getTracks().forEach(t => t.stop());
-            faceStream = null;
-        }
-
-        let existing = document.getElementById('face_samples_data');
-        if (existing) existing.remove();
-        const input = document.createElement('input');
-        input.type  = 'hidden';
-        input.name  = 'face_samples';
-        input.id    = 'face_samples_data';
-        input.value = JSON.stringify(samples);
-        form.appendChild(input);
-
-        cameraView.style.display     = 'none';
-        previewView.style.display    = 'none';
-        completionView.style.display = 'block';
-        faceStatus.innerHTML         = '';
-
-        for (let i = 0; i < REQUIRED_SAMPLES; i++) setDot(i, 'done');
-        sampleCountText.textContent = `${REQUIRED_SAMPLES} / ${REQUIRED_SAMPLES}`;
-
-    } else {
-        updateInstruction(samples.length);
-        sampleCountText.textContent = `${samples.length} / ${REQUIRED_SAMPLES}`;
-        cameraView.style.display  = 'block';
-        previewView.style.display = 'none';
-        capturedImageData         = null;
-        saveSampleBtn.disabled    = false;
-        saveSampleBtn.innerHTML   = '<i class="fas fa-check me-1"></i> Save & Continue';
-    }
-});
-
-window.addEventListener('beforeunload', () => {
-    if (faceStream) faceStream.getTracks().forEach(t => t.stop());
-});
+})();
 </script>
-{% endblock %}
 {% endblock %}

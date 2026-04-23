@@ -15,8 +15,7 @@ class FaceRecognitionService
 
     private const REQUIRED_SAMPLES    = 3;
     private const QUALITY_THRESHOLD   = 10.0;
-    private const SIMILARITY_THRESHOLD = 30.0;
-
+private const SIMILARITY_THRESHOLD = 50.0;
     public function __construct(
         string $projectDir,
         private EntityManagerInterface $em,
@@ -138,16 +137,30 @@ class FaceRecognitionService
         $bestUser       = null;
 
         foreach ($users as $user) {
-            $samples = $this->getUserSamples($user->getId());
-            foreach ($samples as $samplePath) {
-                $result = $this->runCompare($verifyFacePath, $samplePath);
-                $score  = (float)($result['similarity'] ?? 0);
-                if ($score > $bestScore) {
-                    $bestScore = $score;
-                    $bestUser  = $user;
-                }
-            }
-        }
+    $samples = $this->getUserSamples($user->getId());
+    $scores = [];
+
+    foreach ($samples as $samplePath) {
+        $result = $this->runCompare($verifyFacePath, $samplePath);
+        $score = (float)($result['similarity'] ?? 0);
+        error_log('Face compare => user=' . $user->getEmail() . ' sample=' . $samplePath . ' score=' . $score);
+        $scores[] = $score;
+    }
+
+    if (empty($scores)) {
+        continue;
+    }
+
+    rsort($scores);
+    $userScore = count($scores) >= 2
+        ? (($scores[0] + $scores[1]) / 2)
+        : $scores[0];
+
+    if ($userScore > $bestScore) {
+        $bestScore = $userScore;
+        $bestUser = $user;
+    }
+}
 
         if (file_exists($verifyFacePath)) {
             @unlink($verifyFacePath);
