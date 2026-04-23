@@ -15,7 +15,7 @@ class FaceRecognitionService
 
     private const REQUIRED_SAMPLES    = 3;
     private const QUALITY_THRESHOLD   = 10.0;
-private const SIMILARITY_THRESHOLD = 50.0;
+private const SIMILARITY_THRESHOLD = 40.0;
     public function __construct(
         string $projectDir,
         private EntityManagerInterface $em,

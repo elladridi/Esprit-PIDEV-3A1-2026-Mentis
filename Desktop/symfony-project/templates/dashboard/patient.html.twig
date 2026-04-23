@@ -4,7 +4,6 @@
 
 {% block body %}
 <div class="container-lg py-4">
-<<<<<<< HEAD
     <!-- Hero Section with Animated Gradient -->
     <div class="hero-section mb-5 text-center">
         <div class="hero-badge-animation">
@@ -22,51 +21,73 @@
         <div class="level-progress mx-auto mt-3" style="max-width: 300px;">
             <div class="d-flex justify-content-between small mb-1">
                 <span>🏅 Level {{ earnedBadges|length }}</span>
-                <span>🎯 Next Level: {{ (earnedBadges|length / totalBadges * 100)|round }}%</span>
+                <span>🎯 Next Level: {{ totalBadges > 0 ? ((earnedBadges|length / totalBadges * 100)|round) : 0 }}%</span>
             </div>
             <div class="progress" style="height: 10px; border-radius: 10px;">
-                <div class="progress-bar" role="progressbar" 
-                    style="width: {{ (earnedBadges|length / totalBadges * 100)|round }}%; background: linear-gradient(90deg, #50C878, #F1C40F); border-radius: 10px;">
+                <div class="progress-bar" role="progressbar"
+                     style="width: {{ totalBadges > 0 ? ((earnedBadges|length / totalBadges * 100)|round) : 0 }}%; background: linear-gradient(90deg, #50C878, #F1C40F); border-radius: 10px;">
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Face ID Registration Alert with 3D Effect -->
+    <!-- AI Recommendations Banner -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h5 class="text-white mb-2">
+                                <i class="fas fa-robot me-2"></i> AI-Powered Personalized Recommendations
+                            </h5>
+                            <p class="text-white-50 mb-0">Get personalized session suggestions, content recommendations, and wellness tips based on your activity and assessment results.</p>
+                        </div>
+                        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                            <a href="{{ path('recommendations_index') }}" class="btn btn-light rounded-pill px-4 py-2 fw-bold">
+                                <i class="fas fa-magic me-2"></i>Get Recommendations
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Face ID Registration Alert -->
     {% if not user.faceEnabled %}
-    <div class="glass-card mb-4 p-4" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9)); backdrop-filter: blur(10px); border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.2);">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-            <div class="d-flex align-items-center gap-3">
-                <div class="shield-icon" style="font-size: 48px; animation: shake 5s ease infinite;">🛡️</div>
-                <div>
-                    <h3 class="text-white mb-1 fw-bold">🔐 Fortify Your Account</h3>
-                    <p class="text-white-50 mb-0">Enable Face ID for lightning-fast, secure access</p>
+        <div class="glass-card mb-4 p-4" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9)); backdrop-filter: blur(10px); border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.2);">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="shield-icon" style="font-size: 48px; animation: shake 5s ease infinite;">🛡️</div>
+                    <div>
+                        <h3 class="text-white mb-1 fw-bold">🔐 Fortify Your Account</h3>
+                        <p class="text-white-50 mb-0">Enable Face ID for lightning-fast, secure access</p>
+                    </div>
                 </div>
+                <button id="enableFaceIdBtn" class="btn-3d" type="button">
+                    <i class="fas fa-face-smile me-2"></i> Enable Face ID
+                </button>
             </div>
-            <button id="enableFaceIdBtn" class="btn-3d">
-                <i class="fas fa-face-smile me-2"></i> Enable Face ID
-                <span class="btn-3d-shadow"></span>
-            </button>
         </div>
-    </div>
     {% else %}
-    <div class="success-card mb-4 p-4" style="background: linear-gradient(135deg, #50C878, #2E7D32); border-radius: 20px;">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-            <div class="d-flex align-items-center gap-3">
-                <div class="check-animation">✅</div>
-                <div>
-                    <h3 class="text-white mb-1 fw-bold">Face ID Active</h3>
-                    <p class="text-white-50 mb-0">Your account is secured with biometric authentication</p>
+        <div class="success-card mb-4 p-4" style="background: linear-gradient(135deg, #50C878, #2E7D32); border-radius: 20px;">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="check-animation">✅</div>
+                    <div>
+                        <h3 class="text-white mb-1 fw-bold">Face ID Active</h3>
+                        <p class="text-white-50 mb-0">Your account is secured with biometric authentication</p>
+                    </div>
                 </div>
+                <button id="disableFaceIdBtn" class="btn-outline-light-3d" type="button">
+                    <i class="fas fa-trash me-1"></i> Disable
+                </button>
             </div>
-            <button id="disableFaceIdBtn" class="btn-outline-light-3d">
-                <i class="fas fa-trash me-1"></i> Disable
-            </button>
         </div>
-    </div>
     {% endif %}
 
-    <!-- ==================== CREATIVE BADGES SECTION ==================== -->
+    <!-- Creative Badges Section -->
     <div class="badges-universe mb-5">
         <div class="badges-header-creative text-center mb-4">
             <div class="badge-crown">👑</div>
@@ -79,7 +100,7 @@
                     <i class="fas fa-medal"></i> {{ earnedBadges|length }}/{{ totalBadges }} Badges
                 </span>
                 <span class="stat-item">
-                    <i class="fas fa-star"></i> {{ (earnedBadges|length / totalBadges * 100)|round }}% Complete
+                    <i class="fas fa-star"></i> {{ totalBadges > 0 ? ((earnedBadges|length / totalBadges * 100)|round) : 0 }}% Complete
                 </span>
                 <span class="stat-item">
                     <i class="fas fa-trophy"></i> {{ earnedBadges|length * 100 }} XP
@@ -87,87 +108,82 @@
             </div>
         </div>
 
-        <!-- Badge Carousel / Grid with Creative Flip Cards -->
         <div class="badge-grid">
             {% for badge in badges %}
-            <div class="badge-flip-card {% if badge.earned %}earned{% endif %}" data-badge="{{ badge.name }}">
-                <div class="badge-flip-inner">
-                    <!-- Front Side -->
-                    <div class="badge-front" style="background: {% if badge.earned %}linear-gradient(135deg, {{ badge.color }}, {{ badge.color }}dd){% else %}linear-gradient(135deg, #6c757d, #495057){% endif %};">
-                        <div class="badge-front-content">
-                            <div class="badge-icon-3d">{{ badge.icon }}</div>
-                            <h5 class="badge-name">{{ badge.name }}</h5>
-                            {% if badge.earned %}
-                            <div class="badge-glow"></div>
-                            <span class="badge-earned-stamp">
-                                <i class="fas fa-check-circle"></i> EARNED
-                            </span>
-                            {% else %}
-                            <div class="badge-lock-overlay">
-                                <i class="fas fa-lock"></i>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <!-- Back Side -->
-                    <div class="badge-back">
-                        <div class="badge-back-content">
-                            <div class="badge-back-icon">{{ badge.icon }}</div>
-                            <h6>{{ badge.name }}</h6>
-                            <p class="small">{{ badge.description }}</p>
-                            {% if not badge.earned %}
-                                <div class="requirement-box">
-                                    <small><i class="fas fa-info-circle"></i> {{ badge.required|default('Complete requirements') }}</small>
-                                    <div class="progress mini-progress mt-1">
-                                        <div class="progress-bar" style="width: {{ badge.progress|default(0) }}%; background: {{ badge.color }};"></div>
+                <div class="badge-flip-card {% if badge.earned %}earned{% endif %}" data-badge="{{ badge.name }}">
+                    <div class="badge-flip-inner">
+                        <div class="badge-front" style="background: {% if badge.earned %}linear-gradient(135deg, {{ badge.color }}, {{ badge.color }}dd){% else %}linear-gradient(135deg, #6c757d, #495057){% endif %};">
+                            <div class="badge-front-content">
+                                <div class="badge-icon-3d">{{ badge.icon }}</div>
+                                <h5 class="badge-name">{{ badge.name }}</h5>
+                                {% if badge.earned %}
+                                    <div class="badge-glow"></div>
+                                    <span class="badge-earned-stamp">
+                                        <i class="fas fa-check-circle"></i> EARNED
+                                    </span>
+                                {% else %}
+                                    <div class="badge-lock-overlay">
+                                        <i class="fas fa-lock"></i>
                                     </div>
-                                    <small class="text-muted">{{ badge.progress|default(0) }}% complete</small>
-                                </div>
-                            {% else %}
-                                <div class="earned-date">
-                                    <i class="fas fa-calendar-check"></i> Unlocked
-                                </div>
-                                <div class="earned-badge-check">
-                                    <i class="fas fa-check-circle"></i>
-                                </div>
-                            {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="badge-back">
+                            <div class="badge-back-content">
+                                <div class="badge-back-icon">{{ badge.icon }}</div>
+                                <h6>{{ badge.name }}</h6>
+                                <p class="small">{{ badge.description }}</p>
+                                {% if not badge.earned %}
+                                    <div class="requirement-box">
+                                        <small><i class="fas fa-info-circle"></i> {{ badge.required|default('Complete requirements') }}</small>
+                                        <div class="progress mini-progress mt-1">
+                                            <div class="progress-bar" style="width: {{ badge.progress|default(0) }}%; background: {{ badge.color }};"></div>
+                                        </div>
+                                        <small class="text-muted">{{ badge.progress|default(0) }}% complete</small>
+                                    </div>
+                                {% else %}
+                                    <div class="earned-date">
+                                        <i class="fas fa-calendar-check"></i> Unlocked
+                                    </div>
+                                    <div class="earned-badge-check">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
             {% endfor %}
         </div>
 
-        <!-- Milestone Celebration Banner -->
         {% if earnedBadges|length >= 5 %}
-        <div class="milestone-banner mt-4 p-3 text-center" style="background: linear-gradient(90deg, #F1C40F20, #F1C40F40, #F1C40F20); border-radius: 50px; animation: shimmer 2s infinite;">
-            <span class="firework-icon">🎉</span>
-            <strong class="mx-2">Milestone Unlocked!</strong>
-            <span>You've earned {{ earnedBadges|length }} badges</span>
-            <span class="firework-icon">🎊</span>
-        </div>
+            <div class="milestone-banner mt-4 p-3 text-center" style="background: linear-gradient(90deg, #F1C40F20, #F1C40F40, #F1C40F20); border-radius: 50px; animation: shimmer 2s infinite;">
+                <span class="firework-icon">🎉</span>
+                <strong class="mx-2">Milestone Unlocked!</strong>
+                <span>You've earned {{ earnedBadges|length }} badges</span>
+                <span class="firework-icon">🎊</span>
+            </div>
         {% endif %}
     </div>
 
-    <!-- Achievement Unlocked Toast Notification (shown after new badge) -->
     {% if newlyEarnedBadges is defined and newlyEarnedBadges|length > 0 %}
-    <div class="achievement-toast">
-        {% for badge in newlyEarnedBadges %}
-        <div class="toast show" role="alert">
-            <div class="toast-body">
-                <div class="achievement-icon">{{ badge.icon }}</div>
-                <div>
-                    <strong>Achievement Unlocked!</strong>
-                    <div>{{ badge.name }} - {{ badge.description }}</div>
+        <div class="achievement-toast">
+            {% for badge in newlyEarnedBadges %}
+                <div class="toast show" role="alert">
+                    <div class="toast-body">
+                        <div class="achievement-icon">{{ badge.icon }}</div>
+                        <div>
+                            <strong>Achievement Unlocked!</strong>
+                            <div>{{ badge.name }} - {{ badge.description }}</div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+                    </div>
                 </div>
-                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
-            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
-    </div>
     {% endif %}
 
-    <!-- Rest of your dashboard content continues... -->
     <!-- Assessment Quick Access Section -->
     <div class="row mt-5 mb-4">
         <div class="col-12">
@@ -209,39 +225,12 @@
                                 <small class="text-muted">24/7 Support</small>
                             </div>
                         </a>
-=======
-    <div class="app-hero mb-4">
-        <div class="hero-inner">
-            <h1 class="dash-welcome mb-2" style="font-size: 2.3rem; font-weight: 800;">Welcome back, {{ user.firstname }}!</h1>
-            <p class="text-muted" style="font-size: 1.05rem;">Your mental wellness journey continues here.</p>
-        </div>
-    </div>
-
-    {# AI Recommendations Banner #}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow-sm border-0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                <div class="card-body p-4">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h5 class="text-white mb-2">
-                                <i class="fas fa-robot me-2"></i> AI-Powered Personalized Recommendations
-                            </h5>
-                            <p class="text-white-50 mb-0">Get personalized session suggestions, content recommendations, and wellness tips based on your activity and assessment results.</p>
-                        </div>
-                        <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                            <a href="{{ path('recommendations_index') }}" class="btn btn-light rounded-pill px-4 py-2 fw-bold">
-                                <i class="fas fa-magic me-2"></i>Get Recommendations
-                            </a>
-                        </div>
->>>>>>> my-work-backup
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-<<<<<<< HEAD
     <!-- Profile and Stats Section -->
     <div class="row g-4">
         <div class="col-md-5">
@@ -272,49 +261,11 @@
                     <div class="info-row d-flex justify-content-between py-2">
                         <span class="text-muted"><i class="fas fa-calendar-plus me-2"></i> Member Since</span>
                         <span>{{ user.createdAt|date('d/m/Y') }}</span>
-=======
-    {# Assessment Quick Access Section #}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="fas fa-clipboard-list me-2" style="color: #50C878;"></i> Quick Access Assessments</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <a href="{{ path('take_assessment_index') }}" class="text-decoration-none">
-                                <div class="p-3 border rounded-3 text-center hover-card">
-                                    <i class="fas fa-play-circle fa-2x" style="color: #50C878;"></i>
-                                    <h6 class="mt-2 mb-0">Take Assessment</h6>
-                                    <small class="text-muted">Start a new assessment</small>
-                                </div>
-                            </a>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <a href="{{ path('result_stats', {userId: user.id}) }}" class="text-decoration-none">
-                                <div class="p-3 border rounded-3 text-center hover-card">
-                                    <i class="fas fa-chart-line fa-2x" style="color: #50C878;"></i>
-                                    <h6 class="mt-2 mb-0">My Progress</h6>
-                                    <small class="text-muted">Track your improvement</small>
-                                </div>
-                            </a>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <a href="{{ path('result_index') }}" class="text-decoration-none">
-                                <div class="p-3 border rounded-3 text-center hover-card">
-                                    <i class="fas fa-history fa-2x" style="color: #50C878;"></i>
-                                    <h6 class="mt-2 mb-0">Assessment History</h6>
-                                    <small class="text-muted">View past results</small>
-                                </div>
-                            </a>
-                        </div>
->>>>>>> my-work-backup
                     </div>
                 </div>
             </div>
         </div>
-<<<<<<< HEAD
+
         <div class="col-md-7">
             <div class="activity-stats p-4" style="background: white; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);">
                 <h5 class="mb-3"><i class="fas fa-chart-simple me-2" style="color: #50C878;"></i> Activity Overview</h5>
@@ -328,202 +279,125 @@
                         <div class="stat-label text-muted">Badges Earned</div>
                     </div>
                     <div class="stat-box text-center p-3">
-                        <div class="stat-value display-4 fw-bold" style="color: #9B59B6;">{{ (earnedBadges|length * 100) }}</div>
+                        <div class="stat-value display-4 fw-bold" style="color: #9B59B6;">{{ earnedBadges|length * 100 }}</div>
                         <div class="stat-label text-muted">Total XP</div>
                     </div>
-=======
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="row gy-4">
-        <div class="col-md-6">
-            <div class="info-card p-4 bg-white rounded-3 shadow-sm">
-                <h5><i class="fas fa-user-circle me-2" style="color: #50C878;"></i> My Profile</h5>
-                <table class="table table-borderless">
-                    <tr><th width="35%">Full Name:</th><td>{{ user.firstname }} {{ user.lastname }}</td></tr>
-                    <tr><th>Email:</th><td>{{ user.email }}</td></tr>
-                    <tr><th>Phone:</th><td>{{ user.phone }}</td></tr>
-                    <tr><th>Date of Birth:</th><td>{{ user.dateofbirth }}</td></tr>
-                    <tr><th>Age:</th><td>{{ user.age }} years</td></tr>
-                    <tr><th>Gender:</th><td>
-                        {% if user.gender == 'male' %}
-                            <span class="badge" style="background: #d4f5e8; color: #2d6a4f;">👨 Male</span>
-                        {% elseif user.gender == 'female' %}
-                            <span class="badge" style="background: #fce4e4; color: #c92a2a;">👩 Female</span>
-                        {% else %}
-                            <span class="badge" style="background: #e9ecef;">👤 Other</span>
-                        {% endif %}
-                    </td></tr>
-                    <tr><th>Member Since:</th><td>{{ user.createdAt|date('d/m/Y') }}</td></tr>
-                </table>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="info-card p-4 bg-white rounded-3 shadow-sm">
-                <h5><i class="fas fa-heart-pulse me-2" style="color: #50C878;"></i> Quick Actions</h5>
-                <div class="d-grid gap-2">
-                    <a href="{{ path('take_assessment_index') }}" class="btn btn-modern" style="background: #50C878; color: white; padding: 12px; border-radius: 10px; text-decoration: none; text-align: center;">
-                        <i class="fas fa-clipboard-list me-2"></i> Take an Assessment
-                    </a>
-                    <a href="{{ path('recommendations_index') }}" class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px; border-radius: 10px; text-decoration: none; text-align: center;">
-                        <i class="fas fa-robot me-2"></i> 🤖 AI Recommendations
-                    </a>
-                    <a href="{{ path('result_stats', {userId: user.id}) }}" class="btn btn-outline-success" style="padding: 12px; border-radius: 10px;">
-                        <i class="fas fa-chart-line me-2"></i> View My Progress
-                    </a>
-                    <a href="{{ path('content_index') }}" class="btn btn-outline-success" style="padding: 12px; border-radius: 10px;">
-                        <i class="fas fa-book-open me-2"></i> View Content
-                    </a>
-                    <a href="{{ path('result_index') }}" class="btn btn-outline-success" style="padding: 12px; border-radius: 10px;">
-                        <i class="fas fa-history me-2"></i> My Assessment History
-                    </a>
-                    <a href="{{ path('app_chatbot') }}" class="btn btn-outline-success" style="padding: 12px; border-radius: 10px;">
-                        <i class="fas fa-robot me-2"></i> AI Chatbot Support
-                    </a>
-                    <a href="{{ path('session_available') }}" class="btn btn-outline-success" style="padding: 12px; border-radius: 10px;">
-                        <i class="fas fa-calendar-alt me-2"></i> Browse Available Sessions
-                    </a>
->>>>>>> my-work-backup
-                </div>
-            </div>
-        </div>
-    </div>
-    
-<<<<<<< HEAD
     <!-- Recent Assessments Section -->
     {% if recentResults is defined and recentResults|length > 0 %}
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card shadow-sm border-0" style="border-radius: 20px;">
-                <div class="card-header bg-white" style="border-radius: 20px 20px 0 0;">
-                    <h5 class="mb-0"><i class="fas fa-history me-2" style="color: #50C878;"></i> Recent Activity</h5>
-                </div>
-                <div class="card-body">
-                    <div class="timeline">
-                        {% for result in recentResults|slice(0, 5) %}
-                        <div class="timeline-item">
-                            <div class="timeline-icon" style="background: {% if result.riskLevel in ['High', 'Severe'] %}#dc3545{% elseif result.riskLevel in ['Moderate', 'Mild'] %}#ffc107{% else %}#50C878{% endif %};">
-                                <i class="fas fa-clipboard-list"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <strong>{{ result.assessment ? result.assessment.title : 'Assessment' }}</strong>
-                                    <small class="text-muted">{{ result.takenAt ? result.takenAt|date('M d, Y') : 'N/A' }}</small>
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card shadow-sm border-0" style="border-radius: 20px;">
+                    <div class="card-header bg-white" style="border-radius: 20px 20px 0 0;">
+                        <h5 class="mb-0"><i class="fas fa-history me-2" style="color: #50C878;"></i> Recent Activity</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline">
+                            {% for result in recentResults|slice(0, 5) %}
+                                <div class="timeline-item">
+                                    <div class="timeline-icon" style="background: {% if result.riskLevel in ['High', 'Severe'] %}#dc3545{% elseif result.riskLevel in ['Moderate', 'Mild'] %}#ffc107{% else %}#50C878{% endif %};">
+                                        <i class="fas fa-clipboard-list"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <strong>{{ result.assessment ? result.assessment.title : 'Assessment' }}</strong>
+                                            <small class="text-muted">{{ result.takenAt ? result.takenAt|date('M d, Y') : 'N/A' }}</small>
+                                        </div>
+                                        <div class="mt-2">
+                                            <span class="badge bg-secondary me-2">Score: {{ result.totalScore }}</span>
+                                            <span class="badge {% if result.riskLevel in ['High', 'Severe'] %}bg-danger{% elseif result.riskLevel in ['Moderate', 'Mild'] %}bg-warning{% else %}bg-success{% endif %}">
+                                                {{ result.riskLevel }}
+                                            </span>
+                                            <a href="{{ path('result_show', {id: result.resultId}) }}" class="btn btn-sm btn-link">View Details →</a>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="mt-2">
-                                    <span class="badge bg-secondary me-2">Score: {{ result.totalScore }}</span>
-                                    <span class="badge {% if result.riskLevel in ['High', 'Severe'] %}bg-danger{% elseif result.riskLevel in ['Moderate', 'Mild'] %}bg-warning{% else %}bg-success{% endif %}">
-                                        {{ result.riskLevel }}
-                                    </span>
-                                    <a href="{{ path('result_show', {id: result.resultId}) }}" class="btn btn-sm btn-link">View Details →</a>
-                                </div>
-                            </div>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
-=======
-    {# Recent Assessments Section #}
-    {% if recentResults is defined and recentResults|length > 0 %}
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="fas fa-chart-simple me-2" style="color: #50C878;"></i> Recent Assessment Results</h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Assessment</th>
-                                    <th>Score</th>
-                                    <th>Risk Level</th>
-                                    <th>Date</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for result in recentResults|slice(0, 5) %}
-                                <tr>
-                                    <td>{{ result.assessment ? result.assessment.title : 'N/A' }}</td>
-                                    <td class="text-center">{{ result.totalScore }}</td>
-                                    <td>
-                                        <span class="badge {% if result.riskLevel in ['High', 'Severe'] %}bg-danger{% elseif result.riskLevel in ['Moderate', 'Mild'] %}bg-warning{% else %}bg-success{% endif %}">
-                                            {{ result.riskLevel }}
-                                        </span>
-                                    </td>
-                                    <td>{{ result.takenAt ? result.takenAt|date('M d, Y') : 'N/A' }}</td>
-                                    <td>
-                                        <a href="{{ path('result_show', {id: result.resultId}) }}" class="btn btn-sm btn-primary">View Details</a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
->>>>>>> my-work-backup
                     </div>
                 </div>
             </div>
         </div>
-    </div>
     {% endif %}
 </div>
-<<<<<<< HEAD
 
 <!-- Face ID Registration Modal -->
-<!-- (Keep your existing modal code here) -->
+<div id="faceIdModal" style="display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.72); z-index: 9999;">
+    <div class="face-modal-card">
+        <div class="text-center mb-3">
+            <h4 style="color: #2E7D32; font-weight: 800;">Register Face ID</h4>
+            <p class="text-muted mb-0">Position your face in front of the camera</p>
+        </div>
+        <div class="face-video-frame">
+            <video id="faceVideo" autoplay muted style="width: 100%; border-radius: 16px; background: #000;"></video>
+            <canvas id="faceCanvas" style="display: none;"></canvas>
+            <div id="faceOverlay" style="position: absolute; inset: 0; border: 3px solid #50C878; border-radius: 16px; pointer-events: none;"></div>
+        </div>
+        <div class="text-center mt-3">
+            <p id="faceStatus" class="text-muted">Initializing camera...</p>
+            <div class="progress mb-2" style="height: 7px; border-radius: 999px;">
+                <div id="faceProgress" class="progress-bar bg-success" style="width: 0%"></div>
+            </div>
+            <button id="captureFaceBtn" class="btn btn-primary-custom px-4" disabled type="button">
+                📸 Capture Sample 1 of 3
+            </button>
+            <button id="closeFaceModalBtn" class="btn btn-secondary px-4 ms-2" type="button">
+                <i class="fas fa-times me-2"></i> Cancel
+            </button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block stylesheets %}
 {{ parent() }}
 <style>
-    /* ==================== CREATIVE ANIMATIONS ==================== */
     @keyframes gradientShift {
         0%, 100% { background-position: 0% 50%; }
         50% { background-position: 100% 50%; }
     }
-    
+
     @keyframes float {
         0%, 100% { transform: translateY(0px); }
         50% { transform: translateY(-10px); }
     }
-    
-    @keyframes floatDelay {
-        0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-15px); }
-    }
-    
+
     @keyframes pulse {
         0%, 100% { transform: scale(1); opacity: 1; }
         50% { transform: scale(1.1); opacity: 0.7; }
     }
-    
+
     @keyframes shimmer {
         0% { background-position: -1000px 0; }
         100% { background-position: 1000px 0; }
     }
-    
+
     @keyframes shake {
         0%, 100% { transform: rotate(0deg); }
         25% { transform: rotate(-10deg); }
         75% { transform: rotate(10deg); }
     }
-    
+
     .floating-icons {
         position: relative;
         height: 60px;
     }
-    
+
     .float-icon {
         position: absolute;
         font-size: 24px;
         animation: float 3s ease-in-out infinite;
     }
-    
+
     .float-icon:nth-child(1) { left: 10%; animation-delay: 0s; }
     .float-icon:nth-child(2) { left: 30%; animation-delay: 0.5s; animation-duration: 4s; }
     .float-icon:nth-child(3) { left: 60%; animation-delay: 1s; animation-duration: 3.5s; }
     .float-icon:nth-child(4) { left: 80%; animation-delay: 0.3s; animation-duration: 4.5s; }
-    
-    /* 3D Button */
+
     .btn-3d {
         background: linear-gradient(135deg, #fff, #f0f0f0);
         border: none;
@@ -532,16 +406,15 @@
         font-weight: 600;
         color: #2E7D32;
         cursor: pointer;
-        position: relative;
         transition: transform 0.2s;
         box-shadow: 0 5px 0 #999;
     }
-    
+
     .btn-3d:active {
         transform: translateY(3px);
         box-shadow: 0 2px 0 #999;
     }
-    
+
     .btn-outline-light-3d {
         background: transparent;
         border: 2px solid white;
@@ -551,13 +424,12 @@
         font-weight: 600;
         transition: all 0.3s;
     }
-    
+
     .btn-outline-light-3d:hover {
         background: white;
         color: #2E7D32;
     }
-    
-    /* Stats Pill */
+
     .stats-pill {
         display: inline-flex;
         gap: 20px;
@@ -565,20 +437,19 @@
         padding: 8px 20px;
         border-radius: 50px;
     }
-    
+
     .stat-item {
         font-size: 14px;
         font-weight: 500;
     }
-    
-    /* Flip Card Badge Grid */
+
     .badge-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
         gap: 20px;
         margin-top: 30px;
     }
-    
+
     .badge-flip-card {
         background-color: transparent;
         width: 100%;
@@ -586,7 +457,7 @@
         perspective: 1000px;
         cursor: pointer;
     }
-    
+
     .badge-flip-inner {
         position: relative;
         width: 100%;
@@ -596,11 +467,11 @@
         transform-style: preserve-3d;
         border-radius: 15px;
     }
-    
+
     .badge-flip-card:hover .badge-flip-inner {
         transform: rotateY(180deg);
     }
-    
+
     .badge-front, .badge-back {
         position: absolute;
         width: 100%;
@@ -613,12 +484,12 @@
         flex-direction: column;
         padding: 15px;
     }
-    
+
     .badge-front {
         background: linear-gradient(135deg, #50C878, #2E7D32);
         color: white;
     }
-    
+
     .badge-back {
         background: white;
         color: #333;
@@ -626,35 +497,29 @@
         box-shadow: 0 5px 20px rgba(0,0,0,0.1);
         border: 1px solid #e9ecef;
     }
-    
+
     .badge-icon-3d {
         font-size: 48px;
         margin-bottom: 10px;
     }
-    
+
     .badge-name {
         font-size: 14px;
         font-weight: bold;
         margin: 0;
     }
-    
+
     .badge-glow {
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        inset: 0;
         border-radius: 15px;
         box-shadow: 0 0 20px rgba(80,200,120,0.6);
         animation: pulse 2s infinite;
     }
-    
+
     .badge-lock-overlay {
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        inset: 0;
         background: rgba(0,0,0,0.5);
         border-radius: 15px;
         display: flex;
@@ -662,7 +527,7 @@
         justify-content: center;
         font-size: 32px;
     }
-    
+
     .badge-earned-stamp {
         position: absolute;
         bottom: 10px;
@@ -672,7 +537,7 @@
         padding: 3px 8px;
         border-radius: 20px;
     }
-    
+
     .requirement-box {
         background: #f8f9fa;
         padding: 8px;
@@ -680,59 +545,57 @@
         margin-top: 10px;
         width: 100%;
     }
-    
+
     .mini-progress {
         height: 3px;
     }
-    
+
     .earned-date {
         font-size: 11px;
         color: #50C878;
         margin-top: 10px;
     }
-    
+
     .earned-badge-check {
         font-size: 32px;
         color: #50C878;
         margin-top: 10px;
     }
-    
-    /* Quick Action Cards */
+
     .quick-action-link {
         text-decoration: none;
     }
-    
+
     .quick-action-card {
         background: #f8f9fa;
         border-radius: 15px;
         transition: all 0.3s;
         border: 1px solid #e9ecef;
     }
-    
+
     .quick-action-card:hover {
         transform: translateY(-5px);
         background: linear-gradient(135deg, #50C878, #2E7D32);
         color: white;
         box-shadow: 0 10px 25px rgba(80,200,120,0.3);
     }
-    
+
     .quick-action-card:hover i,
     .quick-action-card:hover h6,
     .quick-action-card:hover small {
         color: white !important;
     }
-    
-    /* Timeline */
+
     .timeline {
         position: relative;
         padding-left: 30px;
     }
-    
+
     .timeline-item {
         position: relative;
         padding-bottom: 25px;
     }
-    
+
     .timeline-icon {
         position: absolute;
         left: -30px;
@@ -745,104 +608,260 @@
         justify-content: center;
         color: white;
     }
-    
+
     .timeline-content {
         background: #f8f9fa;
         padding: 12px 15px;
         border-radius: 12px;
         margin-left: 10px;
     }
-    
-    /* Stats Grid */
+
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 15px;
     }
-    
+
     .stat-box {
         background: linear-gradient(135deg, #f8f9fa, #e9ecef);
         border-radius: 15px;
         transition: transform 0.3s;
     }
-    
+
     .stat-box:hover {
         transform: scale(1.05);
     }
-    
-    /* Achievement Toast */
+
     .achievement-toast {
         position: fixed;
         bottom: 20px;
         right: 20px;
         z-index: 1000;
     }
-    
+
     .achievement-toast .toast {
         background: linear-gradient(135deg, #2E7D32, #50C878);
         color: white;
         margin-top: 10px;
         border-radius: 15px;
     }
-    
+
     .achievement-toast .toast-body {
         display: flex;
         align-items: center;
         gap: 15px;
     }
-    
+
     .achievement-icon {
         font-size: 32px;
     }
-    
-    /* Responsive */
+
+    .face-modal-card {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255,255,255,0.96);
+        border-radius: 24px;
+        padding: 24px;
+        width: 90%;
+        max-width: 520px;
+        box-shadow: 0 25px 60px rgba(15,23,42,0.25);
+    }
+
+    .face-video-frame {
+        position: relative;
+        background: #0f172a;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .btn-primary-custom {
+        background: linear-gradient(135deg, #50C878 0%, #3A9B5E 100%);
+        border: none;
+        border-radius: 14px;
+        font-weight: 700;
+        color: white;
+        box-shadow: 0 10px 24px rgba(80,200,120,0.18);
+    }
+
+    .btn-primary-custom:hover {
+        color: white;
+        transform: translateY(-2px);
+    }
+
     @media (max-width: 768px) {
         .badge-grid {
             grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
         }
-        
+
         .badge-flip-card {
             height: 200px;
         }
-        
+
         .stats-pill {
             flex-direction: column;
             gap: 5px;
             background: transparent;
             padding: 0;
         }
-        
+
         .stats-grid {
             grid-template-columns: 1fr;
         }
-=======
-{% endblock %}
-
-{% block stylesheets %}
-<style>
-    .info-card {
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .info-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-    }
-    .btn-modern {
-        transition: all 0.3s;
-    }
-    .btn-modern:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(80, 200, 120, 0.3);
-    }
-    .hover-card {
-        transition: all 0.3s;
-        cursor: pointer;
-    }
-    .hover-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        border-color: #50C878 !important;
->>>>>>> my-work-backup
     }
 </style>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    let faceStream = null;
+    let isProcessing = false;
+    let sampleCount = 0;
+    const REQUIRED_SAMPLES = 3;
+
+    const instructions = [
+        'Look straight at the camera',
+        'Turn your head slightly left',
+        'Turn your head slightly right'
+    ];
+
+    const enableFaceIdBtn = document.getElementById('enableFaceIdBtn');
+    const disableFaceIdBtn = document.getElementById('disableFaceIdBtn');
+    const faceModal = document.getElementById('faceIdModal');
+    const closeFaceBtn = document.getElementById('closeFaceModalBtn');
+    const captureFaceBtn = document.getElementById('captureFaceBtn');
+    const faceVideo = document.getElementById('faceVideo');
+    const faceCanvas = document.getElementById('faceCanvas');
+    const faceStatus = document.getElementById('faceStatus');
+    const faceProgress = document.getElementById('faceProgress');
+
+    function updateFaceUI() {
+        const progress = (sampleCount / REQUIRED_SAMPLES) * 100;
+        faceProgress.style.width = progress + '%';
+        faceStatus.textContent = instructions[sampleCount] || 'Almost done...';
+        captureFaceBtn.textContent = `📸 Capture Sample ${sampleCount + 1} of ${REQUIRED_SAMPLES}`;
+    }
+
+    function startFaceRegistration() {
+        sampleCount = 0;
+        isProcessing = false;
+        faceModal.style.display = 'block';
+        updateFaceUI();
+
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                faceStream = stream;
+                faceVideo.srcObject = stream;
+                captureFaceBtn.disabled = false;
+            })
+            .catch(err => {
+                faceStatus.textContent = '❌ Cannot access camera: ' + err.message;
+            });
+    }
+
+    function stopFaceRegistration() {
+        if (faceStream) {
+            faceStream.getTracks().forEach(track => track.stop());
+            faceStream = null;
+        }
+        faceModal.style.display = 'none';
+        faceVideo.srcObject = null;
+        sampleCount = 0;
+        isProcessing = false;
+    }
+
+    if (enableFaceIdBtn) {
+        enableFaceIdBtn.addEventListener('click', startFaceRegistration);
+    }
+
+    if (closeFaceBtn) {
+        closeFaceBtn.addEventListener('click', stopFaceRegistration);
+    }
+
+    if (disableFaceIdBtn) {
+        disableFaceIdBtn.addEventListener('click', async () => {
+            if (confirm('Are you sure you want to disable Face ID login?')) {
+                try {
+                    const response = await fetch('/face/api/disable/{{ user.id }}', {
+                        method: 'POST'
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        location.reload();
+                    } else {
+                        alert('Failed to disable Face ID: ' + result.message);
+                    }
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                }
+            }
+        });
+    }
+
+    if (captureFaceBtn) {
+        captureFaceBtn.addEventListener('click', async () => {
+            if (isProcessing) return;
+            isProcessing = true;
+            captureFaceBtn.disabled = true;
+
+            const ctx = faceCanvas.getContext('2d');
+            faceCanvas.width = faceVideo.videoWidth;
+            faceCanvas.height = faceVideo.videoHeight;
+            ctx.drawImage(faceVideo, 0, 0);
+
+            faceCanvas.toBlob(async (blob) => {
+                const formData = new FormData();
+                formData.append('image', blob, 'face.jpg');
+
+                faceStatus.textContent = `⏳ Processing sample ${sampleCount + 1}...`;
+
+                try {
+                    const response = await fetch('/face/api/register/{{ user.id }}', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        sampleCount = result.sample_count;
+
+                        if (result.completed) {
+                            faceProgress.style.width = '100%';
+                            faceStatus.innerHTML = '✅ Face ID registered successfully! Reloading...';
+                            captureFaceBtn.disabled = true;
+                            setTimeout(() => {
+                                stopFaceRegistration();
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            faceStatus.innerHTML = `✅ Sample ${sampleCount} saved! ${result.remaining} more needed.`;
+                            updateFaceUI();
+                            captureFaceBtn.disabled = false;
+                            isProcessing = false;
+                        }
+                    } else {
+                        faceStatus.innerHTML = `❌ ${result.message} — Please try again.`;
+                        captureFaceBtn.disabled = false;
+                        isProcessing = false;
+                    }
+                } catch (error) {
+                    faceStatus.innerHTML = '❌ Error: ' + error.message;
+                    captureFaceBtn.disabled = false;
+                    isProcessing = false;
+                }
+            }, 'image/jpeg');
+        });
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && faceModal && faceModal.style.display === 'block') {
+            stopFaceRegistration();
+        }
+    });
+});
+</script>
 {% endblock %}
