@@ -1,16 +1,23 @@
 <?php
+<<<<<<< HEAD
 // src/Form/RegistrationFormType.php
+=======
+>>>>>>> my-work-backup
 
 namespace App\Form;
 
 use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+<<<<<<< HEAD
 use Symfony\Component\Form\Extension\Core\Type\DateType;
+=======
+>>>>>>> my-work-backup
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
+<<<<<<< HEAD
 use Symfony\Component\Form\Extension\Core\Type\TelType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -21,6 +28,12 @@ use Symfony\Component\Validator\Constraints\LessThanOrEqual;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Regex;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
+=======
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints as Assert;
+>>>>>>> my-work-backup
 
 class RegistrationFormType extends AbstractType
 {
@@ -30,14 +43,18 @@ class RegistrationFormType extends AbstractType
             ->add('firstname', TextType::class, [
                 'label' => 'First Name',
                 'attr' => ['class' => 'form-control', 'placeholder' => 'Enter your first name'],
+<<<<<<< HEAD
                 'constraints' => [
                     new NotBlank(['message' => 'First name is required']),
                     new Length(['min' => 2, 'max' => 50, 'minMessage' => 'First name must be at least 2 characters'])
                 ]
+=======
+>>>>>>> my-work-backup
             ])
             ->add('lastname', TextType::class, [
                 'label' => 'Last Name',
                 'attr' => ['class' => 'form-control', 'placeholder' => 'Enter your last name'],
+<<<<<<< HEAD
                 'constraints' => [
                     new NotBlank(['message' => 'Last name is required']),
                     new Length(['min' => 2, 'max' => 50, 'minMessage' => 'Last name must be at least 2 characters'])
@@ -75,10 +92,21 @@ class RegistrationFormType extends AbstractType
                     new NotBlank(['message' => 'Date of birth is required']),
                     new Callback([$this, 'validateAge'])
                 ]
+=======
+            ])
+            ->add('phone', TextType::class, [
+                'label' => 'Phone Number',
+                'attr' => ['class' => 'form-control', 'placeholder' => '+1234567890'],
+            ])
+            ->add('dateofbirth', TextType::class, [
+                'label' => 'Date of Birth',
+                'attr' => ['class' => 'form-control', 'type' => 'date'],
+>>>>>>> my-work-backup
             ])
             ->add('gender', ChoiceType::class, [
                 'label' => 'Gender',
                 'choices' => [
+<<<<<<< HEAD
                     'Select Gender' => '',
                     '👨 Male' => 'male',
                     '👩 Female' => 'female',
@@ -88,11 +116,24 @@ class RegistrationFormType extends AbstractType
                 'constraints' => [
                     new NotBlank(['message' => 'Please select your gender'])
                 ]
+=======
+                    'Male' => 'male',
+                    'Female' => 'female',
+                    'Other' => 'other',
+                ],
+                'attr' => ['class' => 'form-select'],
+                'required' => true,
+            ])
+            ->add('email', EmailType::class, [
+                'label' => 'Email',
+                'attr' => ['class' => 'form-control', 'placeholder' => 'your@email.com'],
+>>>>>>> my-work-backup
             ])
             ->add('type', ChoiceType::class, [
                 'label' => 'Account Type',
                 'choices' => [
                     'Patient' => 'Patient',
+<<<<<<< HEAD
                     'Psychologist' => 'Psychologist'
                 ],
                 'attr' => ['class' => 'form-select']
@@ -104,6 +145,20 @@ class RegistrationFormType extends AbstractType
                 'attr' => ['class' => 'form-control', 'accept' => 'application/pdf'],
                 'constraints' => [
                     new \Symfony\Component\Validator\Constraints\File([
+=======
+                    'Psychologist' => 'Psychologist',
+                    'Admin' => 'Admin',
+                ],
+                'attr' => ['class' => 'form-select'],
+            ])
+            ->add('cvFile', FileType::class, [
+                'label' => 'CV (PDF) - For Psychologists',
+                'mapped' => false,
+                'required' => false,
+                'attr' => ['accept' => 'application/pdf'],
+                'constraints' => [
+                    new Assert\File([
+>>>>>>> my-work-backup
                         'maxSize' => '5M',
                         'mimeTypes' => ['application/pdf'],
                         'mimeTypesMessage' => 'Please upload a valid PDF document',
@@ -116,6 +171,7 @@ class RegistrationFormType extends AbstractType
                 'first_options' => [
                     'label' => 'Password',
                     'attr' => ['class' => 'form-control', 'placeholder' => 'Enter password'],
+<<<<<<< HEAD
                     'constraints' => [
                         new NotBlank(['message' => 'Please enter a password']),
                         new Length([
@@ -146,12 +202,30 @@ class RegistrationFormType extends AbstractType
                 ->setParameter('{{ age }}', $age)
                 ->addViolation();
         }
+=======
+                ],
+                'second_options' => [
+                    'label' => 'Confirm Password',
+                    'attr' => ['class' => 'form-control', 'placeholder' => 'Confirm password'],
+                ],
+                'constraints' => [
+                    new Assert\NotBlank(['message' => 'Password is required']),
+                    new Assert\Length(['min' => 6]),
+                ],
+            ])
+        ;
+>>>>>>> my-work-backup
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => User::class,
+<<<<<<< HEAD
+=======
+            'csrf_protection' => true,
+            'attr' => ['novalidate' => 'novalidate'],
+>>>>>>> my-work-backup
         ]);
     }
 }

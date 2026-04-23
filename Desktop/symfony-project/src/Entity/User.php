@@ -1,5 +1,4 @@
 <?php
-// src/Entity/User.php
 
 namespace App\Entity;
 
@@ -69,6 +68,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $banReason = null;
+
+    // Badge System Fields
+    #[ORM\Column(name: 'total_booked_sessions', type: 'integer', nullable: true, options: ['default' => 0])]
+    private ?int $totalBookedSessions = 0;
+
+    #[ORM\Column(name: 'discount_percent', type: 'integer', nullable: true, options: ['default' => 0])]
+    private ?int $discountPercent = 0;
+
+    #[ORM\Column(name: 'free_session_available', type: 'boolean', nullable: true, options: ['default' => false])]
+    private ?bool $freeSessionAvailable = false;
+
+    #[ORM\Column(name: 'free_session_used', type: 'boolean', nullable: true, options: ['default' => false])]
+    private ?bool $freeSessionUsed = false;
 
     public function __construct()
     {
@@ -388,6 +400,84 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
     
     // ==================== END BAN GETTERS & SETTERS ====================
+
+    // ==================== BADGE SYSTEM GETTERS & SETTERS ====================
+
+    public function getTotalBookedSessions(): ?int
+    {
+        return $this->totalBookedSessions;
+    }
+
+    public function setTotalBookedSessions(?int $totalBookedSessions): self
+    {
+        $this->totalBookedSessions = $totalBookedSessions;
+        return $this;
+    }
+
+    public function getDiscountPercent(): ?int
+    {
+        return $this->discountPercent;
+    }
+
+    public function setDiscountPercent(?int $discountPercent): self
+    {
+        $this->discountPercent = $discountPercent;
+        return $this;
+    }
+
+    public function isFreeSessionAvailable(): ?bool
+    {
+        return $this->freeSessionAvailable;
+    }
+
+    public function setFreeSessionAvailable(?bool $freeSessionAvailable): self
+    {
+        $this->freeSessionAvailable = $freeSessionAvailable;
+        return $this;
+    }
+
+    public function isFreeSessionUsed(): ?bool
+    {
+        return $this->freeSessionUsed;
+    }
+
+    public function setFreeSessionUsed(?bool $freeSessionUsed): self
+    {
+        $this->freeSessionUsed = $freeSessionUsed;
+        return $this;
+    }
+
+    public function incrementTotalBookedSessions(): self
+    {
+        $this->totalBookedSessions++;
+        return $this;
+    }
+
+    public function getHighestBadge(): string
+    {
+        $badges = [
+            200 => 'Wellness Guru',
+            150 => 'Mentis Hero', 
+            100 => 'Grand Master',
+            75 => 'Master',
+            50 => 'Legend',
+            35 => 'Champion',
+            20 => 'Dedicated',
+            10 => 'Regular',
+            5 => 'Explorer',
+            1 => 'Newcomer'
+        ];
+        
+        foreach ($badges as $sessions => $badgeName) {
+            if ($this->totalBookedSessions >= $sessions) {
+                return $badgeName;
+            }
+        }
+        
+        return 'Newcomer';
+    }
+
+    // ==================== END BADGE SYSTEM ====================
 
     public function getCreatedAt(): \DateTimeInterface
     {

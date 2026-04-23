@@ -6,6 +6,7 @@ use App\Repository\AssessmentRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+<<<<<<< HEAD
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
@@ -20,6 +21,8 @@ use Symfony\Component\Validator\Constraints\Length;
 // ═══════════════════════════════════════════════════════
 //  ENTITY
 // ═══════════════════════════════════════════════════════
+=======
+>>>>>>> my-work-backup
 
 #[ORM\Entity(repositoryClass: AssessmentRepository::class)]
 #[ORM\Table(name: 'assessment')]
@@ -57,12 +60,19 @@ class Assessment
     public function __construct()
     {
         $this->questions = new ArrayCollection();
+<<<<<<< HEAD
         $this->results   = new ArrayCollection();
         $this->createdAt = new \DateTime();
     }
 
     // ── Getters & Setters ────────────────────────────────
 
+=======
+        $this->results = new ArrayCollection();
+        $this->createdAt = new \DateTime();
+    }
+
+>>>>>>> my-work-backup
     public function getAssessmentId(): ?int
     {
         return $this->assessmentId;
@@ -187,6 +197,7 @@ class Assessment
         }
         return $this;
     }
+<<<<<<< HEAD
 }
 
 // ═══════════════════════════════════════════════════════
@@ -272,4 +283,6 @@ class AssessmentType extends AbstractType
             'data_class' => Assessment::class,
         ]);
     }
+=======
+>>>>>>> my-work-backup
 }

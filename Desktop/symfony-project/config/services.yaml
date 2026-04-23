@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # yaml-language-server: $schema=../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
 
 parameters:
@@ -7,13 +8,22 @@ parameters:
     env(ZAI_API_KEY): ''
     env(AI_API_KEY): ''
     env(AI_API_URL): 'https://api.z.ai/v1/chat/completions'
+=======
+# config/services.yaml
+parameters:
+    locale: 'en'
+    app.supported_locales: ['en', 'fr', 'es', 'ar']
+>>>>>>> my-work-backup
 
 services:
     _defaults:
         autowire: true
         autoconfigure: true
+<<<<<<< HEAD
         public: false
 
+=======
+>>>>>>> my-work-backup
 
     App\:
         resource: '../src/'
@@ -21,6 +31,7 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
+<<<<<<< HEAD
     filesystem.original.adapter:
         class: League\Flysystem\Local\LocalFilesystemAdapter
         arguments: ['%kernel.project_dir%/public/uploads/faces/original']
@@ -59,3 +70,11 @@ services:
     App\Service\BanNotificationService:
         arguments:
             $senderEmail: '%env(SENDER_EMAIL)%'
+=======
+
+    # Geocoder Service for OpenStreetMap
+    App\Service\GeocoderService:
+        autowire: true
+        arguments:
+            $httpClient: '@http_client'
+>>>>>>> my-work-backup

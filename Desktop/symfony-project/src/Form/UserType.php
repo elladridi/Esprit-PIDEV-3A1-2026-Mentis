@@ -10,7 +10,10 @@ use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+<<<<<<< HEAD
 use Symfony\Component\Form\Extension\Core\Type\DateType;
+=======
+>>>>>>> my-work-backup
 use Symfony\Component\Validator\Constraints as Assert;
 
 class UserType extends AbstractType
@@ -65,6 +68,7 @@ class UserType extends AbstractType
                     ])
                 ]
             ])
+<<<<<<< HEAD
 
 ->add('dateofbirth', DateType::class, [
     'widget' => 'single_text',  // renders as a single <input type="text">
@@ -78,6 +82,22 @@ class UserType extends AbstractType
         'placeholder'  => 'Select date of birth',
     ],
 ])
+=======
+            ->add('dateofbirth', TextType::class, [
+                'label' => 'Date of Birth',
+                'attr' => [
+                    'class' => 'form-control',
+                    'type' => 'date'
+                ],
+                'constraints' => [
+                    new Assert\NotBlank(['message' => 'Date of birth is required']),
+                    new Assert\Regex([
+                        'pattern' => '/^\d{4}-\d{2}-\d{2}$/',
+                        'message' => 'Please enter date in YYYY-MM-DD format'
+                    ])
+                ]
+            ])
+>>>>>>> my-work-backup
             ->add('gender', ChoiceType::class, [
                 'label' => 'Gender',
                 'choices' => [

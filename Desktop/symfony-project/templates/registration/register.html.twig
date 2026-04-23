@@ -16,6 +16,7 @@
                 {% for message in app.flashes('error') %}
                     <div class="alert alert-danger">{{ message }}</div>
                 {% endfor %}
+<<<<<<< HEAD
                 {% for message in app.flashes('success') %}
                     <div class="alert alert-success">{{ message }}</div>
                 {% endfor %}
@@ -28,6 +29,11 @@
 
                 {{ form_start(registrationForm, {'attr': {'novalidate': 'novalidate', 'id': 'registerForm'}}) }}
 
+=======
+
+                {{ form_start(registrationForm, {'attr': {'novalidate': 'novalidate', 'id': 'registerForm'}}) }}
+                    
+>>>>>>> my-work-backup
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">First Name</label>
@@ -35,10 +41,16 @@
                                 <span class="input-group-text bg-light border-end-0">
                                     <i class="fas fa-user" style="color: #50C878;"></i>
                                 </span>
+<<<<<<< HEAD
                                 {{ form_widget(registrationForm.firstname, {'attr': {'class': 'form-control border-start-0', 'placeholder': 'First name'}}) }}
                             </div>
                             <div class="invalid-feedback" id="firstnameError"></div>
                             {{ form_errors(registrationForm.firstname) }}
+=======
+                                {{ form_widget(registrationForm.firstname, {'attr': {'class': 'form-control border-start-0', 'placeholder': 'First name', 'id': 'firstname'}}) }}
+                            </div>
+                            <div class="invalid-feedback" id="firstnameError"></div>
+>>>>>>> my-work-backup
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Last Name</label>
@@ -46,10 +58,16 @@
                                 <span class="input-group-text bg-light border-end-0">
                                     <i class="fas fa-user" style="color: #50C878;"></i>
                                 </span>
+<<<<<<< HEAD
                                 {{ form_widget(registrationForm.lastname, {'attr': {'class': 'form-control border-start-0', 'placeholder': 'Last name'}}) }}
                             </div>
                             <div class="invalid-feedback" id="lastnameError"></div>
                             {{ form_errors(registrationForm.lastname) }}
+=======
+                                {{ form_widget(registrationForm.lastname, {'attr': {'class': 'form-control border-start-0', 'placeholder': 'Last name', 'id': 'lastname'}}) }}
+                            </div>
+                            <div class="invalid-feedback" id="lastnameError"></div>
+>>>>>>> my-work-backup
                         </div>
                     </div>
 
@@ -59,10 +77,16 @@
                             <span class="input-group-text bg-light border-end-0">
                                 <i class="fas fa-envelope" style="color: #50C878;"></i>
                             </span>
+<<<<<<< HEAD
                             {{ form_widget(registrationForm.email, {'attr': {'class': 'form-control border-start-0', 'placeholder': 'you@example.com'}}) }}
                         </div>
                         <div class="invalid-feedback" id="emailError"></div>
                         {{ form_errors(registrationForm.email) }}
+=======
+                            {{ form_widget(registrationForm.email, {'attr': {'class': 'form-control border-start-0', 'placeholder': 'you@example.com', 'id': 'email'}}) }}
+                        </div>
+                        <div class="invalid-feedback" id="emailError"></div>
+>>>>>>> my-work-backup
                     </div>
 
                     <div class="mb-3">
@@ -71,10 +95,16 @@
                             <span class="input-group-text bg-light border-end-0">
                                 <i class="fas fa-phone" style="color: #50C878;"></i>
                             </span>
+<<<<<<< HEAD
                             {{ form_widget(registrationForm.phone, {'attr': {'class': 'form-control border-start-0', 'placeholder': '+1234567890'}}) }}
                         </div>
                         <div class="invalid-feedback" id="phoneError"></div>
                         {{ form_errors(registrationForm.phone) }}
+=======
+                            {{ form_widget(registrationForm.phone, {'attr': {'class': 'form-control border-start-0', 'placeholder': '+1234567890', 'id': 'phone'}}) }}
+                        </div>
+                        <div class="invalid-feedback" id="phoneError"></div>
+>>>>>>> my-work-backup
                     </div>
 
                     <div class="row">
@@ -82,12 +112,20 @@
                             <label class="form-label">Date of Birth</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light border-end-0">
+<<<<<<< HEAD
                                     <i class="fas fa-calendar-alt" style="color: #50C878;"></i>
                                 </span>
                                 {{ form_widget(registrationForm.dateofbirth, {'attr': {'class': 'form-control border-start-0'}}) }}
                             </div>
                             <div class="invalid-feedback" id="dobError"></div>
                             {{ form_errors(registrationForm.dateofbirth) }}
+=======
+                                    <i class="fas fa-calendar" style="color: #50C878;"></i>
+                                </span>
+                                {{ form_widget(registrationForm.dateofbirth, {'attr': {'class': 'form-control border-start-0', 'type': 'date', 'id': 'dateofbirth'}}) }}
+                            </div>
+                            <div class="invalid-feedback" id="dobError"></div>
+>>>>>>> my-work-backup
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Gender</label>
@@ -95,6 +133,7 @@
                                 <span class="input-group-text bg-light border-end-0">
                                     <i class="fas fa-venus-mars" style="color: #50C878;"></i>
                                 </span>
+<<<<<<< HEAD
                                 {{ form_widget(registrationForm.gender, {'attr': {'class': 'form-select border-start-0'}}) }}
                             </div>
                             <div class="invalid-feedback" id="genderError"></div>
@@ -126,6 +165,34 @@
                         {{ form_errors(registrationForm.cvFile) }}
                         <small class="text-muted">Upload your CV for verification (PDF format, max 5MB)</small>
                         <div id="cvAnalysisStatus" style="margin-top: 8px; font-size: 13px; display: none;"></div>
+=======
+                                {{ form_widget(registrationForm.gender, {'attr': {'class': 'form-select border-start-0', 'id': 'gender'}}) }}
+                            </div>
+                            <div class="invalid-feedback" id="genderError"></div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Account Type</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-tag" style="color: #50C878;"></i>
+                                </span>
+                                {{ form_widget(registrationForm.type, {'attr': {'class': 'form-select border-start-0', 'id': 'type'}}) }}
+                            </div>
+                        </div>
+                        <div class="mb-3" id="cvUploadSection" style="display: none;">
+    <label class="form-label">CV (PDF) - For Psychologists</label>
+    <div class="input-group">
+        <span class="input-group-text bg-light border-end-0">
+            <i class="fas fa-file-pdf" style="color: #50C878;"></i>
+        </span>
+        {{ form_widget(registrationForm.cvFile, {'attr': {'class': 'form-control border-start-0', 'accept': 'application/pdf', 'id': 'cvFile'}}) }}
+    </div>
+    <small class="text-muted">Upload your CV for automatic form filling (PDF only, max 5MB)</small>
+</div>
+>>>>>>> my-work-backup
                     </div>
 
                     <div class="mb-3">
@@ -137,7 +204,10 @@
                             {{ form_widget(registrationForm.plainPassword.first, {'attr': {'class': 'form-control border-start-0', 'placeholder': 'Enter password'}}) }}
                         </div>
                         <div class="invalid-feedback" id="passwordError"></div>
+<<<<<<< HEAD
                         {{ form_errors(registrationForm.plainPassword.first) }}
+=======
+>>>>>>> my-work-backup
                     </div>
 
                     <div class="mb-4">
@@ -149,6 +219,7 @@
                             {{ form_widget(registrationForm.plainPassword.second, {'attr': {'class': 'form-control border-start-0', 'placeholder': 'Confirm password'}}) }}
                         </div>
                         <div class="invalid-feedback" id="confirmPasswordError"></div>
+<<<<<<< HEAD
                         {{ form_errors(registrationForm.plainPassword.second) }}
                     </div>
 
@@ -165,16 +236,25 @@
                                 </div>
                             </div>
                         </div>
+=======
+>>>>>>> my-work-backup
                     </div>
 
                     <button type="submit" class="btn btn-primary-custom w-100 py-2">
                         <i class="fas fa-user-plus me-2"></i> Create Account
                     </button>
+<<<<<<< HEAD
 
                 {{ form_end(registrationForm) }}
 
                 <div class="text-center mt-4">
                     <p class="text-muted">Already have an account?
+=======
+                {{ form_end(registrationForm) }}
+
+                <div class="text-center mt-4">
+                    <p class="text-muted">Already have an account? 
+>>>>>>> my-work-backup
                         <a href="{{ path('app_login') }}" class="text-decoration-none fw-bold" style="color: #50C878;">Sign In</a>
                     </p>
                 </div>
@@ -191,6 +271,7 @@
         box-shadow: 0 20px 60px rgba(0,0,0,0.1);
         animation: fadeInUp 0.6s ease-out;
     }
+<<<<<<< HEAD
     .form-control, .form-select { border-radius: 10px; padding: 12px 15px; }
     .input-group-text { border-radius: 10px 0 0 10px; border-right: none; background: #f8f9fa; }
     .form-control, .form-select { border-left: none; }
@@ -389,4 +470,150 @@
     }
 })();
 </script>
+=======
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .form-control, .form-select {
+        border-radius: 10px;
+        padding: 12px 15px;
+    }
+    
+    .input-group-text {
+        border-radius: 10px 0 0 10px;
+        border: 1px solid #ced4da;
+        border-right: none;
+        background: #f8f9fa;
+    }
+    
+    .form-control, .form-select {
+        border-left: none;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #50C878;
+        box-shadow: none;
+    }
+    
+    .input-group:focus-within .input-group-text {
+        border-color: #50C878;
+    }
+    
+    .btn-primary-custom {
+        background: linear-gradient(135deg, #50C878 0%, #3A9B5E 100%);
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .btn-primary-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(80, 200, 120, 0.4);
+    }
+    
+    .alert {
+        border-radius: 10px;
+        border: none;
+    }
+    
+    .loading-spinner {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        z-index: 9999;
+    }
+</style>
+
+<div class="loading-spinner" id="loadingSpinner">
+    <i class="fas fa-spinner fa-spin me-2"></i> Analyzing CV...
+</div>
+
+{% block javascripts %}
+<script>
+    // Afficher/masquer le champ CV
+    const typeSelect = document.querySelector('#registration_form_type');
+    const cvSection = document.getElementById('cvUploadSection');
+    
+    if (typeSelect && cvSection) {
+        typeSelect.addEventListener('change', function() {
+            cvSection.style.display = this.value === 'Psychologist' ? 'block' : 'none';
+        });
+        cvSection.style.display = typeSelect.value === 'Psychologist' ? 'block' : 'none';
+    }
+    
+    // Analyser le CV automatiquement
+    const cvInput = document.getElementById('registration_form_cvFile');
+    if (cvInput) {
+        cvInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (file.type !== 'application/pdf') {
+                alert('Please upload a PDF file');
+                this.value = '';
+                return;
+            }
+            
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File must be less than 5MB');
+                this.value = '';
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('cv', file);
+            
+            // Afficher un loader
+            const btn = document.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Analyzing CV...';
+            btn.disabled = true;
+            
+            fetch('{{ path('app_analyze_cv') }}', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                } else {
+                    // Remplir le formulaire
+                    if (data.firstname) document.querySelector('#registration_form_firstname').value = data.firstname;
+                    if (data.lastname) document.querySelector('#registration_form_lastname').value = data.lastname;
+                    if (data.email) document.querySelector('#registration_form_email').value = data.email;
+                    if (data.phone) document.querySelector('#registration_form_phone').value = data.phone;
+                    if (data.dateofbirth) document.querySelector('#registration_form_dateofbirth').value = data.dateofbirth;
+                    
+                    alert('✅ CV analyzed! Form filled automatically.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to analyze CV. Please fill manually.');
+            })
+            .finally(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+        });
+    }
+</script>{% endblock %}
+>>>>>>> my-work-backup
 {% endblock %}

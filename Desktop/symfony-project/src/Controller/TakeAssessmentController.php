@@ -32,7 +32,11 @@ class TakeAssessmentController extends AbstractController
         $this->em             = $em;
     }
 
+<<<<<<< HEAD
     // ── ASSESSMENT SELECTION WITH FULL QB FILTERS + SORT ───────
+=======
+    // ── 🔥 ASSESSMENT SELECTION WITH FULL QB FILTERS + SORT ───────
+>>>>>>> my-work-backup
     #[Route('/', name: 'take_assessment_index', methods: ['GET'])]
     public function index(Request $request): Response
     {
@@ -41,12 +45,23 @@ class TakeAssessmentController extends AbstractController
         $status = $request->query->get('status', '');
         $sort = $request->query->get('sort', 'title_asc');
 
+<<<<<<< HEAD
         $qb = $this->assessmentRepo->createQueryBuilder('a')
             ->leftJoin('a.questions', 'q')
             ->select('a', 'COUNT(q.questionId) as HIDDEN questionCount')
             ->groupBy('a.assessmentId')
             ->orderBy('a.title', 'ASC');
 
+=======
+        // 🔥 DYNAMIC QUERY BUILDER - FIXED FIELD NAMES
+        $qb = $this->assessmentRepo->createQueryBuilder('a')
+            ->leftJoin('a.questions', 'q')
+            ->select('a', 'COUNT(q.questionId) as HIDDEN questionCount')  // ✅ FIXED: questionId
+            ->groupBy('a.assessmentId')
+            ->orderBy('a.title', 'ASC');
+
+        // 🔍 FULL-TEXT SEARCH (title + description)
+>>>>>>> my-work-backup
         if ($search) {
             $qb->andWhere(
                 $qb->expr()->orX(
@@ -56,16 +71,28 @@ class TakeAssessmentController extends AbstractController
             )->setParameter('search', '%' . $search . '%');
         }
 
+<<<<<<< HEAD
+=======
+        // 📂 TYPE FILTER
+>>>>>>> my-work-backup
         if ($type) {
             $qb->andWhere('a.type = :type')->setParameter('type', $type);
         }
 
+<<<<<<< HEAD
+=======
+        // ✅ STATUS FILTER (Active by default)
+>>>>>>> my-work-backup
         if ($status) {
             $qb->andWhere('a.status = :status')->setParameter('status', $status);
         } else {
             $qb->andWhere('a.status = :active')->setParameter('active', 'Active');
         }
 
+<<<<<<< HEAD
+=======
+        // 🔄 DYNAMIC SORTING
+>>>>>>> my-work-backup
         switch ($sort) {
             case 'title_asc':
                 $qb->orderBy('a.title', 'ASC');
@@ -86,8 +113,15 @@ class TakeAssessmentController extends AbstractController
                 $qb->orderBy('a.title', 'ASC');
         }
 
+<<<<<<< HEAD
         $assessments = $qb->getQuery()->getResult();
 
+=======
+        // EXECUTE QUERY
+        $assessments = $qb->getQuery()->getResult();
+
+        // 📊 TOTAL COUNT QUERY (separate for accuracy)
+>>>>>>> my-work-backup
         $countQB = $this->assessmentRepo->createQueryBuilder('a')
             ->select('COUNT(DISTINCT a.assessmentId)')
             ->where('a.status = :active')
@@ -130,6 +164,10 @@ class TakeAssessmentController extends AbstractController
             throw $this->createNotFoundException('Assessment not found');
         }
 
+<<<<<<< HEAD
+=======
+        // ✅ CHECK IF ACTIVE
+>>>>>>> my-work-backup
         if ($assessment->getStatus() !== 'Active') {
             $this->addFlash('error', 'This assessment is currently inactive.');
             return $this->redirectToRoute('take_assessment_index');
@@ -142,6 +180,10 @@ class TakeAssessmentController extends AbstractController
             return $this->redirectToRoute('take_assessment_index');
         }
 
+<<<<<<< HEAD
+=======
+        // Parse scale options for each question
+>>>>>>> my-work-backup
         $questionData = [];
         foreach ($questions as $question) {
             $questionData[] = [
@@ -159,6 +201,7 @@ class TakeAssessmentController extends AbstractController
         ]);
     }
 
+<<<<<<< HEAD
     // ── GENERATE ADAPTIVE QUESTION VIA AI (UPDATED FOR SCALE-BASED ANSWERS) ──
     #[Route('/ai/adaptive-question', name: 'take_assessment_adaptive', methods: ['POST'])]
     public function generateAdaptiveQuestion(Request $request): JsonResponse
@@ -265,11 +308,49 @@ Return ONLY the JSON, no other text.";
                     'options' => ['1', '2', '3', '4', '5'],
                 ],
             ]);
+=======
+    // ── GENERATE ADAPTIVE QUESTION VIA AI ─────────────────────────
+    #[Route('/ai/adaptive-question', name: 'take_assessment_adaptive', methods: ['POST'])]
+    public function generateAdaptiveQuestion(Request $request): JsonResponse
+    {
+        $data         = json_decode($request->getContent(), true);
+        $categoryScores = $data['categoryScores'] ?? [];
+        $focus        = $data['focus'] ?? 'general';
+        $askedIds     = $data['askedIds'] ?? [];
+
+        $prompt = "You are an expert clinical psychologist. Based on a mental health assessment where the patient has shown: ";
+
+        foreach ($categoryScores as $category => $score) {
+            $level    = $score > 0.7 ? 'high' : ($score > 0.4 ? 'moderate' : 'low');
+            $prompt  .= "{$category} ({$level} levels), ";
+        }
+
+        $prompt .= "\n\nGenerate ONE specific follow-up question about {$focus}. ";
+        $prompt .= "Return ONLY the question text, nothing else.";
+
+        try {
+            $questionText = $this->groqService->generateContent($prompt);
+            $questionText = trim(preg_replace('/^\d+\.\s*/', '', $questionText));
+            $questionText = trim($questionText, '"*');
+
+            return $this->json([
+                'success'  => true,
+                'question' => [
+                    'id'      => 'ai_' . time(),
+                    'text'    => $questionText,
+                    'scale'   => 'Never/Rarely/Sometimes/Often/Always',
+                    'options' => ['Never', 'Rarely', 'Sometimes', 'Often', 'Always'],
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()]);
+>>>>>>> my-work-backup
         }
     }
 
     // ── AI QUESTION GENERATOR FOR ADMIN ───────────────────────────
     #[Route('/ai/generate-questions', name: 'take_assessment_generate_questions', methods: ['POST'])]
+<<<<<<< HEAD
 public function generateQuestions(Request $request): JsonResponse
 {
     $data    = json_decode($request->getContent(), true);
@@ -328,6 +409,44 @@ public function generateQuestions(Request $request): JsonResponse
         ]);
     }
 }
+=======
+    public function generateQuestions(Request $request): JsonResponse
+    {
+        $data    = json_decode($request->getContent(), true);
+        $count   = (int)($data['count'] ?? 5);
+        $focus   = $data['focus'] ?? 'General mental wellness';
+        $scale   = $data['scale'] ?? 'Never/Rarely/Sometimes/Often/Always';
+        $context = $data['context'] ?? '';
+
+        $prompt  = "You are an expert clinical psychologist and mental health assessment designer. ";
+        $prompt .= "Generate exactly {$count} original mental health assessment questions focused on: {$focus}. ";
+
+        if ($context) {
+            $prompt .= "Additional context: {$context}. ";
+        }
+
+        $prompt .= "Each question must use this answer scale: {$scale}.\n\n";
+        $prompt .= "CRITICAL FORMAT RULES:\n";
+        $prompt .= "- Number each question like: 1. [question text]\n";
+        $prompt .= "- After each question write: SCALE: {$scale}\n";
+        $prompt .= "- Output ONLY the questions, nothing else.\n";
+        $prompt .= "- Questions should be in first-person.\n\n";
+        $prompt .= "Now generate {$count} questions:";
+
+        try {
+            $response  = $this->groqService->generateContent($prompt);
+            $questions = $this->parseGeneratedQuestions($response, $scale);
+
+            return $this->json([
+                'success'   => true,
+                'questions' => $questions,
+            ]);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()]);
+        }
+    }
+
+>>>>>>> my-work-backup
     // ── SAVE AI GENERATED QUESTIONS ───────────────────────────────
     #[Route('/ai/save-questions/{assessmentId}', name: 'take_assessment_save_questions', methods: ['POST'])]
     public function saveGeneratedQuestions(Request $request, int $assessmentId): JsonResponse

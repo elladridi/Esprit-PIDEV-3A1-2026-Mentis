@@ -4,9 +4,18 @@ namespace App\Controller;
 
 use App\Repository\AssessmentRepository;
 use App\Repository\SessionRepository;
+<<<<<<< HEAD
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+=======
+use App\Entity\User;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+>>>>>>> my-work-backup
 
 class MainController extends AbstractController
 {
@@ -56,4 +65,39 @@ class MainController extends AbstractController
     {
         return $this->render('main/contact.html.twig');
     }
+<<<<<<< HEAD
+=======
+
+    #[Route('/set-locale/{locale}', name: 'set_locale', methods: ['POST'])]
+    public function setLocale(string $locale, Request $request): JsonResponse
+    {
+        $supportedLocales = ['en', 'fr', 'es', 'ar'];
+        
+        if (in_array($locale, $supportedLocales)) {
+            $request->getSession()->set('_locale', $locale);
+            $request->setLocale($locale);
+            return $this->json(['success' => true]);
+        }
+        
+        return $this->json(['success' => false, 'message' => 'Locale not supported'], 400);
+    }
+
+    #[Route('/change-lang/{locale}', name: 'change_lang')]
+    public function changeLang(string $locale, Request $request): Response
+    {
+        $supportedLocales = ['en', 'fr', 'es', 'ar'];
+        
+        if (in_array($locale, $supportedLocales)) {
+            $request->getSession()->set('_locale', $locale);
+            $request->setLocale($locale);
+        }
+        
+        $referer = $request->headers->get('referer');
+        if ($referer) {
+            return $this->redirect($referer);
+        }
+        
+        return $this->redirectToRoute('app_home');
+    }
+>>>>>>> my-work-backup
 }

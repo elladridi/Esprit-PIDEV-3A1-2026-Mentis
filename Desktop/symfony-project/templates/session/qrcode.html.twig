@@ -1,0 +1,62 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}QR Code - {{ session.title }}{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 rounded-4 text-center">
+                <div class="card-body p-5">
+                    <h2 class="mb-4" style="color: #2E7D32;">
+                        <i class="fas fa-qrcode me-2"></i>Session QR Code
+                    </h2>
+                    
+                    <div class="bg-light p-4 rounded-4 mb-4">
+                        {% if qrCode %}
+                            <img src="{{ qrCode }}" alt="QR Code" class="img-fluid" style="max-width: 250px;">
+                        {% else %}
+                            <div class="alert alert-warning">QR Code not available</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="session-info mb-4">
+                        <h5>{{ session.title }}</h5>
+                        <p><strong>Date:</strong> {{ session.sessionDate|date('d/m/Y') }}</p>
+                        <p><strong>Time:</strong> {{ session.startTime|date('H:i') }} - {{ session.endTime|date('H:i') }}</p>
+                        <p><strong>Location:</strong> {{ session.location }}</p>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Scan this QR code to see session details
+                    </div>
+                    
+                    <div class="d-flex gap-2 justify-content-center mt-4">
+                        <button onclick="downloadQRCode()" class="btn btn-outline-primary rounded-pill px-4">
+                            <i class="fas fa-download me-2"></i>Download
+                        </button>
+                        <a href="{{ path('session_show', {id: session.sessionId}) }}" class="btn btn-primary rounded-pill px-4">
+                            <i class="fas fa-arrow-left me-2"></i>Back
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+function downloadQRCode() {
+    const qrImage = document.querySelector('.bg-light img');
+    if (qrImage && qrImage.src) {
+        const link = document.createElement('a');
+        link.download = 'session_{{ session.sessionId }}_qrcode.png';
+        link.href = qrImage.src;
+        link.click();
+    }
+}
+</script>
+{% endblock %}

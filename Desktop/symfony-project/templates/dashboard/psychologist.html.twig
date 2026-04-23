@@ -1,8 +1,12 @@
+<<<<<<< HEAD
 {# templates/dashboard/psychologist.html.twig - ENHANCED CREATIVE VERSION #}
+=======
+>>>>>>> my-work-backup
 {% extends "base.html.twig" %}
 
 {% block title %}Psychologist Dashboard - Mentis{% endblock %}
 
+<<<<<<< HEAD
 {% block stylesheets %}
 {{ parent() }}
 <style>
@@ -1118,6 +1122,42 @@ body {
                     <div class="stat-icon">⚠️</div>
                     <div class="stat-label">High Risk Cases</div>
                     <div class="stat-value" id="highRiskCount">
+=======
+{% block body %}
+<div style="min-height: 100vh; padding: 20px;">
+    <nav style="background: white; border-radius: 10px; padding: 20px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="color: #50C878; margin: 0;">🧠 Mentis - Psychologist Portal</h2>
+            <div>
+                <span style="color: #718096; margin-right: 20px;">Welcome, Dr. <strong>{{ user.firstname }} {{ user.lastname }}</strong></span>
+                <a href="{{ path('app_logout') }}" style="background: #50C878; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 600;">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div style="background: white; border-radius: 10px; padding: 40px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <h1 style="color: #2d3748; margin-bottom: 30px;">Welcome to Your Psychologist Dashboard</h1>
+
+            <!-- Statistics Cards -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 40px;">
+                <div style="background: linear-gradient(135deg, #50C878 0%, #40a860 100%); border-radius: 10px; padding: 25px; color: white; box-shadow: 0 5px 15px rgba(80, 200, 120, 0.2);">
+                    <div style="font-size: 32px; margin-bottom: 10px;">👥</div>
+                    <h3 style="margin: 0 0 10px 0; font-size: 18px;">Total Patients</h3>
+                    <p style="margin: 0; font-size: 28px; font-weight: bold;">{{ patients|length }}</p>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #50C878 0%, #40a860 100%); border-radius: 10px; padding: 25px; color: white; box-shadow: 0 5px 15px rgba(80, 200, 120, 0.2);">
+                    <div style="font-size: 32px; margin-bottom: 10px;">📊</div>
+                    <h3 style="margin: 0 0 10px 0; font-size: 18px;">Total Assessments</h3>
+                    <p style="margin: 0; font-size: 28px; font-weight: bold;">{{ results|length }}</p>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #50C878 0%, #40a860 100%); border-radius: 10px; padding: 25px; color: white; box-shadow: 0 5px 15px rgba(80, 200, 120, 0.2);">
+                    <div style="font-size: 32px; margin-bottom: 10px;">⚠️</div>
+                    <h3 style="margin: 0 0 10px 0; font-size: 18px;">High Risk Cases</h3>
+                    <p style="margin: 0; font-size: 28px; font-weight: bold;">
+>>>>>>> my-work-backup
                         {% set highRiskCount = 0 %}
                         {% for result in results %}
                             {% if result.riskLevel in ['High', 'Severe'] %}
@@ -1125,8 +1165,12 @@ body {
                             {% endif %}
                         {% endfor %}
                         {{ highRiskCount }}
+<<<<<<< HEAD
                     </div>
                     <div class="stat-foot">Cases requiring immediate attention</div>
+=======
+                    </p>
+>>>>>>> my-work-backup
                 </div>
             </div>
 
@@ -1152,6 +1196,7 @@ body {
             <div class="tab-content">
                 <!-- RESULTS TAB -->
                 <div class="tab-pane fade show active" id="results" role="tabpanel">
+<<<<<<< HEAD
                     <div class="card">
                         <div class="card-header bg-white">
                             <h5>📊 Patient Assessment Results</h5>
@@ -1179,12 +1224,45 @@ body {
                                     <div class="col-md-2">
                                         <button id="resetFilters" class="btn btn-secondary w-100">Reset</button>
                                     </div>
+=======
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">📊 Patient Assessment Results</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Filters -->
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <input type="text" id="filterPatient" class="form-control" placeholder="Filter by patient name...">
+                                </div>
+                                <div class="col-md-3">
+                                    <select id="filterRisk" class="form-select">
+                                        <option value="">All Risk Levels</option>
+                                        <option value="Low">Low</option>
+                                        <option value="Minimal">Minimal</option>
+                                        <option value="Mild">Mild</option>
+                                        <option value="Moderate">Moderate</option>
+                                        <option value="High">High</option>
+                                        <option value="Severe">Severe</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="date" id="filterDate" class="form-control" placeholder="Date">
+                                </div>
+                                <div class="col-md-2">
+                                    <button id="resetFilters" class="btn btn-secondary w-100">Reset</button>
+>>>>>>> my-work-backup
                                 </div>
                             </div>
 
                             <div class="table-responsive">
+<<<<<<< HEAD
                                 <table class="table modern-table table-hover align-middle">
                                     <thead>
+=======
+                                <table class="table table-hover" id="resultsTable">
+                                    <thead class="table-light">
+>>>>>>> my-work-backup
                                         <tr>
                                             <th>ID</th>
                                             <th>Patient</th>
@@ -1198,6 +1276,7 @@ body {
                                     </thead>
                                     <tbody>
                                         {% for result in results %}
+<<<<<<< HEAD
                                             {% set patientName = 'Unknown' %}
                                             {% if result.user is defined and result.user is not null %}
                                                 {% if result.user.firstname is defined and result.user.firstname is not null %}
@@ -1254,6 +1333,40 @@ body {
                                                     </div>
                                                 </td>
                                             </tr>
+=======
+                                        <tr class="result-row" 
+                                            data-patient="{{ result.user ? result.user.firstname ~ ' ' ~ result.user.lastname : 'Unknown'|lower }}" 
+                                            data-risk="{{ result.riskLevel }}" 
+                                            data-date="{{ result.takenAt ? result.takenAt|date('Y-m-d') : '' }}">
+                                            <td>{{ result.resultId }}</td>
+                                            <td>{{ result.user ? result.user.firstname ~ ' ' ~ result.user.lastname : 'Unknown' }}</td>
+                                            <td>{{ result.assessment ? result.assessment.title : 'N/A' }}</td>
+                                            <td class="text-center">{{ result.totalScore }}</td>
+                                            <td>
+                                                <span class="badge {% if result.riskLevel in ['High', 'Severe'] %}bg-danger{% elseif result.riskLevel in ['Moderate', 'Mild'] %}bg-warning{% else %}bg-success{% endif %}">
+                                                    {{ result.riskLevel }}
+                                                </span>
+                                            </td>
+                                            <td>{{ result.takenAt ? result.takenAt|date('Y-m-d H:i') : 'N/A' }}</td>
+                                            <td>
+                                                <span class="badge {% if result.suggestSession %}bg-danger{% else %}bg-secondary{% endif %}">
+                                                    {{ result.suggestSession ? 'Yes' : 'No' }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="{{ path('result_show', {id: result.resultId}) }}" class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-eye"></i> View
+                                                </a>
+                                                <a href="{{ path('result_export_pdf', {id: result.resultId}) }}" class="btn btn-sm btn-secondary">
+                                                    <i class="fas fa-file-pdf"></i> PDF
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="8" class="text-center text-muted">No assessment results found.</td>
+                                        </tr>
+>>>>>>> my-work-backup
                                         {% endfor %}
                                     </tbody>
                                 </table>
@@ -1264,6 +1377,7 @@ body {
 
                 <!-- PATIENTS TAB -->
                 <div class="tab-pane fade" id="patients" role="tabpanel">
+<<<<<<< HEAD
                     <div class="card">
                         <div class="card-header bg-white">
                             <h5>👥 My Patients</h5>
@@ -1272,6 +1386,16 @@ body {
                             <div class="table-responsive">
                                 <table class="table modern-table table-hover align-middle">
                                     <thead>
+=======
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">👥 My Patients</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+>>>>>>> my-work-backup
                                         <tr>
                                             <th>ID</th>
                                             <th>Name</th>
@@ -1284,6 +1408,7 @@ body {
                                     </thead>
                                     <tbody>
                                         {% for patient in patients %}
+<<<<<<< HEAD
                                             {% if patient is not null %}
                                                 <tr>
                                                     <td>#{{ patient.id }}</td>
@@ -1318,6 +1443,25 @@ body {
                                                     </div>
                                                 </td>
                                             </tr>
+=======
+                                        <tr>
+                                            <td>{{ patient.id }}</td>
+                                            <td>{{ patient.firstname }} {{ patient.lastname }}</td>
+                                            <td>{{ patient.email }}</td>
+                                            <td>{{ patient.phone }}</td>
+                                            <td>{{ patient.age }}</td>
+                                            <td>{{ patient.gender|capitalize }}</td>
+                                            <td>
+                                                <a href="{{ path('result_by_user', {userId: patient.id}) }}" class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-chart-line"></i> View Results
+                                                </a>
+                                             </td>
+                                        </tr>
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="7" class="text-center text-muted">No patients found.</td>
+                                        </tr>
+>>>>>>> my-work-backup
                                         {% endfor %}
                                     </tbody>
                                 </table>
@@ -1328,6 +1472,7 @@ body {
 
                 <!-- CONTENT LIBRARY TAB -->
                 <div class="tab-pane fade" id="content" role="tabpanel">
+<<<<<<< HEAD
                     <div class="card">
                         <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
                             <h5>📚 Content Library</h5>
@@ -1347,12 +1492,23 @@ body {
                                     </a>
                                 </div>
                             </div>
+=======
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">📚 Content Library</h5>
+                            <a href="{{ path('content_index') }}" class="btn btn-sm btn-success">Manage Content</a>
+                        </div>
+                        <div class="card-body">
+                            <p>Create and manage educational content for your patients.</p>
+                            <a href="{{ path('content_index') }}" class="btn btn-primary">Go to Content Manager →</a>
+>>>>>>> my-work-backup
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Professional Profile Section -->
+<<<<<<< HEAD
             <div class="profile-card">
                 <h3 class="section-title mb-3">Your Professional Profile</h3>
                 <div class="profile-grid">
@@ -1362,12 +1518,24 @@ body {
                     <div class="profile-item"><strong>Date of Birth:</strong> {{ user.dateofbirth ? user.dateofbirth|date('d/m/Y') : 'N/A' }}</div>
                     <div class="profile-item"><strong>Account Type:</strong> <span class="account-chip">{{ user.type }}</span></div>
                     <div class="profile-item"><strong>Member Since:</strong> {{ user.createdAt|date('d/m/Y') }}</div>
+=======
+            <div style="background: #f7fafc; border-left: 4px solid #50C878; padding: 20px; border-radius: 5px; margin-top: 30px;">
+                <h3 style="color: #2d3748; margin-top: 0;">Your Professional Profile</h3>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; color: #4a5568;">
+                    <div><strong>Name:</strong> Dr. {{ user.firstname }} {{ user.lastname }}</div>
+                    <div><strong>Email:</strong> {{ user.email }}</div>
+                    <div><strong>Phone:</strong> {{ user.phone }}</div>
+                    <div><strong>Date of Birth:</strong> {{ user.dateofbirth }}</div>
+                    <div><strong>Account Type:</strong> <span style="background: #50C878; color: white; padding: 3px 10px; border-radius: 4px; font-size: 12px;">{{ user.type }}</span></div>
+                    <div><strong>Member Since:</strong> {{ user.createdAt|date('d/m/Y') }}</div>
+>>>>>>> my-work-backup
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<<<<<<< HEAD
 <!-- Face ID Registration Modal -->
 <div id="faceIdModal" style="display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.72); z-index: 9999;">
     <div class="face-modal-card">
@@ -1813,10 +1981,26 @@ function filterResults() {
 
     const rows = document.querySelectorAll('.result-row');
 
+=======
+<script>
+document.getElementById('filterPatient').addEventListener('keyup', filterResults);
+document.getElementById('filterRisk').addEventListener('change', filterResults);
+document.getElementById('filterDate').addEventListener('change', filterResults);
+document.getElementById('resetFilters').addEventListener('click', resetFilters);
+
+function filterResults() {
+    const patientFilter = document.getElementById('filterPatient').value.toLowerCase();
+    const riskFilter = document.getElementById('filterRisk').value;
+    const dateFilter = document.getElementById('filterDate').value;
+    
+    const rows = document.querySelectorAll('.result-row');
+    
+>>>>>>> my-work-backup
     rows.forEach(row => {
         const patient = row.getAttribute('data-patient') || '';
         const risk = row.getAttribute('data-risk') || '';
         const date = row.getAttribute('data-date') || '';
+<<<<<<< HEAD
 
         let show = true;
 
@@ -1824,11 +2008,21 @@ function filterResults() {
         if (riskFilter && risk !== riskFilter) show = false;
         if (dateFilter && date !== dateFilter) show = false;
 
+=======
+        
+        let show = true;
+        
+        if (patientFilter && !patient.includes(patientFilter)) show = false;
+        if (riskFilter && risk !== riskFilter) show = false;
+        if (dateFilter && date !== dateFilter) show = false;
+        
+>>>>>>> my-work-backup
         row.style.display = show ? '' : 'none';
     });
 }
 
 function resetFilters() {
+<<<<<<< HEAD
     const filterPatientEl = document.getElementById('filterPatient');
     const filterRiskEl = document.getElementById('filterRisk');
     const filterDateEl = document.getElementById('filterDate');
@@ -1871,5 +2065,12 @@ window.addEventListener('beforeunload', function() {
         clearInterval(pollInterval);
     }
 });
+=======
+    document.getElementById('filterPatient').value = '';
+    document.getElementById('filterRisk').value = '';
+    document.getElementById('filterDate').value = '';
+    filterResults();
+}
+>>>>>>> my-work-backup
 </script>
 {% endblock %}

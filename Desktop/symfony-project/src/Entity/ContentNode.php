@@ -6,10 +6,14 @@ use App\Repository\ContentNodeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+<<<<<<< HEAD
 use Symfony\Component\HttpFoundation\File\File;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[Vich\Uploadable]
+=======
+
+>>>>>>> my-work-backup
 #[ORM\Entity(repositoryClass: ContentNodeRepository::class)]
 #[ORM\Table(name: 'content_node')]
 class ContentNode
@@ -28,6 +32,7 @@ class ContentNode
     #[ORM\Column(name: 'pdf_path', length: 500, nullable: true)]
     private ?string $pdfPath = null;
 
+<<<<<<< HEAD
     #[Vich\UploadableField(mapping: 'content_pdf', fileNameProperty: 'pdfPath')]
     private ?File $pdfFile = null;
 
@@ -37,6 +42,11 @@ class ContentNode
     #[ORM\Column(name: 'updated_at', type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $updatedAt = null;
 
+=======
+    #[ORM\Column(name: 'created_at', type: 'datetime')]
+    private \DateTimeInterface $createdAt;
+
+>>>>>>> my-work-backup
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'created_by', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private ?User $createdBy = null;
@@ -102,6 +112,7 @@ class ContentNode
         return $this;
     }
 
+<<<<<<< HEAD
     public function getPdfFile(): ?File
     {
         return $this->pdfFile;
@@ -118,6 +129,8 @@ class ContentNode
         return $this;
     }
 
+=======
+>>>>>>> my-work-backup
     public function getCreatedAt(): \DateTimeInterface
     {
         return $this->createdAt;
@@ -130,6 +143,7 @@ class ContentNode
         return $this;
     }
 
+<<<<<<< HEAD
     public function getUpdatedAt(): ?\DateTimeInterface
     {
         return $this->updatedAt;
@@ -142,6 +156,8 @@ class ContentNode
         return $this;
     }
 
+=======
+>>>>>>> my-work-backup
     public function getCreatedBy(): ?User
     {
         return $this->createdBy;
@@ -232,6 +248,7 @@ class ContentNode
 
         return $this;
     }
+<<<<<<< HEAD
 
     public function getPdfPublicPath(): ?string
     {
@@ -249,4 +266,6 @@ class ContentNode
 
         return 'uploads/' . ltrim($this->pdfPath, '/');
     }
+=======
+>>>>>>> my-work-backup
 }

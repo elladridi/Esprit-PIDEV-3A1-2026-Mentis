@@ -3,7 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\Question;
+<<<<<<< HEAD
 use App\Entity\QuestionType;
+=======
+use App\Form\QuestionType;
+>>>>>>> my-work-backup
 use App\Repository\AssessmentRepository;
 use App\Repository\QuestionRepository;
 use Doctrine\ORM\EntityManagerInterface;

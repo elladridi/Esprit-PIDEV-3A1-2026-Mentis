@@ -185,6 +185,7 @@ class UserRepository extends ServiceEntityRepository
             'femaleCount' => $femaleCount,
         ];
     }
+<<<<<<< HEAD
 
     // ==================== FACE RECOGNITION METHODS ====================
     
@@ -309,4 +310,6 @@ class UserRepository extends ServiceEntityRepository
     {
         return $this->findOneBy(['email' => $email]);
     }
+=======
+>>>>>>> my-work-backup
 }

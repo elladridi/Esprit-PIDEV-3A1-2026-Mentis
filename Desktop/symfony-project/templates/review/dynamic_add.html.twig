@@ -1,0 +1,124 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}AI-Guided Review - Mentis{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="mb-4">
+        <a href="{{ path('review_add', {sessionId: session.sessionId, mode: 'choice'}) }}"
+           class="text-decoration-none" style="color: #50C878;">
+            ← Back
+        </a>
+    </div>
+
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold" style="color: #2E7D32;">🤖 AI-Guided Review</h1>
+        <p class="lead text-muted">{{ session.title }}</p>
+        <p>{{ session.sessionDate|date('M d, Y') }} • {{ session.startTime|date('H:i') }}</p>
+    </div>
+
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger">{{ message }}</div>
+    {% endfor %}
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    
+                    <form method="POST" action="{{ path('review_add', {sessionId: session.sessionId}) }}">
+                        <input type="hidden" name="mode" value="ai">
+                        
+                        {% for question in questions %}
+                            <div class="mb-4 p-3 border rounded">
+                                <p class="fw-bold mb-2">{{ loop.index }}. {{ question.text }}</p>
+                                
+                                {% if question.type == 'rating' %}
+                                    <div class="rating-stars">
+                                        {% for i in 1..question.scale %}
+                                            <label style="font-size: 30px; cursor: pointer; margin-right: 5px;">
+                                                <input type="radio" name="q_{{ question.id }}" value="{{ i }}" style="display: none;">
+                                                <i class="far fa-star"></i>
+                                            </label>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                {% elseif question.type == 'choice' %}
+                                    <div>
+                                        {% for option in question.options %}
+                                            <label class="me-3">
+                                                <input type="radio" name="q_{{ question.id }}" value="{{ option }}">
+                                                {{ option }}
+                                            </label>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                {% elseif question.type == 'scale' %}
+                                    <div>
+                                        <input type="range" name="q_{{ question.id }}" min="1" max="{{ question.scale }}" value="3" oninput="this.nextElementSibling.value = this.value">
+                                        <output class="ms-2">3</output>
+                                    </div>
+                                    
+                                {% else %}
+                                    <textarea name="q_{{ question.id }}" class="form-control" rows="3" placeholder="Share your thoughts..."></textarea>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                        
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-success px-5 py-2">Submit Review</button>
+                            <a href="{{ path('review_add', {sessionId: session.sessionId, mode: 'choice'}) }}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.rating-stars label').forEach(label => {
+    label.addEventListener('click', function(e) {
+        e.preventDefault();
+        const stars = this.parentElement.querySelectorAll('label');
+        const value = this.querySelector('input').value;
+        
+        stars.forEach((star, index) => {
+            const icon = star.querySelector('i');
+            if (index < value) {
+                icon.classList.remove('far');
+                icon.classList.add('fas');
+                icon.style.color = '#FFD700';
+            } else {
+                icon.classList.remove('fas');
+                icon.classList.add('far');
+                icon.style.color = '#ddd';
+            }
+        });
+        
+        this.querySelector('input').checked = true;
+    });
+});
+
+document.querySelectorAll('input[type="range"]').forEach(range => {
+    range.addEventListener('input', function() {
+        this.nextElementSibling.value = this.value;
+    });
+});
+</script>
+
+<style>
+.rating-stars {
+    display: flex;
+    gap: 5px;
+}
+.rating-stars label {
+    cursor: pointer;
+}
+.rating-stars i {
+    font-size: 30px;
+    color: #ddd;
+}
+</style>
+{% endblock %}

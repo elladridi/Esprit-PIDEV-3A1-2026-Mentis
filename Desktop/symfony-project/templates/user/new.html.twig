@@ -42,6 +42,7 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             {{ form_label(form.dateofbirth) }}
+<<<<<<< HEAD
                             <div class="input-group">
                                 <span class="input-group-text bg-light">
                                     <i class="bi bi-calendar3" style="color: #50C878;"></i>
@@ -53,6 +54,9 @@
                                     'readonly': 'readonly'
                                 }}) }}
                             </div>
+=======
+                            {{ form_widget(form.dateofbirth, {'attr': {'class': 'form-control', 'type': 'date'}}) }}
+>>>>>>> my-work-backup
                             {{ form_errors(form.dateofbirth) }}
                         </div>
                         <div class="col-md-6 mb-3">
@@ -69,7 +73,11 @@
                     </div>
                     
                     <button type="submit" class="btn btn-primary">Save {{ role|capitalize }}</button>
+<<<<<<< HEAD
                     <a href="{{ path('app_dashboard_admin') }}" class="btn btn-secondary">Cancel</a>
+=======
+                    <a href="{{ path('app_dashboard_' ~ role) }}" class="btn btn-secondary">Cancel</a>
+>>>>>>> my-work-backup
                     
                     {{ form_end(form) }}
                 </div>
@@ -77,6 +85,7 @@
         </div>
     </div>
 </div>
+<<<<<<< HEAD
 {% endblock %}
 
 {% block javascripts %}
@@ -156,4 +165,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 </script>
+=======
+>>>>>>> my-work-backup
 {% endblock %}

@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\QuestionRepository;
 use Doctrine\ORM\Mapping as ORM;
+<<<<<<< HEAD
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType; // Add this
@@ -17,6 +18,8 @@ use Symfony\Component\Validator\Constraints\Length;
 // ═══════════════════════════════════════════════════════
 //  ENTITY
 // ═══════════════════════════════════════════════════════
+=======
+>>>>>>> my-work-backup
 
 #[ORM\Entity(repositoryClass: QuestionRepository::class)]
 #[ORM\Table(name: 'question')]
@@ -37,8 +40,11 @@ class Question
     #[ORM\JoinColumn(name: 'assessment_id', referencedColumnName: 'assessment_id')]
     private ?Assessment $assessment = null;
 
+<<<<<<< HEAD
     // ── Getters & Setters ────────────────────────────────
 
+=======
+>>>>>>> my-work-backup
     public function getQuestionId(): ?int
     {
         return $this->questionId;
@@ -82,6 +88,7 @@ class Question
         $this->assessment = $assessment;
         return $this;
     }
+<<<<<<< HEAD
 }
 
 // ═══════════════════════════════════════════════════════
@@ -146,4 +153,6 @@ class QuestionType extends AbstractType
             'data_class' => Question::class,
         ]);
     }
+=======
+>>>>>>> my-work-backup
 }

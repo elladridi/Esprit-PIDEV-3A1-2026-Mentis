@@ -7,23 +7,38 @@ use Psr\Log\LoggerInterface;
 
 class CVSummarizationService
 {
+<<<<<<< HEAD
     private const API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+=======
+    private const API_URL = 'https://api.openai.com/v1/chat/completions';
+>>>>>>> my-work-backup
     private HttpClientInterface $httpClient;
     private LoggerInterface $logger;
     private bool $useMockMode;
     private ?string $apiKey;
+<<<<<<< HEAD
     private string $model;
+=======
+>>>>>>> my-work-backup
 
     public function __construct(HttpClientInterface $httpClient, LoggerInterface $logger)
     {
         $this->httpClient = $httpClient;
         $this->logger = $logger;
+<<<<<<< HEAD
         $this->apiKey = $_ENV['GROQ_API_KEY'] ?? null;
         $this->model = $_ENV['GROQ_MODEL'] ?? 'llama-3.1-8b-instant';
         $this->useMockMode = empty($this->apiKey);
         
         if ($this->useMockMode) {
             $this->logger->warning('⚠️ GROQ_API_KEY not set. Using MOCK MODE for CV summarization.');
+=======
+        $this->apiKey = $_ENV['OPENAI_API_KEY'] ?? null;
+        $this->useMockMode = empty($this->apiKey) || $this->apiKey === 'your-api-key-here';
+        
+        if ($this->useMockMode) {
+            $this->logger->warning('⚠️ OPENAI_API_KEY not set. Using MOCK MODE for CV summarization.');
+>>>>>>> my-work-backup
         }
     }
 
@@ -107,12 +122,20 @@ Return ONLY valid JSON:
                     'Content-Type' => 'application/json',
                 ],
                 'json' => [
+<<<<<<< HEAD
                     'model' => $this->model,
                     'messages' => [
                         ['role' => 'user', 'content' => $prompt]
                     ],
                     'response_format' => ['type' => 'json_object'],
                     'temperature' => 0.1,
+=======
+                    'model' => 'gpt-3.5-turbo',
+                    'messages' => [
+                        ['role' => 'user', 'content' => $prompt]
+                    ],
+                    'temperature' => 0.3,
+>>>>>>> my-work-backup
                     'max_tokens' => 500,
                 ],
                 'timeout' => 30,

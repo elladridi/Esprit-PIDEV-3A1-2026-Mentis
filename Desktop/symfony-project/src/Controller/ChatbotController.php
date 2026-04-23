@@ -2,16 +2,26 @@
 
 namespace App\Controller;
 
+<<<<<<< HEAD
 use App\Service\AIChatService;
+=======
+>>>>>>> my-work-backup
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
+<<<<<<< HEAD
 use Symfony\Component\Routing\Annotation\Route;
+=======
+use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+>>>>>>> my-work-backup
 use Psr\Log\LoggerInterface;
 
 class ChatbotController extends AbstractController
 {
+<<<<<<< HEAD
     private LoggerInterface $logger;
     private AIChatService $aiChatService;
 
@@ -19,6 +29,14 @@ class ChatbotController extends AbstractController
     {
         $this->logger = $logger;
         $this->aiChatService = $aiChatService;
+=======
+    private const ZAI_SERVICE_URL = 'http://localhost:3000';
+    private LoggerInterface $logger;
+
+    public function __construct(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
+>>>>>>> my-work-backup
     }
 
     #[Route('/chatbot', name: 'app_chatbot', methods: ['GET', 'POST'])]
@@ -28,12 +46,32 @@ class ChatbotController extends AbstractController
         $userPrompt = $request->request->get('prompt', '');
 
         if ($request->isMethod('POST') && trim($userPrompt) !== '') {
+<<<<<<< HEAD
             $result = $this->aiChatService->chat($userPrompt, 'patient', 'mental health support and general well-being');
 
             if ($result['success']) {
                 $answer = $result['message'];
             } else {
                 $this->addFlash('danger', $result['error'] ?? 'AI assistant is unavailable.');
+=======
+            $http = HttpClient::create();
+
+            try {
+                $response = $http->request('POST', self::ZAI_SERVICE_URL . '/api/chat', [
+                    'json' => ['message' => $userPrompt],
+                    'timeout' => 60,
+                ]);
+
+                $status = $response->getStatusCode();
+                if ($status === 200) {
+                    $data = $response->toArray();
+                    $answer = $data['reply'] ?? 'No response received';
+                } else {
+                    $this->addFlash('danger', 'Z.ai service returned status: ' . $status);
+                }
+            } catch (\Exception $e) {
+                $this->addFlash('danger', 'Error connecting to Z.ai service: ' . $e->getMessage());
+>>>>>>> my-work-backup
             }
         }
 
@@ -67,6 +105,7 @@ class ChatbotController extends AbstractController
                 return new JsonResponse(['error' => 'Title and description are required'], 400);
             }
 
+<<<<<<< HEAD
             $result = $this->aiChatService->summarizeContent($title, $description);
             if ($result['success']) {
                 return new JsonResponse(['summary' => $result['summary']]);
@@ -74,6 +113,31 @@ class ChatbotController extends AbstractController
 
             $this->logger->error('Groq summary error: ' . ($result['error'] ?? 'Unknown error'));
             return new JsonResponse(['error' => $result['error'] ?? 'No summary generated'], 500);
+=======
+            $this->logger->info('Calling Z.ai service for title: ' . $title);
+            
+            $http = HttpClient::create();
+
+            $response = $http->request('POST', self::ZAI_SERVICE_URL . '/api/summarize', [
+                'json' => [
+                    'title' => $title,
+                    'description' => $description
+                ],
+                'timeout' => 60,
+            ]);
+
+            $status = $response->getStatusCode();
+            $this->logger->info('Z.ai response status: ' . $status);
+            
+            if ($status === 200) {
+                $responseData = $response->toArray();
+                $this->logger->info('Z.ai response received successfully');
+                return new JsonResponse(['summary' => $responseData['summary'] ?? 'No summary generated']);
+            } else {
+                $this->logger->error('Z.ai service error: ' . $status);
+                return new JsonResponse(['error' => 'Z.ai service returned status: ' . $status], $status);
+            }
+>>>>>>> my-work-backup
         } catch (\Exception $e) {
             $this->logger->error('Summarize endpoint error: ' . $e->getMessage());
             return new JsonResponse(['error' => 'Server error: ' . $e->getMessage()], 500);

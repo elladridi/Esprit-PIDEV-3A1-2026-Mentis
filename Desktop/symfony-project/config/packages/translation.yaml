@@ -1,5 +1,14 @@
 framework:
+<<<<<<< HEAD
     default_locale: en
     translator:
         default_path: '%kernel.project_dir%/translations'
         providers:
+=======
+    default_locale: 'en'
+    translator:
+        default_path: '%kernel.project_dir%/translations'
+        fallbacks:
+            - 'en'
+        providers:
+>>>>>>> my-work-backup

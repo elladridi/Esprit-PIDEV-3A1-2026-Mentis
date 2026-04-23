@@ -1,21 +1,33 @@
 security:
+<<<<<<< HEAD
     # Password hashers
     password_hashers:
         App\Entity\User: 'auto'
 
     # User providers
+=======
+    password_hashers:
+        App\Entity\User: 'auto'
+
+>>>>>>> my-work-backup
     providers:
         app_user_provider:
             entity:
                 class: App\Entity\User
                 property: email
 
+<<<<<<< HEAD
     # Firewalls
+=======
+>>>>>>> my-work-backup
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
+<<<<<<< HEAD
         
+=======
+>>>>>>> my-work-backup
         main:
             lazy: true
             provider: app_user_provider
@@ -29,6 +41,7 @@ security:
                 target: app_home
             remember_me:
                 secret: '%kernel.secret%'
+<<<<<<< HEAD
                 lifetime: 604800  # 1 week
                 path: /
             login_throttling:
@@ -50,10 +63,17 @@ security:
         - { path: ^/about$, roles: PUBLIC_ACCESS }
         - { path: ^/services$, roles: PUBLIC_ACCESS }
         - { path: ^/contact$, roles: PUBLIC_ACCESS }
+=======
+                lifetime: 604800
+                path: /
+
+    access_control:
+>>>>>>> my-work-backup
         - { path: ^/login$, roles: PUBLIC_ACCESS }
         - { path: ^/register$, roles: PUBLIC_ACCESS }
         - { path: ^/forgot-password$, roles: PUBLIC_ACCESS }
         - { path: ^/reset-password, roles: PUBLIC_ACCESS }
+<<<<<<< HEAD
         
         # Dashboard - authenticated users only
         - { path: ^/dashboard, roles: ROLE_USER }
@@ -126,6 +146,10 @@ security:
         
         # Reviews - authenticated users
         - { path: ^/review, roles: ROLE_USER }
+=======
+        - { path: ^/dashboard, roles: ROLE_USER }
+        - { path: ^/content, roles: ROLE_USER }
+>>>>>>> my-work-backup
 
 when@test:
     security:
