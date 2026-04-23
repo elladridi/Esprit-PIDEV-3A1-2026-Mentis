@@ -20,6 +20,13 @@
                     </div>
                 {% endif %}
 
+                {% for message in app.flashes('error') %}
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+
                 <form method="post" id="loginForm" novalidate>
                     <div class="mb-3">
                         <label for="inputEmail" class="form-label">Email Address</label>
@@ -55,16 +62,11 @@
                         <a href="{{ path('app_forgot_password') }}" class="text-decoration-none" style="color: #50C878;">Forgot password?</a>
                     </div>
 
-<<<<<<< HEAD
-                    <button type="submit" class="btn btn-primary-custom w-100 py-2 mb-3">
-=======
                     <button type="submit" class="btn btn-primary-custom w-100 py-2">
->>>>>>> my-work-backup
                         <i class="fas fa-sign-in-alt me-2"></i> Sign In
                     </button>
                 </form>
 
-<<<<<<< HEAD
                 <div class="text-center mb-3">
                     <span class="text-muted">or</span>
                 </div>
@@ -89,8 +91,6 @@
                     </div>
                 </div>
 
-=======
->>>>>>> my-work-backup
                 <div class="text-center mt-4">
                     <p class="text-muted">Don't have an account? 
                         <a href="{{ path('app_register') }}" class="text-decoration-none fw-bold" style="color: #50C878;">Register here</a>
@@ -109,12 +109,6 @@
         box-shadow: 0 20px 60px rgba(0,0,0,0.1);
         animation: fadeInUp 0.6s ease-out;
     }
-<<<<<<< HEAD
-    .form-control { border-radius: 10px; padding: 12px 15px; }
-    .input-group-text { border-radius: 10px 0 0 10px; border-right: none; }
-    .form-control { border-left: none; }
-    .form-control:focus { border-color: #50C878; box-shadow: none; }
-=======
     
     @keyframes fadeInUp {
         from {
@@ -151,7 +145,6 @@
         border-color: #50C878;
     }
     
->>>>>>> my-work-backup
     .btn-primary-custom {
         background: linear-gradient(135deg, #50C878 0%, #3A9B5E 100%);
         border: none;
@@ -159,23 +152,6 @@
         font-weight: 600;
         transition: transform 0.3s, box-shadow 0.3s;
     }
-<<<<<<< HEAD
-    .btn-primary-custom:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(80,200,120,0.4); }
-    .form-check-input:checked { background-color: #50C878; border-color: #50C878; }
-    {% if error %}
-    <div class="alert alert-danger" role="alert">
-        <i class="fas fa-exclamation-circle me-2"></i>
-        {{ error.messageKey|trans(error.messageData, 'security') }}
-    </div>
-{% endif %}
-
-{% for message in app.flashes('error') %}
-    <div class="alert alert-danger" role="alert">
-        <i class="fas fa-exclamation-circle me-2"></i>
-        {{ message }}
-    </div>
-{% endfor %}
-=======
     
     .btn-primary-custom:hover {
         transform: translateY(-2px);
@@ -191,15 +167,11 @@
         background-color: #50C878;
         border-color: #50C878;
     }
->>>>>>> my-work-backup
 </style>
 
 {% block javascripts %}
 <script>
-<<<<<<< HEAD
-    // Wrap everything in an IIFE to avoid global scope conflicts
     (function() {
-        // Form validation
         const loginForm = document.getElementById('loginForm');
         if (loginForm) {
             loginForm.addEventListener('submit', function(event) {
@@ -344,50 +316,12 @@
             };
         }
         
-        // Close on Escape key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' && faceModal && faceModal.style.display === 'block') {
                 stopFaceLogin();
             }
         });
     })();
-=======
-    document.getElementById('loginForm')?.addEventListener('submit', function(event) {
-        let isValid = true;
-        
-        document.querySelectorAll('.is-invalid').forEach(el => {
-            el.classList.remove('is-invalid');
-        });
-        
-        const email = document.getElementById('inputEmail');
-        const password = document.getElementById('inputPassword');
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        
-        if (!email.value.trim()) {
-            email.classList.add('is-invalid');
-            document.getElementById('emailError').innerText = 'Email is required';
-            isValid = false;
-        } else if (!emailRegex.test(email.value)) {
-            email.classList.add('is-invalid');
-            document.getElementById('emailError').innerText = 'Enter a valid email';
-            isValid = false;
-        }
-        
-        if (!password.value) {
-            password.classList.add('is-invalid');
-            document.getElementById('passwordError').innerText = 'Password is required';
-            isValid = false;
-        } else if (password.value.length < 6) {
-            password.classList.add('is-invalid');
-            document.getElementById('passwordError').innerText = 'Password must be at least 6 characters';
-            isValid = false;
-        }
-        
-        if (!isValid) {
-            event.preventDefault();
-        }
-    });
->>>>>>> my-work-backup
 </script>
 {% endblock %}
 {% endblock %}
