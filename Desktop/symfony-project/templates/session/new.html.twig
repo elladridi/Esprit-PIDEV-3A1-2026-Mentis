@@ -58,10 +58,7 @@
                                 <span class="text-danger">*</span>
                             </label>
                             {{ form_widget(form.sessionDate) }}
-<<<<<<< HEAD
-=======
                             <div class="invalid-feedback" id="dateError"></div>
->>>>>>> my-work-backup
                             {{ form_errors(form.sessionDate) }}
                         </div>
                         <div class="col-md-4">
@@ -80,10 +77,7 @@
                                 <span class="text-danger">*</span>
                             </label>
                             {{ form_widget(form.endTime) }}
-<<<<<<< HEAD
-=======
                             <div class="invalid-feedback" id="timeError"></div>
->>>>>>> my-work-backup
                             {{ form_errors(form.endTime) }}
                         </div>
                     </div>
@@ -134,10 +128,7 @@
                                 {{ form_label(form.maxParticipants) }}
                             </label>
                             {{ form_widget(form.maxParticipants) }}
-<<<<<<< HEAD
-=======
                             <div class="invalid-feedback" id="maxError"></div>
->>>>>>> my-work-backup
                             {{ form_errors(form.maxParticipants) }}
                         </div>
                         <div class="col-md-3">
@@ -146,10 +137,7 @@
                                 {{ form_label(form.price) }}
                             </label>
                             {{ form_widget(form.price) }}
-<<<<<<< HEAD
-=======
                             <div class="invalid-feedback" id="priceError"></div>
->>>>>>> my-work-backup
                             {{ form_errors(form.price) }}
                         </div>
                     </div>
@@ -184,11 +172,8 @@
                                 <li>Set status to "Active" when ready for booking</li>
                                 <li>For online sessions, provide a meeting link in location</li>
                                 <li>Set max capacity based on session type</li>
-<<<<<<< HEAD
-=======
                                 <li><strong>Note:</strong> End time must be after start time</li>
                                 <li>Price cannot be negative</li>
->>>>>>> my-work-backup
                             </ul>
                         </div>
                     </div>
@@ -206,8 +191,6 @@
     box-shadow: 0 0 0 0.25rem rgba(80, 200, 120, 0.25) !important;
 }
 .card { border-radius: 24px; }
-<<<<<<< HEAD
-=======
 .is-invalid {
     border-color: #dc3545 !important;
 }
@@ -216,15 +199,11 @@
     font-size: 0.875em;
     color: #dc3545;
 }
->>>>>>> my-work-backup
 </style>
 {% endblock %}
 
 {% block javascripts %}
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-<<<<<<< HEAD
-<script>AOS.init({ duration: 1000, once: true });</script>
-=======
 <script>
 AOS.init({ duration: 1000, once: true });
 
@@ -335,5 +314,4 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
->>>>>>> my-work-backup
 {% endblock %}
