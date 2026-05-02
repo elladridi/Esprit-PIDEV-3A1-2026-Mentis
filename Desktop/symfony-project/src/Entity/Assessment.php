@@ -48,9 +48,15 @@ class Assessment
     #[ORM\Column(name: 'created_at', type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $createdAt = null;
 
+    /**
+     * @var Collection<int, Question>
+     */
     #[ORM\OneToMany(targetEntity: Question::class, mappedBy: 'assessment', cascade: ['remove'])]
     private Collection $questions;
 
+    /**
+     * @var Collection<int, AssessmentResult>
+     */
     #[ORM\OneToMany(targetEntity: AssessmentResult::class, mappedBy: 'assessment')]
     private Collection $results;
 
@@ -140,6 +146,9 @@ class Assessment
         return $this;
     }
 
+    /**
+     * @return Collection<int, Question>
+     */
     public function getQuestions(): Collection
     {
         return $this->questions;
@@ -164,6 +173,9 @@ class Assessment
         return $this;
     }
 
+    /**
+     * @return Collection<int, AssessmentResult>
+     */
     public function getResults(): Collection
     {
         return $this->results;

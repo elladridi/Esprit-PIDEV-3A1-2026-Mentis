@@ -365,6 +365,9 @@ public function generateQuestions(Request $request): JsonResponse
     //  PRIVATE HELPERS
     // ─────────────────────────────────────────────────────────────
 
+    /**
+     * @return string[]
+     */
     private function parseScaleToOptions(?string $scale): array
     {
         if (empty($scale)) return ['1', '2', '3', '4', '5'];
@@ -400,6 +403,9 @@ public function generateQuestions(Request $request): JsonResponse
         return ['1', '2', '3', '4', '5'];
     }
 
+    /**
+     * @return array<int, array{text: string, scale: string}>
+     */
     private function parseGeneratedQuestions(string $response, string $defaultScale): array
     {
         $lines           = explode("\n", $response);

@@ -419,6 +419,11 @@ public function submit(Request $request, UserRepository $userRepo, BadgeService 
     //  PRIVATE HELPERS
     // ═══════════════════════════════════════════════════
 
+    /**
+     * @param array<int, \App\Entity\Question> $questions
+     * @param array<int, int> $scores
+     * @param array<int, mixed> $originalAnswers
+     */
     private function generateAIAnalysis(array $questions, array $scores, array $originalAnswers, int $totalScore, string $riskLevel): string
 {
     try {
@@ -430,6 +435,11 @@ public function submit(Request $request, UserRepository $userRepo, BadgeService 
     }
 }
 
+    /**
+     * @param array<int, \App\Entity\Question> $questions
+     * @param array<int, int> $scores
+     * @param array<int, mixed> $originalAnswers
+     */
     private function buildGroqPrompt(array $questions, array $scores, array $originalAnswers, int $totalScore, string $riskLevel): string
     {
         $maxPossible = count($questions) * 4;
@@ -460,6 +470,11 @@ public function submit(Request $request, UserRepository $userRepo, BadgeService 
         return $prompt;
     }
 
+    /**
+     * @param array<int, \App\Entity\Question> $questions
+     * @param array<int, int> $scores
+     * @param array<int, mixed> $originalAnswers
+     */
     private function generateRuleBasedAnalysis(array $questions, array $scores, array $originalAnswers, int $totalScore, string $riskLevel): string
     {
         $maxPossible  = count($questions) * 4;

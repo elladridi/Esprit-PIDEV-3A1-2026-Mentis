@@ -6,6 +6,9 @@ use App\Entity\AssessmentResult;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
+/**
+ * @extends ServiceEntityRepository<AssessmentResult>
+ */
 class AssessmentResultRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -13,6 +16,9 @@ class AssessmentResultRepository extends ServiceEntityRepository
         parent::__construct($registry, AssessmentResult::class);
     }
 
+    /**
+     * @return AssessmentResult[]
+     */
     public function findAllOrderedByDate(): array
     {
         return $this->createQueryBuilder('r')
@@ -21,6 +27,9 @@ class AssessmentResultRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * @return AssessmentResult[]
+     */
     public function findByUser(int $userId): array
     {
         return $this->createQueryBuilder('r')
@@ -31,6 +40,9 @@ class AssessmentResultRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * @return AssessmentResult[]
+     */
     public function findLatestByUser(int $userId, int $limit = 5): array
     {
         return $this->createQueryBuilder('r')
@@ -42,6 +54,9 @@ class AssessmentResultRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getStatsByUser(int $userId): array
     {
         return $this->createQueryBuilder('r')
@@ -57,7 +72,7 @@ class AssessmentResultRepository extends ServiceEntityRepository
 
     public function countHighRiskResults(): int
     {
-        return $this->createQueryBuilder('r')
+        return (int) $this->createQueryBuilder('r')
             ->select('COUNT(r.resultId)')
             ->where('r.riskLevel IN (:highRisks)')
             ->setParameter('highRisks', ['High', 'Severe'])

@@ -7,6 +7,7 @@ use App\Entity\AssessmentType;
 use App\Repository\AssessmentRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -145,7 +146,7 @@ class AssessmentController extends AbstractController
         ]);
     }
 
-    private function handleImageUpload($imageFile): string
+    public function handleImageUpload(UploadedFile $imageFile): string
     {
         $uploadsDir = $this->getParameter('kernel.project_dir') . '/public/assessment_images';
         if (!is_dir($uploadsDir)) {

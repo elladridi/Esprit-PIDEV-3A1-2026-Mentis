@@ -193,6 +193,9 @@ public function aiSuggest(Request $request): Response
     }
 
     // ── Private Helpers ──────────────────────────────────
+    /**
+     * @return string[]
+     */
     private function parseLines(string $text): array
     {
         if (empty(trim($text))) return [];
@@ -202,6 +205,9 @@ public function aiSuggest(Request $request): Response
         return array_values(array_filter(array_map('trim', $lines)));
     }
 
+    /**
+     * @return array<int, array{name: string, phone: string}>
+     */
     private function parseContacts(Request $request): array
     {
         $names    = $request->request->all('contact_name');
@@ -218,6 +224,9 @@ public function aiSuggest(Request $request): Response
         return $contacts;
     }
 
+    /**
+     * @return array<int, array{name: string, phone: string, role: string}>
+     */
     private function parseProfessionals(Request $request): array
     {
         $names  = $request->request->all('pro_name');
@@ -236,6 +245,9 @@ public function aiSuggest(Request $request): Response
         return $pros;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function emptyPlan(): array
     {
         return [

@@ -21,6 +21,9 @@ class CrisisAlertService
         }
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     private function getAllAlertsFromFile(): array
     {
         $filePath = $this->storagePath . self::CRISIS_FILE;
@@ -34,12 +37,18 @@ class CrisisAlertService
         return is_array($alerts) ? $alerts : [];
     }
 
+    /**
+     * @param array<int, array<string, mixed>> $alerts
+     */
     private function saveAlertsToFile(array $alerts): void
     {
         $filePath = $this->storagePath . self::CRISIS_FILE;
         file_put_contents($filePath, json_encode($alerts, JSON_PRETTY_PRINT));
     }
 
+    /**
+     * @return int[]
+     */
     private function getSeenAlertsForPsychologist(int $psychologistId): array
     {
         $filePath = $this->storagePath . 'seen_' . $psychologistId . '.json';
@@ -53,6 +62,9 @@ class CrisisAlertService
         return is_array($seen) ? $seen : [];
     }
 
+    /**
+     * @param int[] $seenIds
+     */
     private function saveSeenAlertsForPsychologist(int $psychologistId, array $seenIds): void
     {
         $filePath = $this->storagePath . 'seen_' . $psychologistId . '.json';
@@ -101,6 +113,9 @@ class CrisisAlertService
         $this->saveAlertsToFile($alerts);
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     public function getAllAlertsForPsychologist(int $psychologistId): array
     {
         $allAlerts = $this->getAllAlertsFromFile();
@@ -131,6 +146,9 @@ class CrisisAlertService
         return $unreadCount;
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     public function getUnreadAlertsForPsychologist(int $psychologistId): array
     {
         $allAlerts = $this->getAllAlertsFromFile();

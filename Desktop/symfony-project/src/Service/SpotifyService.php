@@ -37,11 +37,23 @@ class SpotifyService
         $result = curl_exec($ch);
         curl_close($ch);
 
+        if (!is_string($result)) {
+            return null;
+        }
+
         $data = json_decode($result, true);
-        return $data['access_token'] ?? null;
+
+        if (!is_array($data)) {
+            return null;
+        }
+
+        return isset($data['access_token']) && is_string($data['access_token']) ? $data['access_token'] : null;
     }
 
     // ── Build search queries ─────────────────────────────
+    /**
+     * @return string[]
+     */
     private function buildQueries(string $assessmentType, string $riskLevel): array
     {
         $type   = strtolower($assessmentType);
@@ -84,6 +96,9 @@ class SpotifyService
     }
 
     // ── Fetch playlists from Spotify API ─────────────────
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     public function fetchPlaylists(
         string $assessmentType,
         string $riskLevel,
@@ -148,6 +163,9 @@ class SpotifyService
     }
 
     // ── Fallback playlists if API unavailable ────────────
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     private function getFallbackPlaylists(string $assessmentType, string $riskLevel): array
     {
         $type = strtolower($assessmentType);

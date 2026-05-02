@@ -116,6 +116,9 @@ class GroqService
     }
 
     // ── Safety Plan Suggestions (UPDATED - accepts section parameter) ──
+    /**
+     * @return string[]
+     */
     public function generateSafetyPlanSuggestions(string $prompt, string $section = 'general'): array
     {
         $this->logInfo('Generating safety plan suggestions', ['section' => $section]);
@@ -153,6 +156,9 @@ class GroqService
     }
 
     // ── Generate Full AI Safety Plan ──────────────────────
+    /**
+     * @return array<string, mixed>
+     */
     public function generateFullSafetyPlan(string $context = ''): array
     {
         $this->logInfo('Generating full safety plan', ['context' => $context]);
@@ -215,6 +221,9 @@ class GroqService
     }
 
     // ── Sentiment Analysis ────────────────────────────────
+    /**
+     * @return array<string, mixed>
+     */
     public function analyzeSentiment(string $text): array
     {
         $prompt = "Analyze this text and return ONLY valid JSON:\n"
@@ -255,6 +264,9 @@ class GroqService
     }
 
     // ── Content Moderation ────────────────────────────────
+    /**
+     * @return array<string, mixed>
+     */
     public function moderateReview(string $reviewText): array
     {
         $prompt = "Analyze this review for inappropriate content:\n\n"
@@ -282,6 +294,9 @@ class GroqService
     }
 
     // ── Generate Adaptive Question ────────────────────────
+    /**
+     * @return array{question: string, scale_type: string, options: string[]}
+     */
     public function generateAdaptiveQuestion(string $context, string $focus): array
     {
         $prompt = "Generate ONE mental health question about {$focus}. "
@@ -329,6 +344,9 @@ class GroqService
         return $prompts[$section] ?? $prompts['general'];
     }
 
+    /**
+     * @return string[]
+     */
     private function getDynamicFallbackSuggestions(string $section): array
     {
         $fallbacks = [
@@ -400,6 +418,9 @@ class GroqService
              . "SCALE: Never/Rarely/Sometimes/Often/Always";
     }
 
+    /**
+     * @return array<string, string[]>
+     */
     private function getFallbackSafetyPlanFull(): array
     {
         return [
@@ -443,6 +464,9 @@ class GroqService
         ];
     }
 
+    /**
+     * @return array{question: string, scale_type: string, options: string[]}
+     */
     private function getFallbackQuestion(string $focus): array
     {
         return [
@@ -452,6 +476,9 @@ class GroqService
         ];
     }
 
+    /**
+     * @return string[]
+     */
     private function parseSafetyPlanLines(string $text): array
     {
         $lines = explode("\n", $text);
@@ -475,6 +502,9 @@ class GroqService
         return array_slice($suggestions, 0, 7);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function defaultSentiment(): array
     {
         return [
@@ -489,6 +519,9 @@ class GroqService
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function defaultModeration(string $reviewText): array
     {
         return [
@@ -537,6 +570,9 @@ class GroqService
         return $result;
     }
 
+    /**
+     * @param array<string, mixed> $context
+     */
     private function logInfo(string $message, array $context = []): void
     {
         if ($this->logger) {
@@ -544,6 +580,9 @@ class GroqService
         }
     }
 
+    /**
+     * @param array<string, mixed> $context
+     */
     private function logError(string $message, array $context = []): void
     {
         if ($this->logger) {

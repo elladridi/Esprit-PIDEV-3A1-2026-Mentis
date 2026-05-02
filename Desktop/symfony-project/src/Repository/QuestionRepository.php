@@ -20,12 +20,13 @@ class QuestionRepository extends ServiceEntityRepository
      * Find questions by assessment ID
      * @return Question[]
      */
-    public function findByAssessment(int $assessmentId): array
+    public function findByAssessment(int $assessmentId, int $limit = 20): array
     {
         return $this->createQueryBuilder('q')
             ->andWhere('q.assessment = :assessmentId')
             ->setParameter('assessmentId', $assessmentId)
             ->orderBy('q.questionId', 'ASC')
+            ->setMaxResults($limit) // ✅ FIX
             ->getQuery()
             ->getResult();
     }
@@ -35,7 +36,7 @@ class QuestionRepository extends ServiceEntityRepository
      */
     public function countByAssessment(int $assessmentId): int
     {
-        return $this->createQueryBuilder('q')
+        return (int) $this->createQueryBuilder('q')
             ->select('COUNT(q.questionId)')
             ->andWhere('q.assessment = :assessmentId')
             ->setParameter('assessmentId', $assessmentId)

@@ -4,6 +4,9 @@ namespace App\Service;
 
 class MeditationService
 {
+    /**
+     * @var array<string, array<string, array<int, array<string, mixed>>>>
+     */
     private array $sessions = [
         'anxiety' => [
             'high' => [
@@ -337,6 +340,9 @@ class MeditationService
         ],
     ];
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     public function getSessions(string $assessmentType, string $riskLevel): array
     {
         $type = strtolower($assessmentType);
