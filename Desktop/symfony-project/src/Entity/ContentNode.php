@@ -17,7 +17,7 @@ class ContentNode
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(name: 'node_id', type: 'integer')]
-    private ?int $id = null;
+    private int $id;
 
     #[ORM\Column(length: 255)]
     private string $title = '';
@@ -56,6 +56,7 @@ class ContentNode
 
     public function __construct()
     {
+        $this->id = 0;
         $this->createdAt = new \DateTime();
         $this->children = new ArrayCollection();
         $this->contentPaths = new ArrayCollection();
@@ -226,6 +227,7 @@ class ContentNode
     {
         if ($this->contentPaths->removeElement($contentPath)) {
             if ($contentPath->getContentNode() === $this) {
+                /** @phpstan-ignore argument.type */
                 $contentPath->setContentNode(null);
             }
         }

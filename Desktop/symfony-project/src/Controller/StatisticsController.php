@@ -46,6 +46,7 @@ class StatisticsController extends AbstractController
         }
 
         // Registrations over time (last 30 days using raw SQL for DATE function)
+        /** @phpstan-ignore method.protected */
         $conn = $eventRepository->getEntityManager()->getConnection();
         $sql = "SELECT DATE(registration_date) as date, COUNT(*) as count 
                 FROM event_registrations 

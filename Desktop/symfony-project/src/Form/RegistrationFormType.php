@@ -143,7 +143,7 @@ class RegistrationFormType extends AbstractType
 
         if ($age < 18) {
             $context->buildViolation('You must be at least 18 years old to register. Your age: {{ age }} years.')
-                ->setParameter('{{ age }}', $age)
+                ->setParameter('{{ age }}', (string) $age)
                 ->addViolation();
         }
     }

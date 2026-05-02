@@ -15,7 +15,7 @@ class EventRegistration
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    private int $id;
 
     #[ORM\ManyToOne(inversedBy: 'registrations')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
@@ -41,20 +41,20 @@ class EventRegistration
 
     #[ORM\Column(name: 'ticket_type', length: 50, options: ['default' => 'STANDARD'])]
     #[Assert\Choice(choices: ['STANDARD', 'VIP'], message: 'Invalid ticket type')]
-    private ?string $ticketType = 'STANDARD';
+    private string $ticketType;
 
     #[ORM\Column(name: 'number_of_tickets', options: ['default' => 1])]
     #[Assert\NotBlank(message: 'Number of tickets is required')]
     #[Assert\Positive(message: 'Number of tickets must be at least 1')]
     #[Assert\LessThanOrEqual(value: 10, message: 'Maximum 10 tickets per registration')]
-    private ?int $numberOfTickets = 1;
+    private int $numberOfTickets;
 
     #[ORM\Column(name: 'total_price', type: Types::DECIMAL, precision: 10, scale: 2, options: ['default' => '0.00'])]
-    private ?string $totalPrice = '0.00';
+    private string $totalPrice;
 
     #[ORM\Column(length: 50, options: ['default' => 'CONFIRMED'])]
     #[Assert\Choice(choices: ['CONFIRMED', 'PENDING', 'CANCELLED'], message: 'Invalid status')]
-    private ?string $status = 'CONFIRMED';
+    private string $status;
 
     #[ORM\Column(name: 'payment_method', length: 50, nullable: true)]
     private ?string $paymentMethod = null;
@@ -73,6 +73,11 @@ class EventRegistration
 
     public function __construct()
     {
+        $this->id = 0;
+        $this->ticketType = 'STANDARD';
+        $this->numberOfTickets = 1;
+        $this->totalPrice = '0.00';
+        $this->status = 'CONFIRMED';
         $this->registrationDate = new \DateTime();
         $this->confirmationNumber = 'REG-' . uniqid();
     }

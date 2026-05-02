@@ -56,6 +56,11 @@ services:
     App\Service\FaceRecognitionService:
         arguments:
             $projectDir: '%kernel.project_dir%'
+
+    App\Service\QRCodeService:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
     App\Service\BanNotificationService:
         arguments:
             $senderEmail: '%env(SENDER_EMAIL)%'

@@ -24,6 +24,7 @@ class GoalController extends AbstractController
     #[Route('/', name: 'app_goal_index', methods: ['GET'])]
     public function index(): Response
     {
+        /** @var \App\Entity\User $user */
         $user = $this->getUser();
         if (!$user) {
             throw $this->createAccessDeniedException();
@@ -43,6 +44,7 @@ class GoalController extends AbstractController
     #[Route('/new', name: 'app_goal_new', methods: ['GET', 'POST'])]
     public function new(Request $request): Response
     {
+        /** @var \App\Entity\User $user */
         $user = $this->getUser();
         if (!$user) {
             throw $this->createAccessDeniedException();
@@ -71,6 +73,7 @@ class GoalController extends AbstractController
     #[Route('/{id}', name: 'app_goal_show', methods: ['GET'])]
     public function show(Goal $goal): Response
     {
+        /** @var \App\Entity\User $user */
         $user = $this->getUser();
         if (!$user || $goal->getUser() !== $user) {
             throw $this->createAccessDeniedException();
@@ -84,6 +87,7 @@ class GoalController extends AbstractController
     #[Route('/{id}/edit', name: 'app_goal_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Goal $goal): Response
     {
+        /** @var \App\Entity\User $user */
         $user = $this->getUser();
         if (!$user || $goal->getUser() !== $user) {
             throw $this->createAccessDeniedException();
@@ -109,6 +113,7 @@ class GoalController extends AbstractController
     #[Route('/{id}/delete', name: 'app_goal_delete', methods: ['POST'])]
     public function delete(Request $request, Goal $goal): Response
     {
+        /** @var \App\Entity\User $user */
         $user = $this->getUser();
         if (!$user || $goal->getUser() !== $user) {
             throw $this->createAccessDeniedException();
@@ -127,6 +132,7 @@ class GoalController extends AbstractController
     #[Route('/{id}/toggle', name: 'app_goal_toggle', methods: ['POST'])]
     public function toggle(Request $request, Goal $goal): Response
     {
+        /** @var \App\Entity\User $user */
         $user = $this->getUser();
         if (!$user || $goal->getUser() !== $user) {
             throw $this->createAccessDeniedException();

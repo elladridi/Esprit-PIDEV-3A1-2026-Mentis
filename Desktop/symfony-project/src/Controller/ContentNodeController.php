@@ -64,7 +64,6 @@ class ContentNodeController extends AbstractController
                 usort($nodes, fn($a, $b) => $b->getCreatedAt() <=> $a->getCreatedAt());
             }
 
-            $nodes = array_values($nodes);
         }
 
         $nodes = $paginator->paginate(
@@ -104,6 +103,7 @@ class ContentNodeController extends AbstractController
     #[Route('/chat', name: 'content_ai_chat', methods: ['POST'])]
     public function chat(Request $request, AIChatService $aiChatService, #[Autowire(service: 'limiter.ai_chat')] RateLimiterFactory $aiChatLimiter): JsonResponse
     {
+        /** @var User $user */
         $user = $this->getUser();
         if (!$user) {
             return $this->json(['success' => false, 'error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
@@ -142,6 +142,7 @@ class ContentNodeController extends AbstractController
     #[Route('/generate-content', name: 'content_generate_content', methods: ['POST'])]
     public function generateContent(Request $request, AIChatService $aiChatService): JsonResponse
     {
+        /** @var User $user */
         $user = $this->getUser();
         if (!$user) {
             return $this->json(['success' => false, 'error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);

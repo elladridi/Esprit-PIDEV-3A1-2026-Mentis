@@ -66,3 +66,12 @@ composer.lock
 .env.*.local
 .env.*.dev
 .env.dev
+
+###> phpstan/phpstan ###
+phpstan.neon
+###< phpstan/phpstan ###
+
+###> phpunit/phpunit ###
+/phpunit.xml
+/.phpunit.cache/
+###< phpunit/phpunit ###

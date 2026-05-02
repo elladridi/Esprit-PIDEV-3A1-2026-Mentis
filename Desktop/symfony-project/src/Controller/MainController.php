@@ -13,7 +13,7 @@ class MainController extends AbstractController
     #[Route('/', name: 'app_home')]
     public function home(AssessmentRepository $assessmentRepo, SessionRepository $sessionRepo): Response
     {
-        /** @var User|null $user */
+        /** @var \App\Entity\User|null $user */
         $user = $this->getUser();
         
         // If user is logged in, redirect to their specific dashboard

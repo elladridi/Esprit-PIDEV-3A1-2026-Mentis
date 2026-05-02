@@ -151,4 +151,9 @@ class BookRecommendationService
             ],
         ];
     }
+
+    public function getHttpClient(): HttpClientInterface
+    {
+        return $this->httpClient;
+    }
 }

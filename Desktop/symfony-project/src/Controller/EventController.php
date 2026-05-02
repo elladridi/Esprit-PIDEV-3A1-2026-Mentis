@@ -112,8 +112,10 @@ public function show(
     // Check if current user is registered (for patients)
     $userRegistration = null;
     if ($this->getUser() && $this->isGranted('ROLE_PATIENT')) {
+        /** @var User $user */
+        $user = $this->getUser();
         foreach ($registrations as $reg) {
-            if ($reg->getEmail() === $this->getUser()->getEmail()) {
+            if ($reg->getEmail() === $user->getEmail()) {
                 $userRegistration = $reg;
                 break;
             }

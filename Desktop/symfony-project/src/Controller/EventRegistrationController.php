@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Event;
 use App\Entity\EventRegistration;
+use App\Entity\User;
 use App\Form\EventRegistrationType;
 use App\Repository\EventRegistrationRepository;
 use App\Service\EmailNotificationService;
@@ -46,6 +47,7 @@ class EventRegistrationController extends AbstractController
         $registration->setEvent($event);
 
         if ($this->getUser() && $this->isGranted('ROLE_PATIENT')) {
+            /** @var User $user */
             $user = $this->getUser();
             $registration->setUser($user);
             $registration->setUserName($user->getFirstname() . ' ' . $user->getLastname());
@@ -157,7 +159,12 @@ class EventRegistrationController extends AbstractController
         $event = $registration->getEvent();
 
         // Check permissions - Owner OR Admin OR Psychologist can cancel
-        $isOwner = $this->getUser() && $registration->getEmail() === $this->getUser()->getEmail();
+        $isOwner = false;
+        if ($this->getUser()) {
+            /** @var User $user */
+            $user = $this->getUser();
+            $isOwner = $registration->getEmail() === $user->getEmail();
+        }
         if (!$isOwner && !$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_PSYCHOLOGIST')) {
             throw $this->createAccessDeniedException('You do not have permission to cancel this registration.');
         }
@@ -208,7 +215,12 @@ class EventRegistrationController extends AbstractController
         $event = $registration->getEvent();
 
         // Check permissions - Owner OR Admin OR Psychologist can download
-        $isOwner = $this->getUser() && $registration->getEmail() === $this->getUser()->getEmail();
+        $isOwner = false;
+        if ($this->getUser()) {
+            /** @var User $user */
+            $user = $this->getUser();
+            $isOwner = $registration->getEmail() === $user->getEmail();
+        }
         if (!$isOwner && !$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_PSYCHOLOGIST')) {
             throw $this->createAccessDeniedException('You do not have permission to download this ticket.');
         }

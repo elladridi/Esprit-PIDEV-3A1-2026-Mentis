@@ -14,7 +14,7 @@ class Goal
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    private int $id;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Please enter a title for your goal.')]
@@ -45,7 +45,7 @@ class Goal
     private ?\DateTimeInterface $deadline = null;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['default' => false])]
-    private ?bool $isCompleted = false;
+    private bool $isCompleted = false;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeImmutable $createdAt = null;
@@ -57,6 +57,7 @@ class Goal
 
     public function __construct()
     {
+        $this->id = 0;
         $this->createdAt = new \DateTimeImmutable();
         $this->isCompleted = false;
     }

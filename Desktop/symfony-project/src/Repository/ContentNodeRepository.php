@@ -38,6 +38,11 @@ class ContentNodeRepository extends ServiceEntityRepository
         return $assigned;
     }
 
+    public function findAssignedToUser(int $userId): array
+    {
+        return $this->findAssignedToUserPhp($userId);
+    }
+
     // Pour Admin
     public function findForAdmin(string $search = '', string $sort = 'desc'): array
     {

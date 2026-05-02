@@ -17,7 +17,9 @@ use App\Service\CVSummarizationService;
 
 class RegistrationController extends AbstractController
 {
+    /** @phpstan-ignore classConstant.unused */
     private const FACES_DIR = 'uploads/faces/';
+    /** @phpstan-ignore classConstant.unused */
     private const REQUIRED_SAMPLES = 1;
 
     #[Route('/register', name: 'app_register')]

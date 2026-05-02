@@ -502,7 +502,7 @@ class GroqService
         ];
     }
 
-    private function callApi(string $jsonPayload): ?string
+    private function callApi(string $jsonPayload): string
     {
         $ch = curl_init($this->apiUrl);
 
@@ -514,7 +514,7 @@ class GroqService
             'Authorization: Bearer ' . $this->apiKey,
         ]);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         curl_setopt($ch, CURLOPT_TIMEOUT, 60);
 
         $result = curl_exec($ch);
@@ -528,6 +528,10 @@ class GroqService
 
         if ($status !== 200) {
             throw new \RuntimeException('API returned HTTP ' . $status . ': ' . $result);
+        }
+
+        if (!is_string($result)) {
+            throw new \RuntimeException('Unexpected empty API response');
         }
 
         return $result;

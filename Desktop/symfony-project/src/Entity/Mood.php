@@ -14,7 +14,7 @@ class Mood
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    private int $id;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Please select your current feeling.')]
@@ -44,6 +44,7 @@ class Mood
 
     public function __construct()
     {
+        $this->id = 0;
         $this->createdAt = new \DateTimeImmutable();
     }
 

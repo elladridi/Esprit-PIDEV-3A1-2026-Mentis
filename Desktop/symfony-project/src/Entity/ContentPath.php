@@ -12,7 +12,7 @@ class ContentPath
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(name: 'path_id', type: 'integer')]
-    private ?int $id = null;
+    private int $id;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
@@ -27,6 +27,7 @@ class ContentPath
 
     public function __construct()
     {
+        $this->id = 0;
         $this->accessedAt = new \DateTime();
     }
 

@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Mood;
+use App\Entity\User;
 use App\Form\MoodType;
 use App\Repository\MoodRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -24,6 +25,7 @@ class MoodController extends AbstractController
     #[Route('/', name: 'app_mood_index', methods: ['GET'])]
     public function index(Request $request): Response
     {
+        /** @var User $user */
         $user = $this->getUser();
         if (!$user) {
             throw $this->createAccessDeniedException();
@@ -39,6 +41,7 @@ class MoodController extends AbstractController
     #[Route('/new', name: 'app_mood_new', methods: ['GET', 'POST'])]
     public function new(Request $request): Response
     {
+        /** @var User $user */
         $user = $this->getUser();
         if (!$user) {
             throw $this->createAccessDeniedException();
@@ -67,6 +70,7 @@ class MoodController extends AbstractController
     #[Route('/{id}', name: 'app_mood_show', methods: ['GET'])]
     public function show(Mood $mood): Response
     {
+        /** @var User $user */
         $user = $this->getUser();
         if (!$user || $mood->getUser() !== $user) {
             throw $this->createAccessDeniedException();
@@ -80,6 +84,7 @@ class MoodController extends AbstractController
     #[Route('/{id}/edit', name: 'app_mood_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Mood $mood): Response
     {
+        /** @var User $user */
         $user = $this->getUser();
         if (!$user || $mood->getUser() !== $user) {
             throw $this->createAccessDeniedException();
@@ -105,6 +110,7 @@ class MoodController extends AbstractController
     #[Route('/{id}/delete', name: 'app_mood_delete', methods: ['POST'])]
     public function delete(Request $request, Mood $mood): Response
     {
+        /** @var User $user */
         $user = $this->getUser();
         if (!$user || $mood->getUser() !== $user) {
             throw $this->createAccessDeniedException();

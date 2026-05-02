@@ -18,7 +18,7 @@ class AssessmentResult
     #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id')]
     private ?User $user = null;
 
-    #[ORM\ManyToOne(targetEntity: Assessment::class)]
+    #[ORM\ManyToOne(targetEntity: Assessment::class, inversedBy: 'results')]
     #[ORM\JoinColumn(name: 'assessment_id', referencedColumnName: 'assessment_id')]
     private ?Assessment $assessment = null;
 

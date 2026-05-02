@@ -13,7 +13,7 @@ class Session
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(name: 'session_id', type: 'integer')]
-    private ?int $sessionId = null;
+    private int $sessionId;
 
     #[ORM\Column(name: 'title', type: 'string', length: 255)]
     private ?string $title = null;
@@ -46,43 +46,44 @@ class Session
     private ?string $category = 'General';
 
     #[ORM\Column(name: 'popularity', type: 'integer', nullable: true, options: ['default' => 0])]
-    private ?int $popularity = 0;
+    private int $popularity;
 
-    #[ORM\Column(name: 'average_rating', type: 'float', nullable: true, options: ['default' => 0])]
-    private ?float $averageRating = 0.0;
+    #[ORM\Column(name: 'average_rating', type: 'decimal', precision: 3, scale: 1, nullable: true, options: ['default' => 0])]
+private ?string $averageRating = '0';
 
     #[ORM\Column(name: 'meeting_link', type: 'string', length: 500, nullable: true)]
     private ?string $meetingLink = null;
 
     #[ORM\Column(name: 'meeting_started', type: 'boolean', nullable: true, options: ['default' => 0])]
-    private ?bool $meetingStarted = false;
+    private bool $meetingStarted;
 
     // FIXED: Changed from 'meeting_end' to 'meeting_ended'
     #[ORM\Column(name: 'meeting_ended', type: 'boolean', nullable: true, options: ['default' => 0])]
-    private ?bool $meetingEnd = false;
+    private bool $meetingEnd;
 
     #[ORM\Column(name: 'reminder_sent', type: 'boolean', nullable: true, options: ['default' => 0])]
-    private ?bool $reminderSent = false;
+    private bool $reminderSent;
 
     #[ORM\Column(name: 'patient_confirmed', type: 'boolean', nullable: true, options: ['default' => 0])]
-    private ?bool $patientConfirmed = false;
+    private bool $patientConfirmed;
 
     #[ORM\Column(name: 'confirmed_at', type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $confirmedAt = null;
 
     #[ORM\Column(name: 'max_participants', type: 'integer', nullable: true, options: ['default' => 20])]
-    private ?int $maxParticipants = 20;
+    private int $maxParticipants;
 
     #[ORM\Column(name: 'current_participants', type: 'integer', nullable: true, options: ['default' => 0])]
-    private ?int $currentParticipants = 0;
+    private int $currentParticipants;
 
     #[ORM\Column(name: 'price', type: 'decimal', precision: 10, scale: 2, nullable: true, options: ['default' => '0.00'])]
-    private ?string $price = '0.00';
+    private string $price;
 
     // ========== CONSTRUCTOR ==========
     
     public function __construct()
     {
+        $this->sessionId = 0;
         $this->status = 'scheduled';
         $this->category = 'General';
         $this->popularity = 0;

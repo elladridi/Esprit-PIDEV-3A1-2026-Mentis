@@ -16,7 +16,7 @@ class LoginAttempt
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    private int $id;
 
     #[ORM\Column(length: 255)]
     private ?string $email = null;
@@ -38,6 +38,11 @@ class LoginAttempt
 
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $city = null;
+
+    public function __construct()
+    {
+        $this->id = 0;
+    }
 
     public function getId(): ?int
     {

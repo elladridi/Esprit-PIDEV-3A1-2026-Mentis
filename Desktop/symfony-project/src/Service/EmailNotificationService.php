@@ -49,7 +49,7 @@ class EmailNotificationService
                 ->from(new Address($this->senderEmail, 'MENTIS Events'))
                 ->to($registration->getEmail())
                 ->subject('❌ Registration Cancelled: ' . $event->getTitle())
-                ->htmlTemplate('email/registration_cancelled.html.twig')
+                ->htmlTemplate('email/registration_canceled.html.twig')
                 ->context([
                     'registration' => $registration,
                     'event' => $event,

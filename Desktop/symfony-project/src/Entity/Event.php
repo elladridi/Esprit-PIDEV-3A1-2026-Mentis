@@ -16,7 +16,7 @@ class Event
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    private int $id;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Title is required')]
@@ -41,7 +41,7 @@ class Event
     private ?int $maxParticipants = null;
 
     #[ORM\Column(name: 'current_participants', options: ['default' => 0])]
-    private ?int $currentParticipants = 0;
+    private int $currentParticipants;
 
     #[ORM\Column(name: 'event_type', length: 50, nullable: true)]
     #[Assert\Choice(choices: ['WORKSHOP', 'GROUP_THERAPY', 'SEMINAR', 'SOCIAL'], message: 'Invalid event type')]
@@ -49,14 +49,14 @@ class Event
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, options: ['default' => '0.00'])]
     #[Assert\GreaterThanOrEqual(value: 0, message: 'Price cannot be negative')]
-    private ?string $price = '0.00';
+    private string $price;
 
     #[ORM\Column(name: 'image_url', length: 500, nullable: true)]
     private ?string $imageUrl = null;
 
     #[ORM\Column(length: 50, options: ['default' => 'UPCOMING'])]
     #[Assert\Choice(choices: ['UPCOMING', 'ONGOING', 'COMPLETED', 'CANCELLED'], message: 'Invalid status')]
-    private ?string $status = 'UPCOMING';
+    private string $status;
 
     #[ORM\Column(name: 'created_by', nullable: true)]
     private ?int $createdBy = null;
@@ -75,7 +75,11 @@ class Event
 
     public function __construct()
     {
+        $this->id = 0;
         $this->registrations = new ArrayCollection();
+        $this->currentParticipants = 0;
+        $this->price = '0.00';
+        $this->status = 'UPCOMING';
         $this->createdAt = new \DateTime();
         $this->updatedAt = new \DateTime();
     }

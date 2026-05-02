@@ -148,4 +148,9 @@ class BadgeService
         $badges = array_filter($this->getUserBadges($user), fn($b) => $b['earned']);
         return array_slice($badges, 0, $limit);
     }
+
+    public function getEntityManager(): EntityManagerInterface
+    {
+        return $this->em;
+    }
 }

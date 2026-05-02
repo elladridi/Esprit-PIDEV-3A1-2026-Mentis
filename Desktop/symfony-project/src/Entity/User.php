@@ -17,7 +17,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    private int $id;
 
     #[ORM\Column(length: 50)]
     private string $firstname = '';
@@ -72,6 +72,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function __construct()
     {
+        $this->id = 0;
         $this->createdAt = new \DateTime();
         $this->faceEnabled = false;
     }
@@ -486,7 +487,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $roles = ['ROLE_USER'];
         
-        $type = trim($this->type ?? '');
+        $type = trim($this->type);
         
         if ($type === 'Admin' || $type === 'admin') {
             $roles[] = 'ROLE_ADMIN';
