@@ -19,7 +19,9 @@ class EventRegistrationRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find registrations by event
+     * Find registrations by event.
+     *
+     * @return EventRegistration[]
      */
     public function findByEvent(Event $event): array
     {
@@ -32,7 +34,9 @@ class EventRegistrationRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find registrations by user
+     * Find registrations by user.
+     *
+     * @return EventRegistration[]
      */
     public function findByUser(User $user): array
     {
@@ -46,9 +50,6 @@ class EventRegistrationRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    /**
-     * Count confirmed registrations for an event
-     */
     public function countConfirmedByEvent(Event $event): int
     {
         $result = $this->createQueryBuilder('r')
@@ -59,13 +60,10 @@ class EventRegistrationRepository extends ServiceEntityRepository
             ->setParameter('cancelled', 'CANCELLED')
             ->getQuery()
             ->getSingleScalarResult();
-        
-        return $result ? (int)$result : 0;
+
+        return $result ? (int) $result : 0;
     }
 
-    /**
-     * Get total tickets sold for an event
-     */
     public function getTotalTicketsByEvent(Event $event): int
     {
         $result = $this->createQueryBuilder('r')
@@ -76,13 +74,10 @@ class EventRegistrationRepository extends ServiceEntityRepository
             ->setParameter('confirmed', 'CONFIRMED')
             ->getQuery()
             ->getSingleScalarResult();
-        
-        return $result ? (int)$result : 0;
+
+        return $result ? (int) $result : 0;
     }
 
-    /**
-     * Get revenue by event
-     */
     public function getRevenueByEvent(Event $event): float
     {
         $result = $this->createQueryBuilder('r')
@@ -93,13 +88,10 @@ class EventRegistrationRepository extends ServiceEntityRepository
             ->setParameter('confirmed', 'CONFIRMED')
             ->getQuery()
             ->getSingleScalarResult();
-        
-        return $result ? (float)$result : 0.0;
+
+        return $result ? (float) $result : 0.0;
     }
 
-    /**
-     * Get total revenue across all events
-     */
     public function getTotalRevenue(): float
     {
         $result = $this->createQueryBuilder('r')
@@ -108,13 +100,10 @@ class EventRegistrationRepository extends ServiceEntityRepository
             ->setParameter('confirmed', 'CONFIRMED')
             ->getQuery()
             ->getSingleScalarResult();
-        
-        return $result ? (float)$result : 0.0;
+
+        return $result ? (float) $result : 0.0;
     }
 
-    /**
-     * Get total confirmed registrations
-     */
     public function getTotalConfirmedCount(): int
     {
         $result = $this->createQueryBuilder('r')
@@ -123,13 +112,10 @@ class EventRegistrationRepository extends ServiceEntityRepository
             ->setParameter('confirmed', 'CONFIRMED')
             ->getQuery()
             ->getSingleScalarResult();
-        
-        return $result ? (int)$result : 0;
+
+        return $result ? (int) $result : 0;
     }
 
-    /**
-     * Check if email is already registered for an event
-     */
     public function isEmailRegistered(Event $event, string $email): bool
     {
         $result = $this->createQueryBuilder('r')
@@ -143,11 +129,13 @@ class EventRegistrationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
 
-        return $result > 0;
+        return (int) $result > 0;
     }
 
     /**
-     * Get registrations by user email
+     * Get registrations by user email.
+     *
+     * @return EventRegistration[]
      */
     public function findByEmail(string $email): array
     {
@@ -160,7 +148,12 @@ class EventRegistrationRepository extends ServiceEntityRepository
     }
 
     /**
-     * Get ticket type distribution
+     * Get ticket type distribution.
+     *
+     * @return array<int, array{
+     *     type: string|null,
+     *     count: int|string
+     * }>
      */
     public function getTicketTypeDistribution(): array
     {
@@ -174,7 +167,9 @@ class EventRegistrationRepository extends ServiceEntityRepository
     }
 
     /**
-     * Get recent registrations (last 7 days)
+     * Get recent registrations.
+     *
+     * @return EventRegistration[]
      */
     public function findRecentRegistrations(int $limit = 10): array
     {
@@ -185,9 +180,6 @@ class EventRegistrationRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    /**
-     * Get registration count by date range
-     */
     public function getCountByDateRange(\DateTime $startDate, \DateTime $endDate): int
     {
         $result = $this->createQueryBuilder('r')
@@ -199,7 +191,7 @@ class EventRegistrationRepository extends ServiceEntityRepository
             ->setParameter('confirmed', 'CONFIRMED')
             ->getQuery()
             ->getSingleScalarResult();
-        
-        return $result ? (int)$result : 0;
+
+        return $result ? (int) $result : 0;
     }
 }

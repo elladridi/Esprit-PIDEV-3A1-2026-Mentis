@@ -196,10 +196,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+
     /**
-     * Get all face samples stored for this user
-     * Returns an array of image paths or Base64 strings
-     */
+ * @return array<int, string>
+ */
     public function getFaceSamples(): array
     {
         if (empty($this->faceData)) {
@@ -217,8 +217,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * Store multiple face samples as JSON
-     */
+ * Store multiple face samples as JSON.
+ *
+ * @param array<int, string> $samples
+ */
     public function setFaceSamples(array $samples): self
     {
         if (empty($samples)) {

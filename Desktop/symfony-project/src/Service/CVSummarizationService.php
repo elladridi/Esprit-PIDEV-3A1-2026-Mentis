@@ -246,9 +246,9 @@ Return ONLY valid JSON:
         return preg_match('/.*[A-Za-z].*/', $line) && !preg_match('/.*\\d{4,}.*/', $line);
     }
 
-    /**
-     * Parse different name formats into first/last name
-     */
+  /**
+ * @return array{firstName: string, lastName: string}
+ */
     private function parseNameFormat(string $fullName): array
     {
         $firstName = '';

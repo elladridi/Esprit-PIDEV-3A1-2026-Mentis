@@ -572,7 +572,17 @@ public function patientDashboard(
     }
 
     // ==================== STATISTICS HELPER ====================
-
+/**
+ * @param array<int, \App\Entity\User> $users
+ * @return array{
+ *     total: int,
+ *     averageAge: float|int,
+ *     ageGroups: array<string, int>,
+ *     gender: array<string, int>,
+ *     minAge: int,
+ *     maxAge: int
+ * }
+ */
     private function calculateStats(array $users): array
     {
         $total       = count($users);

@@ -20,13 +20,23 @@ class CVSummary
     public function setEmail(string $email): self { $this->email = $email; return $this; }
     public function getDateofbirth(): string { return $this->dateofbirth; }
     public function setDateofbirth(string $dateofbirth): self { $this->dateofbirth = $dateofbirth; return $this; }
-    public function toArray(): array {
-        return [
-            'firstname' => $this->firstname,
-            'lastname' => $this->lastname,
-            'phone' => $this->phone,
-            'email' => $this->email,
-            'dateofbirth' => $this->dateofbirth,
-        ];
-    }
+    /**
+ * @return array{
+ *     firstname: string,
+ *     lastname: string,
+ *     phone: string,
+ *     email: string,
+ *     dateofbirth: string
+ * }
+ */
+public function toArray(): array
+{
+    return [
+        'firstname' => $this->firstname,
+        'lastname' => $this->lastname,
+        'phone' => $this->phone,
+        'email' => $this->email,
+        'dateofbirth' => $this->dateofbirth,
+    ];
+}
 }

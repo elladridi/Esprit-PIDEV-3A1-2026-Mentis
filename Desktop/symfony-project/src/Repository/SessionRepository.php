@@ -6,6 +6,9 @@ use App\Entity\Session;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
+/**
+ * @extends ServiceEntityRepository<Session>
+ */
 class SessionRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -13,7 +16,9 @@ class SessionRepository extends ServiceEntityRepository
         parent::__construct($registry, Session::class);
     }
 
-    // Get all sessions ordered by date and time
+    /**
+     * @return Session[]
+     */
     public function findAllSessions(): array
     {
         return $this->createQueryBuilder('s')
@@ -23,7 +28,9 @@ class SessionRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    // Get active sessions only
+    /**
+     * @return Session[]
+     */
     public function findActiveSessions(): array
     {
         return $this->createQueryBuilder('s')
@@ -35,7 +42,9 @@ class SessionRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    // Get sessions by type
+    /**
+     * @return Session[]
+     */
     public function findByType(string $sessionType): array
     {
         return $this->createQueryBuilder('s')
@@ -47,7 +56,9 @@ class SessionRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    // Get sessions by date
+    /**
+     * @return Session[]
+     */
     public function findByDate(\DateTimeInterface $date): array
     {
         return $this->createQueryBuilder('s')
@@ -58,7 +69,9 @@ class SessionRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    // Get sessions by location (search)
+    /**
+     * @return Session[]
+     */
     public function findByLocation(string $location): array
     {
         return $this->createQueryBuilder('s')
@@ -70,7 +83,9 @@ class SessionRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    // Get available sessions (not reserved by anyone)
+    /**
+     * @return Session[]
+     */
     public function findAvailableSessions(): array
     {
         return $this->createQueryBuilder('s')
@@ -83,7 +98,9 @@ class SessionRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    // Get sessions reserved by a specific patient
+    /**
+     * @return Session[]
+     */
     public function findByPatient(int $patientId): array
     {
         return $this->createQueryBuilder('s')
@@ -95,10 +112,13 @@ class SessionRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    // Get patient's upcoming sessions (today and future)
+    /**
+     * @return Session[]
+     */
     public function findUpcomingByPatient(int $patientId): array
     {
         $today = new \DateTime();
+
         return $this->createQueryBuilder('s')
             ->andWhere('s.reservedBy = :patientId')
             ->andWhere('s.sessionDate >= :today')
@@ -110,10 +130,13 @@ class SessionRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    // Get patient's past sessions
+    /**
+     * @return Session[]
+     */
     public function findPastByPatient(int $patientId): array
     {
         $today = new \DateTime();
+
         return $this->createQueryBuilder('s')
             ->andWhere('s.reservedBy = :patientId')
             ->andWhere('s.sessionDate < :today')
@@ -124,7 +147,9 @@ class SessionRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    // Search available sessions by keyword (title, location, type)
+    /**
+     * @return Session[]
+     */
     public function searchAvailableSessions(string $keyword): array
     {
         return $this->createQueryBuilder('s')
@@ -139,7 +164,9 @@ class SessionRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    // Filter available sessions by type
+    /**
+     * @return Session[]
+     */
     public function filterAvailableByType(string $type): array
     {
         return $this->createQueryBuilder('s')
@@ -154,61 +181,64 @@ class SessionRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    // Update session status
     public function updateSessionStatus(int $sessionId, string $status): bool
     {
         $session = $this->find($sessionId);
-        if (!$session) {
+
+        if (!$session instanceof Session) {
             return false;
         }
-        
+
         $session->setStatus($status);
         $this->getEntityManager()->flush();
+
         return true;
     }
 
-    // Reserve a session for a patient
     public function reserveSession(int $sessionId, int $patientId): bool
     {
         $session = $this->find($sessionId);
-        if (!$session || $session->getReservedBy() !== null) {
+
+        if (!$session instanceof Session || $session->getReservedBy() !== null) {
             return false;
         }
-        
+
         $session->setReservedBy($patientId);
         $session->setReservedAt(new \DateTime());
         $session->incrementPopularity();
-        
+
         $this->getEntityManager()->flush();
+
         return true;
     }
 
-    // Cancel a reservation
     public function cancelReservation(int $sessionId, int $patientId): bool
     {
         $session = $this->find($sessionId);
-        if (!$session || $session->getReservedBy() !== $patientId) {
+
+        if (!$session instanceof Session || $session->getReservedBy() !== $patientId) {
             return false;
         }
-        
+
         $session->setReservedBy(null);
         $session->setReservedAt(null);
-        
+
         $this->getEntityManager()->flush();
+
         return true;
     }
 
-    // Check if session is reserved by a specific patient
     public function isReservedByPatient(int $sessionId, int $patientId): bool
     {
         $session = $this->find($sessionId);
-        return $session && $session->getReservedBy() === $patientId;
+
+        return $session instanceof Session && $session->getReservedBy() === $patientId;
     }
 
-    // Get reservation count for a session
     public function getReservationCount(int $sessionId): int
     {
         $session = $this->find($sessionId);
-        return $session && $session->getReservedBy() !== null ? 1 : 0;
+
+        return $session instanceof Session && $session->getReservedBy() !== null ? 1 : 0;
     }
 }

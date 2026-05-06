@@ -17,7 +17,9 @@ class EventRepository extends ServiceEntityRepository
     }
 
     /**
-     * Search events by keyword in title or description
+     * Search events by keyword in title or description.
+     *
+     * @return Event[]
      */
     public function search(string $keyword): array
     {
@@ -31,7 +33,9 @@ class EventRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find events by type
+     * Find events by type.
+     *
+     * @return Event[]
      */
     public function findByType(string $type): array
     {
@@ -44,7 +48,9 @@ class EventRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find upcoming events
+     * Find upcoming events.
+     *
+     * @return Event[]
      */
     public function findUpcoming(): array
     {
@@ -59,7 +65,9 @@ class EventRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find ongoing events
+     * Find ongoing events.
+     *
+     * @return Event[]
      */
     public function findOngoing(): array
     {
@@ -72,7 +80,9 @@ class EventRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find completed events
+     * Find completed events.
+     *
+     * @return Event[]
      */
     public function findCompleted(): array
     {
@@ -85,7 +95,7 @@ class EventRepository extends ServiceEntityRepository
     }
 
     /**
-     * Get total participants across all events
+     * Get total participants across all events.
      */
     public function getTotalParticipants(): int
     {
@@ -93,12 +103,17 @@ class EventRepository extends ServiceEntityRepository
             ->select('SUM(e.currentParticipants)')
             ->getQuery()
             ->getSingleScalarResult();
-        
-        return $result ? (int)$result : 0;
+
+        return $result ? (int) $result : 0;
     }
 
     /**
-     * Get statistics by event type
+     * Get statistics by event type.
+     *
+     * @return array<int, array{
+     *     type: string|null,
+     *     count: int|string
+     * }>
      */
     public function getStatsByType(): array
     {
@@ -110,7 +125,9 @@ class EventRepository extends ServiceEntityRepository
     }
 
     /**
-     * Get events with their registration counts
+     * Get events with their registration counts.
+     *
+     * @return array<int, array{0: Event, registrationCount: int|string}>
      */
     public function findWithRegistrationCounts(): array
     {
@@ -124,7 +141,9 @@ class EventRepository extends ServiceEntityRepository
     }
 
     /**
-     * Get upcoming events with available spots
+     * Get upcoming events with available spots.
+     *
+     * @return Event[]
      */
     public function findUpcomingWithAvailability(): array
     {

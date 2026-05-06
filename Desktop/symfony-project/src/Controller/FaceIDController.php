@@ -135,11 +135,9 @@ class FaceIDController extends AbstractController
         $user->setFaceSamples([]);
 
         // Only call these if the methods exist on your entity
-        /** @phpstan-ignore function.alreadyNarrowedType */
         if (method_exists($user, 'setFaceData')) {
             $user->setFaceData(null);
         }
-        /** @phpstan-ignore function.alreadyNarrowedType */
         if (method_exists($user, 'setFaceRegisteredAt')) {
             $user->setFaceRegisteredAt(null);
         }

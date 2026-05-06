@@ -15,6 +15,12 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 class ForgotPasswordController extends AbstractController
 {
     // Persistent storage (temporary file)
+    /**
+ * @var array<string, array{
+ *     token: string,
+ *     expires: \DateTime
+ * }>
+ */
     private static array $resetTokens = [];
     private static string $tokenFile = __DIR__ . '/../../var/tokens.json';
 
