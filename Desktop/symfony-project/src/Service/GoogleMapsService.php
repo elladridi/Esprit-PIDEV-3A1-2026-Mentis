@@ -13,7 +13,8 @@ class GoogleMapsService
 
     public function getStaticMapUrl(string $location, int $width = 400, int $height = 250, int $zoom = 15): ?string
     {
-        if (!$this->apiKey) {
+        // If no API key, return null (map will be hidden)
+        if (!$this->apiKey || empty($this->apiKey) || $this->apiKey === 'your_api_key_here') {
             return null;
         }
 
@@ -30,6 +31,11 @@ class GoogleMapsService
         );
     }
 
+    public function getEmbedMapUrl(string $location): string
+    {
+        return 'https://www.google.com/maps/embed/v1/place?key=' . $this->apiKey . '&q=' . urlencode($location);
+    }
+
     public function getDirectionsUrl(string $location): string
     {
         return 'https://www.google.com/maps/dir/?api=1&destination=' . urlencode($location);
@@ -42,6 +48,6 @@ class GoogleMapsService
 
     public function isConfigured(): bool
     {
-        return $this->apiKey !== null && !empty($this->apiKey);
+        return $this->apiKey !== null && !empty($this->apiKey) && $this->apiKey !== 'your_api_key_here';
     }
 }

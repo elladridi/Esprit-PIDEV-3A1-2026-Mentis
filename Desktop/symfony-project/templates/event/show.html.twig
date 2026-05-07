@@ -50,11 +50,11 @@
             padding: 20px;
             color: white;
         }
-        .my-ticket-card .qr-placeholder {
-            background: white;
-            border-radius: 10px;
-            padding: 10px;
-            text-align: center;
+        .cancelled-ticket-card {
+            background: linear-gradient(135deg, #D62828 0%, #B71C1C 100%);
+            border-radius: 15px;
+            padding: 20px;
+            color: white;
         }
         .btn-icon {
             background: transparent;
@@ -75,13 +75,22 @@
         .action-buttons .btn {
             flex: 1;
         }
-        .debug-box {
-            background: #FFF3CD;
-            border: 1px solid #FFE69C;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 15px;
+        .last-chance-badge {
+            background: #FF6B35;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
             font-size: 12px;
+            font-weight: bold;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        .opacity-50 {
+            opacity: 0.6;
         }
     </style>
 {% endblock %}
@@ -105,21 +114,6 @@
     <!-- Event Title -->
     <h1 class="display-5 fw-bold mb-4" style="color: #1E1E1E;">{{ event.title }}</h1>
     
-    <!-- DEBUG INFO - Remove after testing -->
-    <div class="debug-box">
-        <strong>🔍 Debug Info:</strong><br>
-        👤 User logged in: {{ app.user ? 'Yes' : 'No' }}<br>
-        📧 User email: {{ app.user.email|default('N/A') }}<br>
-        🏷️ User type: {{ app.user.type|default('N/A') }}<br>
-        ✅ ROLE_PATIENT: {{ is_granted('ROLE_PATIENT') ? 'Yes' : 'No' }}<br>
-        ✅ ROLE_USER: {{ is_granted('ROLE_USER') ? 'Yes' : 'No' }}<br>
-        ✅ ROLE_PSYCHOLOGIST: {{ is_granted('ROLE_PSYCHOLOGIST') ? 'Yes' : 'No' }}<br>
-        ✅ ROLE_ADMIN: {{ is_granted('ROLE_ADMIN') ? 'Yes' : 'No' }}<br>
-        🟢 Event available: {{ event.available ? 'Yes' : 'No' }}<br>
-        🎫 Available spots: {{ event.availableSpots }}<br>
-        📝 User already registered: {{ userRegistration ? 'Yes' : 'No' }}
-    </div>
-    
     <div class="row">
         <!-- Left Column: Event Details -->
         <div class="col-lg-7">
@@ -142,6 +136,14 @@
                     <div class="info-label">Capacity</div>
                     <div class="info-value">{{ event.currentParticipants }} / {{ event.maxParticipants }} ({{ event.availableSpots }} spots left)</div>
                 </div>
+                {% if event.availableSpots <= 5 and event.availableSpots > 0 %}
+                <div class="info-row">
+                    <div class="info-label"></div>
+                    <div class="info-value">
+                        <span class="last-chance-badge">⚠️ Last chance! Only {{ event.availableSpots }} spots left!</span>
+                    </div>
+                </div>
+                {% endif %}
                 <div class="info-row">
                     <div class="info-label">Price</div>
                     <div class="info-value fw-bold" style="color: #2F5D52;">
@@ -165,27 +167,18 @@
                         <p class="small text-muted">📧 Check your email for the meeting link after registration</p>
                     </div>
                 </div>
-            {% elseif mapUrl %}
+            {% elseif event.location and not isOnlineEvent %}
                 <div class="detail-card mb-4">
-                    <h5 class="fw-bold mb-3" style="color: #2F5D52;">📍 Location Map</h5>
+                    <h5 class="fw-bold mb-3" style="color: #2F5D52;">📍 Location</h5>
                     <p class="small text-muted mb-2">{{ event.location }}</p>
-                    <img src="{{ mapUrl }}" alt="Map of {{ event.location }}" class="img-fluid rounded mb-3">
-                    <div class="d-flex gap-2">
-                        {% if googleMapsService is defined and googleMapsService %}
-                            <a href="{{ googleMapsService.getDirectionsUrl(event.location) }}" target="_blank" class="btn btn-sm" style="background: #2F5D52; color: white;">
-                                🧭 Get Directions
-                            </a>
-                            <a href="{{ googleMapsService.getSearchUrl(event.location) }}" target="_blank" class="btn btn-sm" style="background: #9BC7B5; color: #2F5D52;">
-                                🗺️ Open in Maps
-                            </a>
-                        {% else %}
-                            <a href="https://www.google.com/maps/search/?api=1&query={{ event.location|url_encode }}" target="_blank" class="btn btn-sm" style="background: #2F5D52; color: white;">
-                                🧭 Get Directions
-                            </a>
-                            <a href="https://www.google.com/maps/search/?api=1&query={{ event.location|url_encode }}" target="_blank" class="btn btn-sm" style="background: #9BC7B5; color: #2F5D52;">
-                                🗺️ Open in Maps
-                            </a>
-                        {% endif %}
+                    
+                    <div class="text-center py-4" style="background: #F1F6F4; border-radius: 10px;">
+                        <i class="fas fa-map-marker-alt fa-3x mb-2" style="color: #2F5D52;"></i>
+                        <p>{{ event.location }}</p>
+                        <button onclick="window.open('https://www.google.com/maps/search/?api=1&query={{ event.location|url_encode }}', '_blank')" 
+                                class="btn btn-sm" style="background: #2F5D52; color: white;">
+                            <i class="fas fa-external-link-alt"></i> View on Google Maps
+                        </button>
                     </div>
                 </div>
             {% endif %}
@@ -214,27 +207,83 @@
         
         <!-- Right Column -->
         <div class="col-lg-5">
-            <!-- Patient's Ticket (if registered) -->
+            <!-- Patient's Ticket Section -->
             {% if userRegistration %}
-                <div class="my-ticket-card mb-4">
-                    <h5 class="fw-bold mb-3">🎫 Your Ticket</h5>
-                    <p class="small opacity-75">Confirmation #: {{ userRegistration.confirmationNumber }}</p>
-                    <p class="small opacity-75">Status: {{ userRegistration.statusEmoji }} {{ userRegistration.status|title }}</p>
-                    <p class="small opacity-75">Ticket: {{ userRegistration.ticketType|title }} × {{ userRegistration.numberOfTickets }}</p>
-                    <p class="small fw-bold">Total: {% if userRegistration.freeTicket %}FREE{% else %}${{ userRegistration.totalPrice|number_format(2) }}{% endif %}</p>
-                    
-                    <div class="mt-3 d-flex gap-2">
-                        <a href="{{ path('app_registration_download_ticket', {id: userRegistration.id}) }}" class="btn btn-sm btn-light">📄 Download PDF</a>
-                        <form method="post" action="{{ path('app_registration_cancel', {id: userRegistration.id}) }}" 
-                              onsubmit="return confirm('Cancel your registration?')" class="d-inline">
-                            <input type="hidden" name="_token" value="{{ csrf_token('cancel' ~ userRegistration.id) }}">
-                            <button type="submit" class="btn btn-sm btn-outline-light">❌ Cancel</button>
-                        </form>
+                {# Check if registration is cancelled #}
+                {% if userRegistration.status == 'CANCELLED' %}
+                    <div class="cancelled-ticket-card mb-4">
+                        <h5 class="fw-bold mb-3">❌ Registration Cancelled</h5>
+                        <p class="small opacity-75">Your registration for this event has been cancelled.</p>
+                        <p class="small opacity-75">Confirmation #: {{ userRegistration.confirmationNumber }}</p>
+                        <p class="small opacity-75">Cancelled on: {{ userRegistration.updatedAt|date('M d, Y H:i')|default(userRegistration.registrationDate|date('M d, Y H:i')) }}</p>
+                        <div class="mt-3">
+                            {% if event.available %}
+                                <a href="{{ path('app_registration_new', {id: event.id}) }}" class="btn btn-sm btn-outline-light">↻ Register Again</a>
+                            {% else %}
+                                <button class="btn btn-sm btn-outline-light" disabled>🔴 Event Full</button>
+                            {% endif %}
+                        </div>
                     </div>
-                </div>
+                {% else %}
+                    <div class="my-ticket-card mb-4">
+                        <h5 class="fw-bold mb-3">🎫 Your Ticket</h5>
+                        <p class="small opacity-75">Confirmation #: {{ userRegistration.confirmationNumber }}</p>
+                        <p class="small opacity-75">Status: {{ userRegistration.statusEmoji }} {{ userRegistration.status|title }}</p>
+                        <p class="small opacity-75">Registered on: {{ userRegistration.registrationDate|date('M d, Y H:i') }}</p>
+                        <p class="small opacity-75">Ticket: {{ userRegistration.ticketType|title }} × {{ userRegistration.numberOfTickets }}</p>
+                        <p class="small fw-bold">Total: {% if userRegistration.freeTicket %}FREE{% else %}${{ userRegistration.totalPrice|number_format(2) }}{% endif %}</p>
+
+                        {% if qrCodeDataUri or userRegistration.qrCodePath %}
+                            <div class="text-center mt-3 mb-3">
+                                <img src="{{ qrCodeDataUri ?: asset(userRegistration.qrCodePath) }}" alt="QR Code Ticket" class="img-fluid" style="max-width: 200px;">
+                            </div>
+                        {% endif %}
+
+                        <div class="mt-3 d-flex gap-2 flex-wrap">
+                            <a href="{{ path('app_registration_download_ticket', {id: userRegistration.id}) }}" class="btn btn-sm btn-light">
+                                <i class="fas fa-download"></i> Download PDF
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                                <i class="fas fa-ban"></i> Cancel Registration
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Cancel Registration Modal -->
+                    <div class="modal fade" id="cancelModal" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Cancel Registration</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle"></i> 
+                                        <strong>Last chance!</strong> Are you sure you want to cancel your registration for "{{ event.title }}"?
+                                    </div>
+                                    <p>If you cancel:</p>
+                                    <ul>
+                                        <li>Your spot will become available for others</li>
+                                        <li>You will lose access to the QR code ticket</li>
+                                        <li>A cancellation confirmation email will be sent</li>
+                                        <li>You can register again if spots are still available</li>
+                                    </ul>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Keep Registration</button>
+                                    <form method="post" action="{{ path('app_registration_cancel', {id: userRegistration.id}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('cancel' ~ userRegistration.id) }}">
+                                        <button type="submit" class="btn btn-danger">Yes, Cancel Registration</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
             
             <!-- Register Button - For Patients who are NOT registered -->
-            {% elseif app.user and event.available and not is_granted('ROLE_ADMIN') and not is_granted('ROLE_PSYCHOLOGIST') %}
+            {% elseif is_granted('ROLE_PATIENT') and event.available %}
                 <div class="detail-card mb-4 text-center">
                     <i class="fas fa-ticket-alt fa-3x mb-3" style="color: #9BC7B5;"></i>
                     <h5>Register for this event</h5>
@@ -246,7 +295,7 @@
                 </div>
             
             <!-- Sold Out Message -->
-            {% elseif app.user and not event.available and not is_granted('ROLE_ADMIN') and not is_granted('ROLE_PSYCHOLOGIST') %}
+            {% elseif is_granted('ROLE_PATIENT') and not event.available %}
                 <div class="detail-card mb-4 text-center bg-danger bg-opacity-10">
                     <i class="fas fa-ban fa-3x mb-3 text-danger"></i>
                     <h5>Sold Out</h5>
@@ -270,18 +319,18 @@
                 </div>
             {% endif %}
             
-            <!-- Registration Summary - Admin and Psychologist can see this -->
+            <!-- Registration Summary - Admin and Psychologist -->
             {% if canManage %}
                 <div class="detail-card mb-4">
                     <h5 class="fw-bold mb-3" style="color: #2F5D52;">🎟 Registration Summary</h5>
                     <div class="d-flex justify-content-around mb-3">
                         <div class="text-center">
                             <div class="h4 fw-bold" style="color: #2F5D52;">{{ registrationCount }}</div>
-                            <small class="text-muted">Bookings</small>
+                            <small class="text-muted">Confirmed</small>
                         </div>
                         <div class="text-center">
-                            <div class="h4 fw-bold" style="color: #2F5D52;">{{ totalTickets }}</div>
-                            <small class="text-muted">Tickets</small>
+                            <div class="h4 fw-bold" style="color: #D62828;">{{ registrations|filter(r => r.status == 'CANCELLED')|length }}</div>
+                            <small class="text-muted">Cancelled</small>
                         </div>
                         <div class="text-center">
                             <div class="h4 fw-bold" style="color: #2F5D52;">${{ revenue|number_format(2) }}</div>
@@ -302,42 +351,53 @@
                 
                 <!-- Registrations List -->
                 <div class="detail-card">
-                    <h5 class="fw-bold mb-3" style="color: #2F5D52;">📋 Registrations ({{ registrations|length }})</h5>
+                    <h5 class="fw-bold mb-3" style="color: #2F5D52;">📋 Registrations</h5>
                     
                     {% if registrations|length == 0 %}
                         <p class="text-muted text-center py-3">No registrations yet.</p>
                     {% else %}
                         <div style="max-height: 400px; overflow-y: auto;">
                             {% for reg in registrations %}
-                                <div class="registration-card">
+                                <div class="registration-card {% if reg.status == 'CANCELLED' %}opacity-50{% endif %}">
                                     <div class="d-flex justify-content-between align-items-start">
                                         <div>
                                             <strong>{{ reg.userName }}</strong>
+                                            {% if reg.status == 'CANCELLED' %}
+                                                <span class="badge bg-danger ms-2">CANCELLED</span>
+                                            {% endif %}
                                             <br>
                                             <small class="text-muted">{{ reg.email }}</small>
                                             <br>
                                             <small>{{ reg.ticketType|title }} × {{ reg.numberOfTickets }}</small>
                                             <br>
                                             <small>💰 ${{ reg.totalPrice|number_format(2) }}</small>
+                                            <br>
+                                            <small class="text-muted">Registered: {{ reg.registrationDate|date('M d, Y') }}</small>
+                                            {% if reg.status == 'CANCELLED' and reg.updatedAt %}
+                                                <br>
+                                                <small class="text-muted">Cancelled: {{ reg.updatedAt|date('M d, Y') }}</small>
+                                            {% endif %}
                                         </div>
                                         <div class="text-end">
                                             <span class="badge {% if reg.status == 'CONFIRMED' %}bg-success{% elseif reg.status == 'PENDING' %}bg-warning{% else %}bg-danger{% endif %}">
                                                 {{ reg.statusEmoji }} {{ reg.status|title }}
                                             </span>
                                             <div class="mt-2">
-                                                <a href="{{ path('app_registration_edit', {id: reg.id}) }}" class="btn btn-sm btn-icon" title="Edit Registration">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
+                                                {% if reg.status == 'CONFIRMED' %}
+                                                    <a href="{{ path('app_registration_edit', {id: reg.id}) }}" class="btn btn-sm btn-icon" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <a href="{{ path('app_registration_download_ticket', {id: reg.id}) }}" class="btn btn-sm btn-icon" title="Download Ticket">
+                                                        <i class="fas fa-download"></i>
+                                                    </a>
+                                                {% endif %}
                                                 <form method="post" action="{{ path('app_registration_delete', {id: reg.id}) }}" 
                                                       onsubmit="return confirm('Delete this registration?')" class="d-inline">
                                                     <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reg.id) }}">
-                                                    <button type="submit" class="btn btn-sm btn-icon text-danger" title="Delete Registration">
+                                                    <button type="submit" class="btn btn-sm btn-icon text-danger">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </form>
-                                                <a href="{{ path('app_registration_download_ticket', {id: reg.id}) }}" class="btn btn-sm btn-icon" title="Download Ticket">
-                                                    <i class="fas fa-download"></i>
-                                                </a>
                                             </div>
                                         </div>
                                     </div>

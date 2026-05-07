@@ -38,7 +38,7 @@
         }
         .success-badge {
             background: #9BC7B5;
-            color: #2F5D52;
+                color: #2F5D52;
             padding: 10px 20px;
             border-radius: 20px;
             display: inline-block;
@@ -95,12 +95,14 @@
             color: #6B7280;
             margin: 10px 0;
         }
-        .footer {
-            background: #F1F6F4;
-            padding: 20px;
-            text-align: center;
-            color: #6B7280;
-            font-size: 12px;
+        .qr-code-img {
+            width: 180px;
+            height: 180px;
+            margin: 10px auto;
+            display: block;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
         }
         .button {
             display: inline-block;
@@ -109,7 +111,39 @@
             padding: 12px 25px;
             text-decoration: none;
             border-radius: 25px;
-            margin-top: 15px;
+            margin: 10px 5px;
+        }
+        .button-download {
+            background: #9BC7B5;
+            color: #2F5D52;
+        }
+        .footer {
+            background: #F1F6F4;
+            padding: 20px;
+            text-align: center;
+            color: #6B7280;
+            font-size: 12px;
+        }
+        @media (max-width: 600px) {
+            .content {
+                padding: 20px;
+            }
+            .detail-row {
+                flex-direction: column;
+            }
+            .detail-label {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+            .button {
+                display: block;
+                text-align: center;
+                margin: 10px 0;
+            }
+            .qr-code-img {
+                width: 150px;
+                height: 150px;
+            }
         }
     </style>
 </head>
@@ -165,20 +199,38 @@
             </div>
             
             <div class="qr-section">
-                <h3>📱 Your QR Code</h3>
-                <p>Present this QR code at the event entrance for quick check-in.</p>
-                <p><strong>QR code is available in your ticket PDF.</strong></p>
+                <h3>📱 Scan to Access Your Ticket</h3>
+                <p>Scan this QR code with your phone to download your PDF ticket</p>
+                
+                {% if qrCodeDataUri %}
+                    <img src="{{ qrCodeDataUri }}" alt="QR Code" class="qr-code-img">
+                {% else %}
+                    <div style="width: 180px; height: 180px; background: #ddd; margin: 10px auto; display: flex; align-items: center; justify-content: center; border-radius: 10px;">
+                        <span style="color: #666;">QR Code</span>
+                    </div>
+                {% endif %}
+                
+                <p style="margin-top: 15px;"><strong>Confirmation #: {{ confirmationNumber }}</strong></p>
+                <p>Present this QR code at the event entrance or scan to download your ticket</p>
             </div>
             
-            <p>If you have any questions, please don't hesitate to contact us.</p>
-            <p>See you at the event! 🎉</p>
+            <div style="text-align: center; margin: 25px 0;">
+                <a href="{{ url('app_event_show', {id: event.id}) }}" class="button">📅 View Event Details</a>
+                <a href="{{ url('app_registration_download_ticket', {id: registration.id}) }}" class="button button-download">📄 Download PDF Ticket</a>
+            </div>
             
-            <a href="{{ url('app_event_show', {id: event.id}) }}" class="button">View Event Details</a>
+            <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
+            
+            <p style="font-size: 12px; color: #999; text-align: center;">
+                If you have any questions, please contact us at <a href="mailto:support@mentis.com" style="color: #2F5D52;">support@mentis.com</a>
+            </p>
+            <p style="text-align: center;">See you at the event! 🎉</p>
         </div>
         
         <div class="footer">
             <p>© {{ "now"|date("Y") }} MENTIS - Mental Health Platform</p>
             <p>This is an automated message. Please do not reply directly to this email.</p>
+            <p><small>If you didn't register for this event, please ignore this email.</small></p>
         </div>
     </div>
 </body>

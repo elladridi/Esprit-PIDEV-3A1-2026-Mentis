@@ -32,6 +32,16 @@ class EventRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function findBetweenDates(\DateTimeInterface $start, \DateTimeInterface $end)
+{
+    return $this->createQueryBuilder('e')
+        ->andWhere('e.dateTime BETWEEN :start AND :end')
+        ->setParameter('start', $start)
+        ->setParameter('end', $end)
+        ->getQuery()
+        ->getResult();
+}
+
     /**
      * Find events by type.
      *

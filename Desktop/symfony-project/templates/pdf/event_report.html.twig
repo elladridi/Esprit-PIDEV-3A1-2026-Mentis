@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Event Report - {{ event.title }}</title>
+    <style>
+        body {
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #2C3E50;
+            background: #ffffff;
+            font-size: 12px;
+        }
+
+        .report {
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: #2F5D52;
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 26px;
+        }
+
+        .header p {
+            margin: 6px 0 0;
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .section {
+            padding: 20px;
+        }
+
+        .section-title {
+            color: #2F5D52;
+            font-size: 18px;
+            margin: 0 0 12px;
+            border-bottom: 2px solid #2F5D52;
+            padding-bottom: 6px;
+        }
+
+        .info-box {
+            background: #F1F6F4;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 18px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        td, th {
+            padding: 8px;
+            border: 1px solid #ddd;
+            vertical-align: top;
+        }
+
+        th {
+            background: #2F5D52;
+            color: white;
+            font-weight: bold;
+            text-align: left;
+        }
+
+        .label {
+            font-weight: bold;
+            color: #2F5D52;
+            width: 170px;
+        }
+
+        .stats {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .stats td {
+            border: none;
+            width: 25%;
+            padding: 8px;
+        }
+
+        .stat-card {
+            background: #F1F6F4;
+            border-left: 5px solid #2F5D52;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2F5D52;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        .status-confirmed {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .status-pending {
+            color: #ffc107;
+            font-weight: bold;
+        }
+
+        .status-cancelled {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .footer {
+            background: #F1F6F4;
+            padding: 12px;
+            text-align: center;
+            font-size: 10px;
+            color: #666;
+            margin-top: 20px;
+        }
+
+        .small {
+            font-size: 10px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+<div class="report">
+
+    <div class="header">
+        <h1>MENTIS EVENT REPORT</h1>
+        <p>Generated on {{ "now"|date("F d, Y H:i") }}</p>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">Event Information</h2>
+
+        <div class="info-box">
+            <table>
+                <tr>
+                    <td class="label">Event Name:</td>
+                    <td><strong>{{ event.title }}</strong></td>
+                </tr>
+                <tr>
+                    <td class="label">Date & Time:</td>
+                    <td>{{ event.dateTime|date('l, F d, Y \\a\\t H:i') }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Location:</td>
+                    <td>{{ event.location|default('Online Event') }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Event Type:</td>
+                    <td>{{ event.eventType|replace({'_': ' '})|title }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Status:</td>
+                    <td>{{ event.status|replace({'_': ' '})|title }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Maximum Participants:</td>
+                    <td>{{ event.maxParticipants }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Current Participants:</td>
+                    <td>{{ event.currentParticipants }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Price:</td>
+                    <td>
+                        {% if event.price is defined and event.price > 0 %}
+                            ${{ event.price|number_format(2) }}
+                        {% else %}
+                            FREE
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <h2 class="section-title">Summary Statistics</h2>
+
+        <table class="stats">
+            <tr>
+                <td>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ totalRegistrations }}</div>
+                        <div class="stat-label">Registrations</div>
+                    </div>
+                </td>
+                <td>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ totalTickets }}</div>
+                        <div class="stat-label">Tickets Sold</div>
+                    </div>
+                </td>
+                <td>
+                    <div class="stat-card">
+                        <div class="stat-number">${{ totalRevenue|number_format(2) }}</div>
+                        <div class="stat-label">Revenue</div>
+                    </div>
+                </td>
+                <td>
+                    <div class="stat-card">
+                        <div class="stat-number">
+                            {% if event.maxParticipants > 0 %}
+                                {{ ((event.currentParticipants / event.maxParticipants) * 100)|round }}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </div>
+                        <div class="stat-label">Capacity</div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+        <h2 class="section-title">Registrations List</h2>
+
+        {% if registrations is empty %}
+            <p>No registrations found for this event.</p>
+        {% else %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Confirmation</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Ticket Type</th>
+                        <th>Qty</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for registration in registrations %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ registration.confirmationNumber }}</td>
+                        <td>{{ registration.userName }}</td>
+                        <td>{{ registration.email }}</td>
+                        <td>{{ registration.ticketType|title }}</td>
+                        <td>{{ registration.numberOfTickets }}</td>
+                        <td>
+                            {% if registration.freeTicket %}
+                                FREE
+                            {% else %}
+                                ${{ registration.totalPrice|number_format(2) }}
+                            {% endif %}
+                        </td>
+                        <td class="status-{{ registration.status|lower }}">
+                            {{ registration.status|title }}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+
+        <p class="small">
+            This report was automatically generated by the MENTIS Events Module.
+        </p>
+    </div>
+
+    <div class="footer">
+        <p>© {{ "now"|date("Y") }} MENTIS - Mental Health Platform</p>
+        <p>Confidential event management report.</p>
+    </div>
+
+</div>
+</body>
+</html>

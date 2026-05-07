@@ -7,68 +7,90 @@ use App\Entity\EventRegistration;
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel;
-use Endroid\QrCode\Writer\Result\ResultInterface;
+use Endroid\QrCode\Writer\PngWriter;
+use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class QRCodeService
 {
-    public function __construct(
-        private readonly string $projectDir
-    ) {
+    private string $projectDir;
+    private UrlGeneratorInterface $urlGenerator;
+
+    public function __construct(KernelInterface $kernel, UrlGeneratorInterface $urlGenerator)
+    {
+        $this->projectDir = $kernel->getProjectDir();
+        $this->urlGenerator = $urlGenerator;
+    }
+
+    private function getQrCodeDirectory(): string
+    {
+        $dir = $this->projectDir . '/public/uploads/qrcodes';
+        if (!is_dir($dir)) {
+            mkdir($dir, 0777, true);
+        }
+        return $dir;
+    }
+
+    public function generateContent(EventRegistration $registration, Event $event): string
+    {
+        $ticketUrl = $this->urlGenerator->generate('app_registration_download_ticket', [
+            'id' => $registration->getId()
+        ], UrlGeneratorInterface::ABSOLUTE_URL);
+        
+        return $ticketUrl;
     }
 
     public function generateAndSave(EventRegistration $registration, Event $event): ?string
     {
-        $result = $this->buildQrCode($registration, $event);
+        try {
+            $content = $this->generateContent($registration, $event);
+            
+            // CORRECT SYNTAX FOR VERSION 6 - using new Builder() directly
+            $builder = new Builder(
+                writer: new PngWriter(),
+                data: $content,
+                encoding: new Encoding('UTF-8'),
+                errorCorrectionLevel: ErrorCorrectionLevel::High,
+                size: 300,
+                margin: 10
+            );
+            
+            $result = $builder->build();
 
-        if (null === $result) {
+            $filename = 'qr_' . $registration->getConfirmationNumber() . '.png';
+            $filepath = $this->getQrCodeDirectory() . '/' . $filename;
+            
+            $result->saveToFile($filepath);
+            
+            return '/uploads/qrcodes/' . $filename;
+            
+        } catch (\Exception $e) {
+            error_log('QR Code generation failed: ' . $e->getMessage());
             return null;
         }
-
-        $directory = $this->projectDir . '/public/uploads/qrcodes';
-        if (!is_dir($directory) && !mkdir($directory, 0777, true) && !is_dir($directory)) {
-            return null;
-        }
-
-        $fileName = sprintf(
-            'registration_%s_%s.png',
-            $registration->getId() ?? 'new',
-            preg_replace('/[^A-Za-z0-9_-]/', '_', $registration->getConfirmationNumber() ?? uniqid('qr_', true))
-        );
-
-        $absolutePath = $directory . '/' . $fileName;
-        file_put_contents($absolutePath, $result->getString());
-
-        return '/uploads/qrcodes/' . $fileName;
     }
 
     public function getQrCodeBase64(EventRegistration $registration, Event $event): ?string
     {
-        $result = $this->buildQrCode($registration, $event);
-
-        return $result?->getDataUri();
-    }
-
-    private function buildQrCode(EventRegistration $registration, Event $event): ?ResultInterface
-    {
-        $payload = [
-            'registration_id' => $registration->getId(),
-            'confirmation_number' => $registration->getConfirmationNumber(),
-            'event_id' => $event->getId(),
-            'event_title' => $event->getTitle(),
-            'attendee' => $registration->getUserName(),
-            'email' => $registration->getEmail(),
-            'tickets' => $registration->getNumberOfTickets(),
-        ];
-
         try {
-            return (new Builder())->build(
-                data: json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            $content = $this->generateContent($registration, $event);
+            
+            // CORRECT SYNTAX FOR VERSION 6 - using new Builder() directly
+            $builder = new Builder(
+                writer: new PngWriter(),
+                data: $content,
                 encoding: new Encoding('UTF-8'),
-                errorCorrectionLevel: ErrorCorrectionLevel::Medium,
-                size: 300,
+                errorCorrectionLevel: ErrorCorrectionLevel::High,
+                size: 200,
                 margin: 10
             );
-        } catch (\Throwable) {
+            
+            $result = $builder->build();
+
+            return $result->getDataUri();
+            
+        } catch (\Exception $e) {
+            error_log('QR Code base64 generation failed: ' . $e->getMessage());
             return null;
         }
     }

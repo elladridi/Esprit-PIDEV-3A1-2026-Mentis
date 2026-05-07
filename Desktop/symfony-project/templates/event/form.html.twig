@@ -16,20 +16,23 @@
                     
                     <div class="mb-3">
                         {{ form_label(form.title, 'Event Title *', {'label_attr': {'class': 'form-label fw-bold'}}) }}
-                        {{ form_widget(form.title, {'attr': {'class': 'form-control', 'placeholder': 'Enter event title'}}) }}
+                        {{ form_widget(form.title, {'attr': {'class': 'form-control', 'placeholder': 'Enter event title', 'id': 'event_title'}}) }}
                         {{ form_errors(form.title) }}
                     </div>
                     
                     <div class="mb-3">
-                        {{ form_label(form.description, 'Description', {'label_attr': {'class': 'form-label fw-bold'}}) }}
-                        {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 4, 'placeholder': 'Describe your event'}}) }}
-                        {{ form_errors(form.description) }}
+                        <div class="d-flex align-items-start gap-2">
+                            <div class="flex-grow-1">
+                                {{ form_label(form.description, 'Description', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                                {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 4, 'placeholder': 'Describe your event', 'id': 'event_description'}}) }}
+                                {{ form_errors(form.description) }}
+                            </div>
                     </div>
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             {{ form_label(form.eventType, 'Event Type', {'label_attr': {'class': 'form-label fw-bold'}}) }}
-                            {{ form_widget(form.eventType, {'attr': {'class': 'form-select'}}) }}
+                            {{ form_widget(form.eventType, {'attr': {'class': 'form-select', 'id': 'event_type'}}) }}
                             {{ form_errors(form.eventType) }}
                         </div>
                         <div class="col-md-6 mb-3">
@@ -43,7 +46,6 @@
                         {{ form_label(form.dateTime, 'Date & Time *', {'label_attr': {'class': 'form-label fw-bold'}}) }}
                         {{ form_widget(form.dateTime, {'attr': {'class': 'form-control'}}) }}
                         {{ form_errors(form.dateTime) }}
-                        <small class="text-muted">Format: YYYY-MM-DD HH:MM:SS</small>
                     </div>
                     
                     <div class="mb-3">
@@ -65,7 +67,6 @@
                                 {{ form_widget(form.price, {'attr': {'class': 'form-control', 'placeholder': '0.00'}}) }}
                             </div>
                             {{ form_errors(form.price) }}
-                            <small class="text-muted">Enter 0 for free events</small>
                         </div>
                     </div>
                     
@@ -82,4 +83,42 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+
+// Get the button
+const btn = document.getElementById('generateDescriptionBtn');
+console.log('Button found:', btn);
+
+if (btn) {
+    btn.addEventListener('click', function() {
+        
+        
+        const title = document.getElementById('event_title').value;
+        const type = document.getElementById('event_type').value;
+        
+        
+        fetch('/events/ai/generate-description', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: title, type: type })
+        })
+        .then(response => response.json())
+        .then(data => {
+           
+            if (data.description) {
+                document.getElementById('event_description').value = data.description;
+            }
+        })
+        .catch(error => {
+           
+        });
+    });
+} else {
+    
+}
+</script>
 {% endblock %}

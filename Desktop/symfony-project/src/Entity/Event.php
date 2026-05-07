@@ -7,84 +7,118 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: EventRepository::class)]
 #[ORM\Table(name: 'events')]
+#[ORM\HasLifecycleCallbacks]
 class Event
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private int $id;
+    private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(message: 'Title is required')]
-    #[Assert\Length(min: 3, max: 255, minMessage: 'Title must be at least 3 characters')]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
-    #[ORM\Column(name: 'date_time', type: Types::DATETIME_MUTABLE)]
-    #[Assert\NotBlank(message: 'Date and time are required')]
-    #[Assert\GreaterThan('today', message: 'Event date must be in the future')]
+    #[ORM\Column(name: 'date_time', type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $dateTime = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $location = null;
 
     #[ORM\Column(name: 'max_participants')]
-    #[Assert\NotBlank(message: 'Maximum participants is required')]
-    #[Assert\Positive(message: 'Maximum participants must be a positive number')]
-    #[Assert\LessThan(1001, message: 'Maximum participants cannot exceed 1000')]
     private ?int $maxParticipants = null;
 
     #[ORM\Column(name: 'current_participants', options: ['default' => 0])]
-    private int $currentParticipants;
+    private int $currentParticipants = 0;
 
     #[ORM\Column(name: 'event_type', length: 50, nullable: true)]
-    #[Assert\Choice(choices: ['WORKSHOP', 'GROUP_THERAPY', 'SEMINAR', 'SOCIAL'], message: 'Invalid event type')]
     private ?string $eventType = null;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, options: ['default' => '0.00'])]
-    #[Assert\GreaterThanOrEqual(value: 0, message: 'Price cannot be negative')]
-    private string $price;
+    #[ORM\Column(
+        type: Types::DECIMAL,
+        precision: 10,
+        scale: 2,
+        options: ['default' => '0.00']
+    )]
+    private ?string $price = '0.00';
 
     #[ORM\Column(name: 'image_url', length: 500, nullable: true)]
     private ?string $imageUrl = null;
 
     #[ORM\Column(length: 50, options: ['default' => 'UPCOMING'])]
-    #[Assert\Choice(choices: ['UPCOMING', 'ONGOING', 'COMPLETED', 'CANCELLED'], message: 'Invalid status')]
-    private string $status;
+    private string $status = 'UPCOMING';
 
     #[ORM\Column(name: 'created_by', nullable: true)]
     private ?int $createdBy = null;
 
-    #[ORM\Column(name: 'created_at', type: Types::DATETIME_MUTABLE, options: ['default' => 'CURRENT_TIMESTAMP'])]
+    #[ORM\Column(name: 'created_at', type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $createdAt = null;
 
-    #[ORM\Column(name: 'updated_at', type: Types::DATETIME_MUTABLE, options: ['default' => 'CURRENT_TIMESTAMP'])]
+    #[ORM\Column(name: 'updated_at', type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $updatedAt = null;
 
     /**
      * @var Collection<int, EventRegistration>
      */
-    #[ORM\OneToMany(targetEntity: EventRegistration::class, mappedBy: 'event', cascade: ['remove'])]
+    #[ORM\OneToMany(
+        targetEntity: EventRegistration::class,
+        mappedBy: 'event',
+        cascade: ['remove'],
+        orphanRemoval: true
+    )]
     private Collection $registrations;
+
+    // =================== CONSTANTS ===================
+
+    public const TYPES = [
+        'Workshop' => 'WORKSHOP',
+        'Group Therapy' => 'GROUP_THERAPY',
+        'Seminar' => 'SEMINAR',
+        'Social' => 'SOCIAL',
+    ];
+
+    public const STATUSES = [
+        'Upcoming' => 'UPCOMING',
+        'Ongoing' => 'ONGOING',
+        'Completed' => 'COMPLETED',
+        'Cancelled' => 'CANCELLED',
+    ];
+
+    // =================== CONSTRUCTOR ===================
 
     public function __construct()
     {
-        $this->id = 0;
         $this->registrations = new ArrayCollection();
-        $this->currentParticipants = 0;
-        $this->price = '0.00';
-        $this->status = 'UPCOMING';
         $this->createdAt = new \DateTime();
+        $this->updatedAt = new \DateTime();
+        $this->currentParticipants = 0;
+        $this->status = 'UPCOMING';
+        $this->price = '0.00';
+    }
+
+    // =================== LIFECYCLE CALLBACKS ===================
+
+    #[ORM\PreUpdate]
+    public function updateTimestamps(): void
+    {
         $this->updatedAt = new \DateTime();
     }
 
-    // Getters and Setters
+    #[ORM\PrePersist]
+    public function initTimestamps(): void
+    {
+        if ($this->createdAt === null) {
+            $this->createdAt = new \DateTime();
+        }
+        $this->updatedAt = new \DateTime();
+    }
+
+    // =================== GETTERS & SETTERS ===================
 
     public function getId(): ?int
     {
@@ -118,7 +152,7 @@ class Event
         return $this->dateTime;
     }
 
-    public function setDateTime(\DateTimeInterface $dateTime): static
+    public function setDateTime(?\DateTimeInterface $dateTime): static
     {
         $this->dateTime = $dateTime;
         return $this;
@@ -146,14 +180,14 @@ class Event
         return $this;
     }
 
-    public function getCurrentParticipants(): ?int
+    public function getCurrentParticipants(): int
     {
         return $this->currentParticipants;
     }
 
     public function setCurrentParticipants(int $currentParticipants): static
     {
-        $this->currentParticipants = $currentParticipants;
+        $this->currentParticipants = max(0, $currentParticipants);
         return $this;
     }
 
@@ -190,7 +224,7 @@ class Event
         return $this;
     }
 
-    public function getStatus(): ?string
+    public function getStatus(): string
     {
         return $this->status;
     }
@@ -242,34 +276,165 @@ class Event
         return $this->registrations;
     }
 
-    // Business Logic Methods
+    public function addRegistration(EventRegistration $registration): static
+    {
+        if (!$this->registrations->contains($registration)) {
+            $this->registrations->add($registration);
+            $registration->setEvent($this);
+        }
+        return $this;
+    }
 
+    public function removeRegistration(EventRegistration $registration): static
+    {
+        if ($this->registrations->removeElement($registration)) {
+            if ($registration->getEvent() === $this) {
+                $registration->setEvent(null);
+            }
+        }
+        return $this;
+    }
+
+    // =================== BUSINESS LOGIC ===================
+
+    /**
+     * Check if event has available spots
+     */
     public function isAvailable(): bool
     {
-        return $this->currentParticipants < $this->maxParticipants;
+        if ($this->maxParticipants === null) {
+            return false;
+        }
+        return $this->currentParticipants < $this->maxParticipants
+            && $this->status === 'UPCOMING';
     }
 
+    /**
+     * Get number of available spots
+     */
     public function getAvailableSpots(): int
     {
-        return $this->maxParticipants - $this->currentParticipants;
+        if ($this->maxParticipants === null) {
+            return 0;
+        }
+        return max(0, $this->maxParticipants - $this->currentParticipants);
     }
 
+    /**
+     * Check if event is free
+     */
     public function isFree(): bool
     {
         return floatval($this->price) == 0;
     }
 
+    /**
+     * Get price as float
+     */
+    public function getPriceAsFloat(): float
+    {
+        return floatval($this->price);
+    }
+
+    /**
+     * Get occupancy percentage
+     */
+    public function getOccupancyPercentage(): float
+    {
+        if ($this->maxParticipants === null || $this->maxParticipants === 0) {
+            return 0;
+        }
+        return min(100, round(($this->currentParticipants / $this->maxParticipants) * 100, 1));
+    }
+
+    /**
+     * Check if event is sold out
+     */
+    public function isSoldOut(): bool
+    {
+        return $this->currentParticipants >= $this->maxParticipants;
+    }
+
+    /**
+     * Check if event is upcoming
+     */
+    public function isUpcoming(): bool
+    {
+        return $this->status === 'UPCOMING';
+    }
+
+    /**
+     * Check if event is ongoing
+     */
+    public function isOngoing(): bool
+    {
+        return $this->status === 'ONGOING';
+    }
+
+    /**
+     * Check if event is completed
+     */
+    public function isCompleted(): bool
+    {
+        return $this->status === 'COMPLETED';
+    }
+
+    /**
+     * Check if event is cancelled
+     */
+    public function isCancelled(): bool
+    {
+        return $this->status === 'CANCELLED';
+    }
+
+    /**
+     * Check if event is in the past
+     */
+    public function isPast(): bool
+    {
+        return $this->dateTime !== null && $this->dateTime < new \DateTime();
+    }
+
+    /**
+     * Check if event is in the future
+     */
+    public function isFuture(): bool
+    {
+        return $this->dateTime !== null && $this->dateTime > new \DateTime();
+    }
+
+    /**
+     * Get days until event
+     */
+    public function getDaysUntilEvent(): int
+    {
+        if ($this->dateTime === null) {
+            return 0;
+        }
+        $now = new \DateTime();
+        $diff = $now->diff($this->dateTime);
+        return (int)$diff->days;
+    }
+
+    // =================== DISPLAY HELPERS ===================
+
+    /**
+     * Get Bootstrap badge class for status
+     */
     public function getStatusBadgeClass(): string
     {
         return match ($this->status) {
-            'UPCOMING' => 'bg-primary',
-            'ONGOING' => 'bg-success',
+            'UPCOMING' => 'bg-success',
+            'ONGOING' => 'bg-primary',
             'COMPLETED' => 'bg-secondary',
             'CANCELLED' => 'bg-danger',
             default => 'bg-secondary',
         };
     }
 
+    /**
+     * Get Bootstrap badge class for event type
+     */
     public function getEventTypeBadgeClass(): string
     {
         return match ($this->eventType) {
@@ -281,6 +446,9 @@ class Event
         };
     }
 
+    /**
+     * Get Font Awesome icon for event type
+     */
     public function getEventTypeIcon(): string
     {
         return match ($this->eventType) {
@@ -292,9 +460,103 @@ class Event
         };
     }
 
-    #[ORM\PreUpdate]
-    public function updateTimestamps(): void
+    /**
+     * Get status emoji
+     */
+    public function getStatusEmoji(): string
     {
-        $this->updatedAt = new \DateTime();
+        return match ($this->status) {
+            'UPCOMING' => '🟢',
+            'ONGOING' => '🔵',
+            'COMPLETED' => '⚫',
+            'CANCELLED' => '🔴',
+            default => '⚪',
+        };
+    }
+
+    /**
+     * Get event type emoji
+     */
+    public function getEventTypeEmoji(): string
+    {
+        return match ($this->eventType) {
+            'WORKSHOP' => '🛠',
+            'GROUP_THERAPY' => '👥',
+            'SEMINAR' => '🎓',
+            'SOCIAL' => '🎉',
+            default => '📅',
+        };
+    }
+
+    /**
+     * Get color for FullCalendar
+     */
+    public function getCalendarColor(): string
+    {
+        return match ($this->eventType) {
+            'WORKSHOP' => '#50C878',
+            'GROUP_THERAPY' => '#3A9B5E',
+            'SEMINAR' => '#2E7D32',
+            'SOCIAL' => '#9BC7B5',
+            default => '#50C878',
+        };
+    }
+
+    /**
+     * Get formatted price string
+     */
+    public function getFormattedPrice(): string
+    {
+        if ($this->isFree()) {
+            return 'FREE';
+        }
+        return '$' . number_format(floatval($this->price), 2);
+    }
+
+    /**
+     * Get formatted date
+     */
+    public function getFormattedDate(): string
+    {
+        if ($this->dateTime === null) {
+            return 'N/A';
+        }
+        return $this->dateTime->format('M d, Y \a\t H:i');
+    }
+
+    /**
+     * Get short title (for calendar/list)
+     */
+    public function getShortTitle(int $maxLength = 50): string
+    {
+        if ($this->title === null) {
+            return '';
+        }
+        if (strlen($this->title) <= $maxLength) {
+            return $this->title;
+        }
+        return substr($this->title, 0, $maxLength) . '...';
+    }
+
+    /**
+     * Get short description
+     */
+    public function getShortDescription(int $maxLength = 100): string
+    {
+        if ($this->description === null) {
+            return '';
+        }
+        if (strlen($this->description) <= $maxLength) {
+            return $this->description;
+        }
+        return substr($this->description, 0, $maxLength) . '...';
+    }
+
+    /**
+     * Convert to string
+     */
+    public function __toString(): string
+    {
+        return $this->title ?? 'Event #' . $this->id;
     }
 }

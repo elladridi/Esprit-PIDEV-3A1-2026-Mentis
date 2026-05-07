@@ -16,7 +16,6 @@ use Symfony\Component\Validator\Constraints\GreaterThan;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Positive;
 use Symfony\Component\Validator\Constraints\Range;
-use Symfony\Component\Validator\Constraints\Length;  
 
 class EventType extends AbstractType
 {
@@ -25,22 +24,15 @@ class EventType extends AbstractType
         $builder
             ->add('title', TextType::class, [
                 'label' => 'Event Title *',
-                'attr' => [
-                    'placeholder' => 'Enter event title...',
-                    'class' => 'mint-text-field'
-                ],
+                'attr' => ['placeholder' => 'Enter event title...'],
                 'constraints' => [
                     new NotBlank(['message' => 'Title is required']),
-                ]
+                ],
             ])
             ->add('description', TextareaType::class, [
                 'label' => 'Description',
                 'required' => false,
-                'attr' => [
-                    'placeholder' => 'Describe your event...',
-                    'rows' => 4,
-                    'class' => 'mint-text-area'
-                ]
+                'attr' => ['rows' => 4, 'placeholder' => 'Describe your event...'],
             ])
             ->add('eventType', ChoiceType::class, [
                 'label' => 'Event Type',
@@ -50,49 +42,36 @@ class EventType extends AbstractType
                     'Seminar' => 'SEMINAR',
                     'Social Event' => 'SOCIAL',
                 ],
-                'attr' => ['class' => 'mint-combo-box']
             ])
             ->add('dateTime', DateTimeType::class, [
                 'label' => 'Date & Time *',
                 'widget' => 'single_text',
-                'html5' => true,
-                'attr' => ['class' => 'mint-date-time-picker'],
                 'constraints' => [
                     new NotBlank(['message' => 'Date and time are required']),
-                    new GreaterThan([
-                        'value' => 'today',
-                        'message' => 'Event date must be in the future'
-                    ])
-                ]
+                    new GreaterThan(['value' => 'today', 'message' => 'Event date must be in the future']),  // ONLY ONE!
+                ],
             ])
             ->add('location', TextType::class, [
                 'label' => 'Location',
                 'required' => false,
-                'attr' => [
-                    'placeholder' => 'Enter venue address or "Online"',
-                    'class' => 'mint-text-field'
-                ]
+                'attr' => ['placeholder' => 'Enter venue address or "Online"'],
             ])
             ->add('maxParticipants', TextType::class, [
                 'label' => 'Max Participants *',
-                'attr' => [
-                    'placeholder' => 'e.g., 50',
-                    'class' => 'mint-text-field'
-                ],
+                'attr' => ['placeholder' => 'e.g., 50'],
                 'constraints' => [
                     new NotBlank(['message' => 'Max participants is required']),
-                    new Positive(['message' => 'Must be a positive number']),
-                    new Range(['max' => 1000, 'maxMessage' => 'Cannot exceed 1000 participants'])
-                ]
+                    new Positive(['message' => 'Must be a positive number']),  // ONLY ONE!
+                ],
             ])
             ->add('price', MoneyType::class, [
                 'label' => 'Price',
-                'currency' => 'TND',
+                'currency' => 'USD',
                 'required' => false,
-                'attr' => ['class' => 'mint-text-field'],
+                'attr' => ['placeholder' => '0.00'],
                 'constraints' => [
-                    new Range(['min' => 0, 'minMessage' => 'Price cannot be negative'])
-                ]
+                    new Range(['min' => 0, 'minMessage' => 'Price cannot be negative']),
+                ],
             ])
             ->add('status', ChoiceType::class, [
                 'label' => 'Status',
@@ -102,12 +81,6 @@ class EventType extends AbstractType
                     'Completed' => 'COMPLETED',
                     'Cancelled' => 'CANCELLED',
                 ],
-                'attr' => ['class' => 'mint-combo-box']
-            ])
-
-             ->add('save', SubmitType::class, [
-                'label' => 'Save Event',
-                'attr' => ['class' => 'btn btn-success'],
             ]);
     }
 

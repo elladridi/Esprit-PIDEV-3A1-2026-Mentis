@@ -12,16 +12,21 @@ class EmailNotificationService
 {
     private MailerInterface $mailer;
     private string $senderEmail;
+    private QRCodeService $qrCodeService;
 
-    public function __construct(MailerInterface $mailer, string $senderEmail)
+    public function __construct(MailerInterface $mailer, string $senderEmail, QRCodeService $qrCodeService)
     {
         $this->mailer = $mailer;
         $this->senderEmail = $senderEmail;
+        $this->qrCodeService = $qrCodeService;
     }
 
     public function sendConfirmationEmail(EventRegistration $registration, Event $event): bool
     {
         try {
+            // Generate QR code as base64 for email
+            $qrCodeDataUri = $this->qrCodeService->getQrCodeBase64($registration, $event);
+            
             $email = (new TemplatedEmail())
                 ->from(new Address($this->senderEmail, 'MENTIS Events'))
                 ->to($registration->getEmail())
@@ -31,6 +36,7 @@ class EmailNotificationService
                     'registration' => $registration,
                     'event' => $event,
                     'confirmationNumber' => $registration->getConfirmationNumber(),
+                    'qrCodeDataUri' => $qrCodeDataUri,
                 ]);
 
             $this->mailer->send($email);

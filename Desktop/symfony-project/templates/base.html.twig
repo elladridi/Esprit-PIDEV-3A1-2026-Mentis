@@ -637,26 +637,30 @@
                     </li>
                     {% endif %}
 
-                    {# ── EVENT DROPDOWN (Events + Statistics) ── #}
-                    {% if app.user %}
+                    {# ── EVENT ── #}
+                    {# For Psychologists and Admins: Dropdown with Events + Statistics #}
+                    {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_PSYCHOLOGIST') %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                             <i class="fas fa-calendar-week me-1"></i>Event
                         </a>
                         <ul class="dropdown-menu">
-                            {# Events - All logged-in users #}
                             <li><a class="dropdown-item" href="{{ path('app_event_index') }}">
                                 <i class="fas fa-calendar-alt me-2"></i>Events
                             </a></li>
-                            
-                            {# Statistics - Admin only #}
-                            {% if is_granted('ROLE_ADMIN') %}
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ path('app_statistics') }}">
-                                    <i class="fas fa-chart-line me-2"></i>Statistics
-                                </a></li>
-                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ path('app_statistics') }}">
+                                <i class="fas fa-chart-line me-2"></i>Statistics
+                            </a></li>
                         </ul>
+                    </li>
+                    
+                    {# For Patients: Simple button (no dropdown) #}
+                    {% elseif app.user and app.user.type == 'Patient' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_event_index') }}">
+                            <i class="fas fa-calendar-week me-1"></i>Events
+                        </a>
                     </li>
                     {% endif %}
 

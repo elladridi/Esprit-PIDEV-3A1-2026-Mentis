@@ -1,7 +1,6 @@
 # yaml-language-server: $schema=../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
 
 parameters:
-    # Email configuration
     env(SENDER_EMAIL): 'noreply@mentis.com'
     env(GOOGLE_MAPS_API_KEY): ''
     env(ZAI_API_KEY): ''
@@ -14,50 +13,36 @@ services:
         autoconfigure: true
         public: false
 
-
     App\:
         resource: '../src/'
         exclude:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
-    filesystem.original.adapter:
-        class: League\Flysystem\Local\LocalFilesystemAdapter
-        arguments: ['%kernel.project_dir%/public/uploads/faces/original']
 
-    filesystem.original.storage:
-        class: League\Flysystem\Filesystem
-        arguments: ['@filesystem.original.adapter']
+    App\Service\QRCodeService:
+        arguments:
+            $urlGenerator: '@router.default'
 
-    # Processed images storage
-    filesystem.cache.adapter:
-        class: League\Flysystem\Local\LocalFilesystemAdapter
-        arguments: ['%kernel.project_dir%/public/uploads/faces/cache']
+    #App\EventSubscriber\CalendarSubscriber:
+     #   tags:
+      #      - { name: kernel.event_subscriber }
 
-    filesystem.cache.storage:
-        class: League\Flysystem\Filesystem
-        arguments: ['@filesystem.cache.adapter']
-    # Explicit service configuration for EmailNotificationService
     App\Service\EmailNotificationService:
         arguments:
             $mailer: '@mailer.mailer'
             $senderEmail: '%env(SENDER_EMAIL)%'
+            $qrCodeService: '@App\Service\QRCodeService'
 
-    # Explicit service configuration for GoogleMapsService
     App\Service\GoogleMapsService:
         arguments:
             $apiKey: '%env(GOOGLE_MAPS_API_KEY)%'
 
-    # AIChatService uses http_client and reads API key from environment
     App\Service\AIChatService:
         arguments:
             $httpClient: '@http_client'
-            
-    App\Service\FaceRecognitionService:
-        arguments:
-            $projectDir: '%kernel.project_dir%'
 
-    App\Service\QRCodeService:
+    App\Service\FaceRecognitionService:
         arguments:
             $projectDir: '%kernel.project_dir%'
 

@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div class="container py-5">
+    <h1 class="mb-4">QR Code Test</h1>
+    
+    {% if success %}
+        <div class="alert alert-success">
+            ✅ QR Code generated successfully!
+        </div>
+        <div class="text-center p-4" style="background: #f8f9fa; border-radius: 10px;">
+            {% if qrCode %}
+                <img src="{{ qrCode }}" alt="QR Code Test" style="width: 200px; height: 200px;">
+                <p class="mt-3">This is a test QR code</p>
+            {% else %}
+                <div class="alert alert-warning">QR code data is empty</div>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="alert alert-danger">
+            ❌ QR Code generation failed:<br>
+            {{ error }}
+        </div>
+    {% endif %}
+    
+    <div class="mt-4">
+        <a href="{{ path('qr_simple_test') }}" target="_blank" class="btn btn-primary">Test Simple QR Code</a>
+    </div>
+</div>
+{% endblock %}

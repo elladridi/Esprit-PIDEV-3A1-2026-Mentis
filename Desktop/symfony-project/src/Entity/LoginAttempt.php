@@ -14,9 +14,9 @@ use Doctrine\ORM\Mapping as ORM;
 class LoginAttempt
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private int $id;
+#[ORM\GeneratedValue]
+#[ORM\Column(type: 'integer')]
+private ?int $id = null;
 
     #[ORM\Column(length: 255)]
     private ?string $email = null;
@@ -38,11 +38,6 @@ class LoginAttempt
 
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $city = null;
-
-    public function __construct()
-    {
-        $this->id = 0;
-    }
 
     public function getId(): ?int
     {

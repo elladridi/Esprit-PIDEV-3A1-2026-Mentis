@@ -17,7 +17,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private int $id;
+    private ?int $id = null;
 
     #[ORM\Column(length: 50)]
     private string $firstname = '';
@@ -72,7 +72,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function __construct()
     {
-        $this->id = 0;
         $this->createdAt = new \DateTime();
         $this->faceEnabled = false;
     }
@@ -196,10 +195,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-
     /**
- * @return array<int, string>
- */
+     * Get all face samples stored for this user
+     * Returns an array of image paths or Base64 strings
+     */
     public function getFaceSamples(): array
     {
         if (empty($this->faceData)) {
@@ -217,10 +216,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
- * Store multiple face samples as JSON.
- *
- * @param array<int, string> $samples
- */
+     * Store multiple face samples as JSON
+     */
     public function setFaceSamples(array $samples): self
     {
         if (empty($samples)) {
@@ -486,21 +483,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @see UserInterface
      */
     public function getRoles(): array
-    {
-        $roles = ['ROLE_USER'];
-        
-        $type = trim($this->type);
-        
-        if ($type === 'Admin' || $type === 'admin') {
-            $roles[] = 'ROLE_ADMIN';
-            $roles[] = 'ROLE_PSYCHOLOGIST';
-        } elseif ($type === 'Psychologist' || $type === 'psychologist') {
-            $roles[] = 'ROLE_PSYCHOLOGIST';
-        }
-        
-        return array_unique($roles);
+{
+    $roles = ['ROLE_USER'];
+    
+    // Get the type from database
+    $type = $this->type ?? '';
+    
+    // Debug - check what's in the database
+    error_log("User type from database: '" . $type . "'");
+    
+    // Case-insensitive comparison
+    if (strtolower($type) === 'admin') {
+        $roles[] = 'ROLE_ADMIN';
+        $roles[] = 'ROLE_PSYCHOLOGIST';
+        $roles[] = 'ROLE_PATIENT';
+    } elseif (strtolower($type) === 'psychologist') {
+        $roles[] = 'ROLE_PSYCHOLOGIST';
+        $roles[] = 'ROLE_PATIENT';
+    } elseif (strtolower($type) === 'patient') {
+        $roles[] = 'ROLE_PATIENT';
     }
-
+    
+    return array_unique($roles);
+}
     /**
      * @see UserInterface
      */
