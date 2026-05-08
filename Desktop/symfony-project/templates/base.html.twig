@@ -638,7 +638,6 @@
                     {% endif %}
 
                     {# ── EVENT ── #}
-                    {# For Psychologists and Admins: Dropdown with Events + Statistics #}
                     {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_PSYCHOLOGIST') %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
@@ -664,27 +663,27 @@
                     </li>
                     {% endif %}
 
-                    {# ── PATIENT FEATURES ── #}
+                    {# ── UNIFIED DROPDOWN: My goals/mood (merged Goals + Mood Tracker + Analytics + Reminders) ── #}
                     {% if app.user and app.user.type == 'Patient' %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_mood_index') }}">
-                            <i class="fas fa-smile me-1"></i>Mood Tracker
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-chart-line me-1"></i>My goals/mood
                         </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_goal_index') }}">
-                            <i class="fas fa-bullseye me-1"></i>My Goals
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('analytics_dashboard_stats') }}">
-                            <i class="fas fa-chart-line me-1"></i>Analytics
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_dashboard_reminders') }}">
-                            <i class="fas fa-bell me-1"></i>Reminders
-                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ path('app_goal_index') }}">
+                                <i class="fas fa-bullseye me-2"></i>My Goals
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ path('app_mood_index') }}">
+                                <i class="fas fa-smile me-2"></i>Mood Tracker
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ path('analytics_dashboard_stats') }}">
+                                <i class="fas fa-chart-line me-2"></i>Analytics
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ path('app_dashboard_reminders') }}">
+                                <i class="fas fa-bell me-2"></i>Reminders
+                            </a></li>
+                        </ul>
                     </li>
                     {% endif %}
 

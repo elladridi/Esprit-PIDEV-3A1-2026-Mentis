@@ -11,7 +11,7 @@
         "doctrine/doctrine-migrations-bundle": "^3.7",
         "doctrine/orm": "^3.6.3",
         "dompdf/dompdf": "^3.1",
-        "endroid/qr-code-bundle": "*",
+        "endroid/qr-code-bundle": "^6.0",
         "knplabs/knp-paginator-bundle": "^6.10",
         "knplabs/knp-snappy-bundle": "^1.10.6",
         "league/commonmark": "^2.8.2",
@@ -97,7 +97,12 @@
         }
     },
     "require-dev": {
+        "ahmed-bhs/doctrine-doctor": "1.1",
         "phpstan/phpstan": "^2.1",
-        "symfony/maker-bundle": "^1.67"
+        "phpunit/phpunit": "^11.5",
+        "symfony/maker-bundle": "^1.67",
+        "symfony/stopwatch": "7.4.*",
+        "symfony/web-profiler-bundle": "7.4.*",
+        "webmozart/assert": "1.11"
     }
 }
