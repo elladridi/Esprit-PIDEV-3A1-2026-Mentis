@@ -1,17 +1,31 @@
 # yaml-language-server: $schema=../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
 
 parameters:
-    env(SENDER_EMAIL): 'noreply@mentis.com'
-    env(GOOGLE_MAPS_API_KEY): ''
-    env(ZAI_API_KEY): ''
-    env(AI_API_KEY): ''
-    env(AI_API_URL): 'https://api.z.ai/v1/chat/completions'
+    env(SENDER_EMAIL): 'contact@mentis.com'
+    env(GROQ_API_KEY): ''
+    env(GEMINI_API_KEY): ''
+    google_maps_api_key: '%env(GOOGLE_MAPS_API_KEY)%'
+    gemini_api_key: '%env(GEMINI_API_KEY)%'
+    app_secret: '%env(APP_SECRET)%'
+    app_public_base_url: '%env(APP_PUBLIC_BASE_URL)%'
+    sender_email: '%env(SENDER_EMAIL)%'
 
 services:
     _defaults:
         autowire: true
         autoconfigure: true
         public: false
+        bind:
+            $senderEmail: '%env(SENDER_EMAIL)%'
+            $groqApiKey: '%env(GROQ_API_KEY)%'
+            $spotifyClientId: '%env(SPOTIFY_CLIENT_ID)%'
+            $spotifyClientSecret: '%env(SPOTIFY_CLIENT_SECRET)%'
+            $clientId: '%env(SPOTIFY_CLIENT_ID)%'
+            $clientSecret: '%env(SPOTIFY_CLIENT_SECRET)%'
+            $geminiApiKey: '%env(GEMINI_API_KEY)%'
+            $appBaseUrl: '%env(APP_BASE_URL)%'
+            $appPublicBaseUrl: '%env(APP_PUBLIC_BASE_URL)%'
+            $appSecret: '%env(APP_SECRET)%'
 
     App\:
         resource: '../src/'
@@ -20,18 +34,26 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
+    # Specific configurations for services that might need manual wiring or tags
+    App\Service\EmailManager:
+        autowire: true
+
+    App\Service\GoalAIService:
+        autowire: true
+
+    App\Service\GoalQrCodeService:
+        autowire: true
+
+    App\Service\SpotifyService:
+        autowire: true
+
     App\Service\QRCodeService:
         arguments:
             $urlGenerator: '@router.default'
 
-    #App\EventSubscriber\CalendarSubscriber:
-     #   tags:
-      #      - { name: kernel.event_subscriber }
-
     App\Service\EmailNotificationService:
         arguments:
             $mailer: '@mailer.mailer'
-            $senderEmail: '%env(SENDER_EMAIL)%'
             $qrCodeService: '@App\Service\QRCodeService'
 
     App\Service\GoogleMapsService:
@@ -45,7 +67,3 @@ services:
     App\Service\FaceRecognitionService:
         arguments:
             $projectDir: '%kernel.project_dir%'
-
-    App\Service\BanNotificationService:
-        arguments:
-            $senderEmail: '%env(SENDER_EMAIL)%'

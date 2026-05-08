@@ -1,55 +1,69 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Record New Mood{% endblock %}
+{% block title %}Log Mood{% endblock %}
 
 {% block body %}
-<div class="container mt-5">
+<div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-body p-5">
-                    <h1 class="mb-4">
-                        <i class="bi bi-emoji-smile"></i> Record Your Mood
-                    </h1>
-                    <p class="text-muted mb-4">How are you feeling right now?</p>
+            <div class="card border-0 shadow-sm rounded-4 p-5">
+                <h1 class="h2 text-primary mb-4 text-center">How are you feeling?</h1>
+                <p class="text-muted text-center mb-5">Logging your mood helps you track your emotional patterns and get better recommendations.</p>
 
-                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
-
+                {{ form_start(form) }}
                     <div class="mb-4">
-                        {{ form_label(form.feeling, null, {'label_attr': {'class': 'form-label'}}) }}
-                        {{ form_widget(form.feeling) }}
+                        <label class="form-label fw-bold">Current Feeling</label>
+                        <div class="mood-selector d-flex justify-content-between gap-2 mb-3">
+                            {% for choice in form.feeling.vars.choices %}
+                                <div class="mood-option flex-grow-1">
+                                    <input type="radio" name="{{ form.feeling.vars.full_name }}" id="mood_{{ choice.value }}" value="{{ choice.value }}" class="btn-check" {% if form.feeling.vars.value == choice.value %}checked{% endif %} required>
+                                    <label class="btn btn-outline-light w-100 p-3 rounded-4 shadow-sm border" for="mood_{{ choice.value }}">
+                                        <div class="mood-emoji mb-2">
+                                            {% if choice.value == 'very_happy' %}<i class="far fa-laugh-beam fa-2x text-success"></i>
+                                            {% elseif choice.value == 'happy' %}<i class="far fa-smile fa-2x text-info"></i>
+                                            {% elseif choice.value == 'neutral' %}<i class="far fa-meh fa-2x text-secondary"></i>
+                                            {% elseif choice.value == 'sad' %}<i class="far fa-frown fa-2x text-warning"></i>
+                                            {% elseif choice.value == 'very_sad' %}<i class="far fa-sad-tear fa-2x text-danger"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-dark small text-capitalize">{{ choice.label }}</div>
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
                         {{ form_errors(form.feeling) }}
-                        {% if form.feeling.vars.help %}
-                            <small class="form-text text-muted d-block mt-2">
-                                {{ form.feeling.vars.help }}
-                            </small>
-                        {% endif %}
                     </div>
 
-                    <div class="mb-4">
-                        {{ form_label(form.note, null, {'label_attr': {'class': 'form-label'}}) }}
+                    <div class="mb-5">
+                        {{ form_label(form.note, 'Add a note (What happened today?)', {'label_attr': {'class': 'form-label fw-bold'}}) }}
                         {{ form_widget(form.note) }}
                         {{ form_errors(form.note) }}
-                        {% if form.note.vars.help %}
-                            <small class="form-text text-muted d-block mt-2">
-                                {{ form.note.vars.help }}
-                            </small>
-                        {% endif %}
                     </div>
-
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="bi bi-check-circle"></i> Save Mood
+                    
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary rounded-pill py-3 fw-bold">
+                            <i class="fas fa-heart me-2"></i>Save Mood Log
                         </button>
-                        <a href="{{ path('app_mood_index') }}" class="btn btn-secondary btn-lg">
-                            <i class="bi bi-x-circle"></i> Cancel
-                        </a>
+                        <a href="{{ path('app_mood_index') }}" class="btn btn-link text-muted">Cancel</a>
                     </div>
-
-                    {{ form_end(form) }}
-                </div>
+                {{ form_end(form) }}
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .mood-option input:checked + label {
+        background: rgba(13, 110, 253, 0.05);
+        border-color: #0d6efd !important;
+        transform: scale(1.05);
+    }
+    .mood-option label {
+        transition: all 0.2s ease;
+    }
+    .mood-option label:hover {
+        background: #f8f9fa;
+        transform: translateY(-2px);
+    }
+</style>
 {% endblock %}

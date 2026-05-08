@@ -22,28 +22,17 @@ class MoodType extends AbstractType
                     'Sad' => 'sad',
                     'Very Sad' => 'very_sad',
                 ],
-                'label' => 'How are you feeling?',
-                'attr' => ['class' => 'form-select'],
-                'help' => 'Select your current mood',
+                'attr' => ['class' => 'form-select']
             ])
             ->add('note', TextareaType::class, [
-                'label' => 'Additional Notes',
-                'required' => true,
-                'attr' => [
-                    'class' => 'form-control',
-                    'rows' => 4,
-                    'placeholder' => 'Share more about your mood...',
-                ],
-                'help' => 'Please share your thoughts about your current mood',
-            ])
-        ;
+                'attr' => ['class' => 'form-control', 'rows' => 3, 'placeholder' => 'Tell us more about how you feel...']
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => Mood::class,
-            'attr' => ['class' => 'form-horizontal'],
         ]);
     }
 }

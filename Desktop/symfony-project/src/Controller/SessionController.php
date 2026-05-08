@@ -42,7 +42,7 @@ class SessionController extends AbstractController
         }
         
         // For admin: show all sessions
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        $this->denyAccessUnlessGranted('ROLE_PSYCHOLOGIST');
         return $this->render('session/index.html.twig', [
             'sessions' => $this->repo->findAllSessions(),
             'isPsychologist' => false,
@@ -67,7 +67,7 @@ class SessionController extends AbstractController
         }
         
         // For admin: show all active sessions
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        $this->denyAccessUnlessGranted('ROLE_PSYCHOLOGIST');
         return $this->render('session/active.html.twig', [
             'sessions' => $this->repo->findActiveSessions(),
             'isPsychologist' => false,
@@ -83,7 +83,7 @@ class SessionController extends AbstractController
     }
 
     #[Route('/new', name: 'session_new', methods: ['GET', 'POST'])]
-    #[IsGranted('ROLE_ADMIN')]
+    #[IsGranted('ROLE_PSYCHOLOGIST')]
     public function new(Request $request): Response
     {
         $session = new Session();
@@ -91,6 +91,11 @@ class SessionController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            /** @var User $user */
+            $user = $this->getUser();
+            if ($this->isGranted('ROLE_PSYCHOLOGIST')) {
+                $session->setReservedBy($user->getId());
+            }
             $this->em->persist($session);
             $this->em->flush();
 
@@ -118,7 +123,7 @@ class SessionController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'session_edit', methods: ['GET', 'POST'])]
-    #[IsGranted('ROLE_ADMIN')]
+    #[IsGranted('ROLE_PSYCHOLOGIST')]
     public function edit(Request $request, int $id): Response
     {
         $session = $this->repo->find($id);
@@ -143,7 +148,7 @@ class SessionController extends AbstractController
     }
 
     #[Route('/{id}/delete', name: 'session_delete', methods: ['POST'])]
-    #[IsGranted('ROLE_ADMIN')]
+    #[IsGranted('ROLE_PSYCHOLOGIST')]
     public function delete(Request $request, int $id): Response
     {
         $session = $this->repo->find($id);
@@ -162,7 +167,7 @@ class SessionController extends AbstractController
     }
 
     #[Route('/{id}/toggle-status', name: 'session_toggle_status', methods: ['POST'])]
-    #[IsGranted('ROLE_ADMIN')]
+    #[IsGranted('ROLE_PSYCHOLOGIST')]
     public function toggleStatus(int $id): Response
     {
         $session = $this->repo->find($id);
@@ -316,7 +321,7 @@ class SessionController extends AbstractController
     }
 
     #[Route('/search/type', name: 'session_search_type', methods: ['GET'])]
-    #[IsGranted('ROLE_ADMIN')]
+    #[IsGranted('ROLE_PSYCHOLOGIST')]
     public function searchByType(Request $request): Response
     {
         $type = $request->query->get('type', '');

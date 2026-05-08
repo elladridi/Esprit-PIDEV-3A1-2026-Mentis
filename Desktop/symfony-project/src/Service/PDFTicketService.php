@@ -50,6 +50,9 @@ class PDFTicketService
         return $content;
     }
 
+     /** 
+      * @param EventRegistration[] $registrations
+    */
     public function generateEventReport(Event $event, array $registrations): string
     {
         $totalRegistrations = count($registrations);

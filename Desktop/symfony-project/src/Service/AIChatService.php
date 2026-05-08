@@ -14,11 +14,11 @@ class AIChatService
     private string $groqModel;
     private string $groqUrl;
 
-    public function __construct(HttpClientInterface $httpClient)
+    public function __construct(HttpClientInterface $httpClient, string $groqApiKey)
     {
         $this->httpClient = $httpClient;
-        $this->groqApiKey = $_ENV['GROQ_API_KEY'] ?? '';
-        $this->groqModel = $_ENV['GROQ_MODEL'] ?? 'llama-3.1-8b-instant';
+        $this->groqApiKey = $groqApiKey;
+        $this->groqModel = 'llama-3.1-8b-instant';
         $this->groqUrl = 'https://api.groq.com/openai/v1/chat/completions';
     }
 
@@ -33,70 +33,54 @@ class AIChatService
     public function chat(string $message, string $userType = 'patient', ?string $context = null): array
     {
         if (empty($message)) {
-            return [
-                'success' => false,
-                'message' => '',
-                'error' => 'Message cannot be empty'
-            ];
+            return ['success' => false, 'message' => '', 'error' => 'Message cannot be empty'];
         }
 
         if (empty($this->groqApiKey)) {
-            return [
-                'success' => false,
-                'message' => '',
-                'error' => 'Groq API key is missing'
-            ];
+            return ['success' => false, 'message' => '', 'error' => 'Groq API key is missing'];
         }
 
         $systemPrompt = $this->buildSystemPrompt($userType, $context);
+        $payload = json_encode([
+            'model' => $this->groqModel,
+            'messages' => [
+                ['role' => 'system', 'content' => $systemPrompt],
+                ['role' => 'user', 'content' => $message]
+            ],
+            'temperature' => 0.7,
+            'max_tokens' => 1024,
+        ]);
 
-        try {
-            $response = $this->httpClient->request('POST', $this->groqUrl, [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $this->groqApiKey,
-                    'Content-Type' => 'application/json',
-                ],
-                'json' => [
-                    'model' => $this->groqModel,
-                    'messages' => [
-                        [
-                            'role' => 'system',
-                            'content' => $systemPrompt
-                        ],
-                        [
-                            'role' => 'user',
-                            'content' => $message
-                        ]
-                    ],
-                    'temperature' => 0.7,
-                    'max_tokens' => 1024,
-                ],
-                'timeout' => 30,
-            ]);
+        $ch = curl_init($this->groqUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $this->groqApiKey,
+        ]);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1); // Force HTTP/1.1
 
-            $data = $response->toArray();
+        $result = curl_exec($ch);
+        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+        curl_close($ch);
 
-            if (isset($data['choices'][0]['message']['content'])) {
-                $aiMessage = trim($data['choices'][0]['message']['content']);
-                return [
-                    'success' => true,
-                    'message' => $aiMessage,
-                    'error' => null
-                ];
-            }
-
-            return [
-                'success' => false,
-                'message' => '',
-                'error' => 'No valid response from Groq AI'
-            ];
-        } catch (TransportExceptionInterface | ClientExceptionInterface | ServerExceptionInterface | \JsonException $e) {
-            return [
-                'success' => false,
-                'message' => '',
-                'error' => 'AI request failed: ' . $e->getMessage(),
-            ];
+        if ($error) {
+            return ['success' => false, 'message' => '', 'error' => 'cURL error: ' . $error];
         }
+
+        if ($status !== 200) {
+            return ['success' => false, 'message' => '', 'error' => 'API Error (' . $status . '): ' . $result];
+        }
+
+        $data = json_decode($result, true);
+        if (isset($data['choices'][0]['message']['content'])) {
+            return ['success' => true, 'message' => trim($data['choices'][0]['message']['content']), 'error' => null];
+        }
+
+        return ['success' => false, 'message' => '', 'error' => 'Unexpected response format'];
     }
 
     /**
@@ -196,70 +180,49 @@ class AIChatService
     public function summarizeContent(string $title, string $description): array
     {
         if (trim($title) === '' || trim($description) === '') {
-            return [
-                'success' => false,
-                'summary' => '',
-                'error' => 'Title and description are required'
-            ];
+            return ['success' => false, 'summary' => '', 'error' => 'Title and description are required'];
         }
 
         if (empty($this->groqApiKey)) {
-            return [
-                'success' => false,
-                'summary' => '',
-                'error' => 'Groq API key is missing'
-            ];
+            return ['success' => false, 'summary' => '', 'error' => 'Groq API key is missing'];
         }
 
         $systemPrompt = 'You are a mental health content summarizer. Write a concise 2-3 sentence summary in clear, supportive language. Focus on the main purpose, practical value, and key takeaways. Do not use markdown or bullet points.';
         $userPrompt = "Title: {$title}\n\nDescription:\n{$description}\n\nReturn only the summary.";
 
-        try {
-            $response = $this->httpClient->request('POST', $this->groqUrl, [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $this->groqApiKey,
-                    'Content-Type' => 'application/json',
-                ],
-                'json' => [
-                    'model' => $this->groqModel,
-                    'messages' => [
-                        [
-                            'role' => 'system',
-                            'content' => $systemPrompt
-                        ],
-                        [
-                            'role' => 'user',
-                            'content' => $userPrompt
-                        ]
-                    ],
-                    'temperature' => 0.3,
-                    'max_tokens' => 220,
-                ],
-                'timeout' => 30,
-            ]);
+        $payload = json_encode([
+            'model' => $this->groqModel,
+            'messages' => [
+                ['role' => 'system', 'content' => $systemPrompt],
+                ['role' => 'user',   'content' => $userPrompt]
+            ],
+            'temperature' => 0.3,
+            'max_tokens' => 220,
+        ]);
 
-            $data = $response->toArray();
+        $ch = curl_init($this->groqUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $this->groqApiKey,
+        ]);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
 
+        $result = curl_exec($ch);
+        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($status === 200) {
+            $data = json_decode($result, true);
             if (isset($data['choices'][0]['message']['content'])) {
-                return [
-                    'success' => true,
-                    'summary' => trim($data['choices'][0]['message']['content']),
-                    'error' => null
-                ];
+                return ['success' => true, 'summary' => trim($data['choices'][0]['message']['content']), 'error' => null];
             }
-
-            return [
-                'success' => false,
-                'summary' => '',
-                'error' => 'No valid response from Groq AI'
-            ];
-        } catch (TransportExceptionInterface | ClientExceptionInterface | ServerExceptionInterface | \JsonException $e) {
-            return [
-                'success' => false,
-                'summary' => '',
-                'error' => 'AI request failed: ' . $e->getMessage(),
-            ];
         }
+
+        return ['success' => false, 'summary' => '', 'error' => 'AI request failed (' . $status . '): ' . $result];
     }
 
     /**

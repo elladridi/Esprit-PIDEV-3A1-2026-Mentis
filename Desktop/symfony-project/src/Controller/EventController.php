@@ -149,7 +149,10 @@ class EventController extends AbstractController
             };
 
             $start = $event->getDateTime();
-            $end = (clone $start)->modify('+2 hours');
+if ($start === null) {
+    $start = new \DateTime();
+}
+$end = (clone $start)->modify('+2 hours');
 
             $data[] = [
                 'id' => $event->getId(),
@@ -166,7 +169,7 @@ class EventController extends AbstractController
                     'type' => $event->getEventType(),
                     'status' => $event->getStatus(),
                     'location' => $event->getLocation(),
-                    'price' => $event->getPrice() > 0 ? '$' . number_format($event->getPrice(), 2) : 'FREE',
+                    'price' => floatval($event->getPrice()) > 0 ? '$' . number_format(floatval($event->getPrice()), 2) : 'FREE',
                     'currentParticipants' => $event->getCurrentParticipants(),
                     'maxParticipants' => $event->getMaxParticipants(),
                     'availableSpots' => max(0, $event->getMaxParticipants() - $event->getCurrentParticipants()),

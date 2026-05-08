@@ -22,6 +22,7 @@ use App\Entity\ContentPath;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Knp\Component\Pager\PaginatorInterface;
+use App\Repository\WellnessNotificationRepository;
 use App\Service\BadgeService;
 
 #[Route('/dashboard')]
@@ -46,6 +47,17 @@ class DashboardController extends AbstractController
         } else {
             return $this->redirectToRoute('app_dashboard_patient');
         }
+    }
+
+    #[Route('/reminders', name: 'app_dashboard_reminders')]
+    public function reminders(WellnessNotificationRepository $notifRepo): Response
+    {
+        $user = $this->getUser();
+        $notifications = $notifRepo->findBy(['user' => $user], ['createdAt' => 'DESC']);
+
+        return $this->render('dashboard/reminders.html.twig', [
+            'notifications' => $notifications,
+        ]);
     }
 
     // ==================== PATIENT DASHBOARD ====================

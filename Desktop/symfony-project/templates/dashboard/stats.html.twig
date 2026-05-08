@@ -1,0 +1,105 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Wellness Analytics{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1 class="h2 text-primary mb-4">Wellness Analytics</h1>
+
+    <div class="row g-4 mb-4">
+        {# Mood Distribution Chart #}
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                <h5 class="fw-bold mb-4">Mood Distribution</h5>
+                <canvas id="moodDistChart"></canvas>
+            </div>
+        </div>
+
+        {# Goal Status Chart #}
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                <h5 class="fw-bold mb-4">Goal Progress</h5>
+                <canvas id="goalStatsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        {# Mood Evolution Chart #}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h5 class="fw-bold mb-4">Mood Evolution (Last 7 Days)</h5>
+                <canvas id="moodEvolutionChart" style="max-height: 300px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mood Distribution Chart
+    new Chart(document.getElementById('moodDistChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Very Happy', 'Happy', 'Neutral', 'Sad', 'Very Sad'],
+            datasets: [{
+                data: [
+                    {{ moodDist.very_happy }},
+                    {{ moodDist.happy }},
+                    {{ moodDist.neutral }},
+                    {{ moodDist.sad }},
+                    {{ moodDist.very_sad }}
+                ],
+                backgroundColor: ['#198754', '#0dcaf0', '#6c757d', '#ffc107', '#dc3545']
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    });
+
+    // Goal Stats Chart
+    new Chart(document.getElementById('goalStatsChart'), {
+        type: 'pie',
+        data: {
+            labels: ['Completed', 'Pending'],
+            datasets: [{
+                data: [{{ goalStats.completed }}, {{ goalStats.pending }}],
+                backgroundColor: ['#198754', '#ffc107']
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    });
+
+    // Mood Evolution Chart
+    new Chart(document.getElementById('moodEvolutionChart'), {
+        type: 'line',
+        data: {
+            labels: [{% for point in moodEvolution %}'{{ point.date }}',{% endfor %}],
+            datasets: [{
+                label: 'Mood Level (1-5)',
+                data: [{% for point in moodEvolution %}{{ point.value }},{% endfor %}],
+                borderColor: '#0d6efd',
+                tension: 0.3,
+                fill: true,
+                backgroundColor: 'rgba(13, 110, 253, 0.1)'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    min: 1,
+                    max: 5,
+                    ticks: {
+                        stepSize: 1,
+                        callback: function(value) {
+                            return ['Very Sad', 'Sad', 'Neutral', 'Happy', 'Very Happy'][value-1];
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -664,20 +664,27 @@
                     </li>
                     {% endif %}
 
-                    {# ── MOOD DROPDOWN (Mood Tracking + My Goals) ── #}
+                    {# ── PATIENT FEATURES ── #}
                     {% if app.user and app.user.type == 'Patient' %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-chart-simple me-1"></i>Mood
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_mood_index') }}">
+                            <i class="fas fa-smile me-1"></i>Mood Tracker
                         </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ path('app_mood_index') }}">
-                                <i class="fas fa-smile me-2"></i>Mood Tracking
-                            </a></li>
-                            <li><a class="dropdown-item" href="{{ path('app_goal_index') }}">
-                                <i class="fas fa-bullseye me-2"></i>My Goals
-                            </a></li>
-                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_goal_index') }}">
+                            <i class="fas fa-bullseye me-1"></i>My Goals
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('analytics_dashboard_stats') }}">
+                            <i class="fas fa-chart-line me-1"></i>Analytics
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_dashboard_reminders') }}">
+                            <i class="fas fa-bell me-1"></i>Reminders
+                        </a>
                     </li>
                     {% endif %}
 

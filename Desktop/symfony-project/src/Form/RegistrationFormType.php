@@ -93,7 +93,8 @@ class RegistrationFormType extends AbstractType
                 'label' => 'Account Type',
                 'choices' => [
                     'Patient' => 'Patient',
-                    'Psychologist' => 'Psychologist'
+                    'Psychologist' => 'Psychologist',
+                    'Admin' => 'Admin'
                 ],
                 'attr' => ['class' => 'form-select']
             ])

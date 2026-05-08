@@ -16,7 +16,7 @@ class Event
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    private int $id;
 
     #[ORM\Column(length: 255)]
     private ?string $title = null;
@@ -45,7 +45,7 @@ class Event
         scale: 2,
         options: ['default' => '0.00']
     )]
-    private ?string $price = '0.00';
+   private string $price = '0.00';
 
     #[ORM\Column(name: 'image_url', length: 500, nullable: true)]
     private ?string $imageUrl = null;
@@ -202,7 +202,7 @@ class Event
         return $this;
     }
 
-    public function getPrice(): ?string
+    public function getPrice(): string
     {
         return $this->price;
     }

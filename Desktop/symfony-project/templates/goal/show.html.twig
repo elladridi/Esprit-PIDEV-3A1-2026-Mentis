@@ -3,87 +3,102 @@
 {% block title %}Goal Details{% endblock %}
 
 {% block body %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header {% if goal.isCompleted %}bg-success{% else %}bg-primary{% endif %} text-white">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h1 class="mb-2">
-                                {% if goal.isCompleted %}
-                                    <i class="bi bi-check-circle"></i>
-                                {% else %}
-                                    <i class="bi bi-target"></i>
-                                {% endif %}
-                                {{ goal.title }}
-                            </h1>
+<div class="wellness-dashboard py-5">
+    <div class="container">
+        <nav aria-label="breadcrumb" class="mb-5">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ path('app_goal_index') }}" class="text-spotify fw-bold">My Goals</a></li>
+                <li class="breadcrumb-item active text-dark">{{ goal.title }}</li>
+            </ol>
+        </nav>
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="goal-main-card mb-4">
+                    <div class="card-header-black">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="goal-title-large">{{ goal.title }}</div>
+                                <div class="opacity-75 fs-5">Created {{ goal.createdAt ? goal.createdAt|time_ago : '' }}</div>
+                            </div>
+                            <span class="badge {{ goal.isCompleted ? 'badge-completed' : 'badge-pending' }}">
+                                {{ goal.isCompleted ? 'COMPLETED' : 'IN PROGRESS' }}
+                            </span>
                         </div>
-                        {% if goal.isCompleted %}
-                            <span class="badge bg-light text-success">Completed</span>
-                        {% else %}
-                            <span class="badge bg-light text-primary">In Progress</span>
-                        {% endif %}
+                    </div>
+
+                    <div class="p-5">
+                        <div class="mb-5">
+                            <h5 class="text-uppercase fw-800 small letter-spacing-1 mb-3 text-muted">Goal Description</h5>
+                            <p class="lead text-black fw-500" style="font-size: 1.25rem; line-height: 1.6;">{{ goal.description }}</p>
+                        </div>
+
+                        <div class="info-box mb-5">
+                            <div class="row align-items-center">
+                                <div class="col-sm-6 border-end">
+                                    <div class="text-muted small text-uppercase fw-800 mb-1">Target Deadline</div>
+                                    <div class="text-black fs-4 fw-bold">{{ goal.deadline ? goal.deadline|date('F d, Y') : 'No deadline set' }}</div>
+                                </div>
+                                <div class="col-sm-6 ps-4">
+                                    <div class="text-muted small text-uppercase fw-800 mb-1">Current Status</div>
+                                    <div class="text-black fs-4 fw-bold">{{ goal.isCompleted ? 'Achievement Locked' : 'Mission Active' }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-3">
+                            <a href="{{ path('app_goal_edit', {'id': goal.id}) }}" class="btn btn-dark btn-lg px-5 rounded-pill fw-bold">EDIT GOAL</a>
+                            <form method="post" action="{{ path('app_goal_delete', {'id': goal.id}) }}" onsubmit="return confirm('Are you sure?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ goal.id) }}">
+                                <button class="btn btn-outline-danger btn-lg px-5 rounded-pill fw-bold">DELETE</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
 
-                <div class="card-body p-5">
-                    <div class="mb-4">
-                        <h5>Description</h5>
-                        <p class="text-muted">{{ goal.description }}</p>
-                    </div>
-
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <h6 class="text-muted">Deadline</h6>
-                            <p class="h5">
-                                <i class="bi bi-calendar-event"></i>
-                                {{ goal.deadline|date('F d, Y \a\t H:i') }}
-                            </p>
-                            {% if not goal.isCompleted and goal.deadline < "now"|date('U')|date('Y-m-d H:i:s') %}
-                                <div class="alert alert-danger alert-sm" role="alert">
-                                    <small>⚠️ This goal is overdue!</small>
-                                </div>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-6">
-                            <h6 class="text-muted">Created</h6>
-                            <p class="h5">
-                                <i class="bi bi-calendar"></i>
-                                {{ goal.createdAt|date('F d, Y') }}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="d-flex gap-2 pt-3 border-top">
-                        <a href="{{ path('app_goal_edit', {id: goal.id}) }}" class="btn btn-secondary">
-                            <i class="bi bi-pencil"></i> Edit
-                        </a>
-                        {% if not goal.isCompleted %}
-                            <form method="POST" action="{{ path('app_goal_toggle', {id: goal.id}) }}" style="display:inline;">
-                                <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ goal.id) }}">
-                                <button type="submit" class="btn btn-success">
-                                    <i class="bi bi-check-circle"></i> Mark as Completed
-                                </button>
-                            </form>
-                        {% else %}
-                            <form method="POST" action="{{ path('app_goal_toggle', {id: goal.id}) }}" style="display:inline;">
-                                <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ goal.id) }}">
-                                <button type="submit" class="btn btn-warning">
-                                    <i class="bi bi-arrow-counterclockwise"></i> Mark as Incomplete
-                                </button>
-                            </form>
-                        {% endif %}
-                        <form method="POST" action="{{ path('app_goal_delete', {id: goal.id}) }}" style="display:inline;">
-                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ goal.id) }}">
-                            <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure?')">
-                                <i class="bi bi-trash"></i> Delete
+                {# AI Advice Section #}
+                <div class="ai-advice-premium mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="fw-800 mb-0 text-black">
+                            <i class="fas fa-robot me-2 text-spotify"></i>AI Success Strategy
+                        </h4>
+                        <form action="{{ path('app_goal_analyze', {'id': goal.id}) }}" method="POST">
+                            <button type="submit" class="btn btn-spotify btn-sm">
+                                <i class="fas fa-sync-alt me-2"></i>RE-ANALYZE
                             </button>
                         </form>
-                        <a href="{{ path('app_goal_index') }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-left"></i> Back
-                        </a>
                     </div>
+                    
+                    <div class="text-black-50 fs-5" style="line-height: 1.8;">
+                        {% if goal.aiAdvice %}
+                            {{ goal.aiAdvice|nl2br }}
+                        {% else %}
+                            <p class="font-italic">Our AI is ready to help. Click re-analyze to generate your strategy.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                {# QR Code Card #}
+                <div class="goal-main-card p-4 text-center mb-4 border-2">
+                    <h5 class="fw-800 text-black mb-4 text-uppercase small letter-spacing-1">Offline Access (QR)</h5>
+                    {% if qrCode %}
+                        <div class="qr-wrapper bg-white p-3 d-inline-block rounded-4 mb-4 shadow-sm border">
+                            <img src="{{ qrCode }}" alt="Goal QR Code" class="img-fluid" style="max-width: 100%;">
+                        </div>
+                        <p class="small text-muted px-3">Scan to save this goal details as a secure note on your device.</p>
+                    {% endif %}
+                </div>
+
+                {# Progress Card #}
+                <div class="goal-main-card p-4 text-center border-2" style="background: #f8f9fa;">
+                    <h5 class="fw-800 text-black mb-4 text-uppercase small letter-spacing-1">Update Progress</h5>
+                    <form action="{{ path('app_goal_toggle', {'id': goal.id}) }}" method="POST">
+                        <button type="submit" class="btn {{ goal.isCompleted ? 'btn-outline-dark' : 'btn-spotify' }} w-100 py-3 fw-bold rounded-pill shadow-sm">
+                            {{ goal.isCompleted ? 'REVERT TO PENDING' : 'MARK AS ACHIEVED' }}
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -91,10 +106,69 @@
 </div>
 
 <style>
-    .alert-sm {
-        padding: 0.5rem;
-        margin-top: 0.5rem;
-        font-size: 0.875rem;
+    :root {
+        --spotify-green: #1DB954;
+        --spotify-black: #000000;
+        --spotify-dark-grey: #121212;
+        --spotify-grey: #f8f9fa;
+        --text-main: #000000;
     }
+
+    .wellness-dashboard {
+        background: #ffffff;
+        min-height: 100vh;
+        color: var(--text-main);
+    }
+
+    .goal-main-card {
+        background-color: #ffffff;
+        border-radius: 24px;
+        border: 2px solid #f0f0f0;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.05);
+    }
+
+    .card-header-black {
+        background: var(--spotify-black);
+        padding: 40px;
+        color: white;
+    }
+
+    .goal-title-large {
+        font-size: 3.5rem;
+        font-weight: 800;
+        word-break: break-all;
+        line-height: 1.1;
+        margin-bottom: 10px;
+    }
+
+    .info-box {
+        background: #f8f9fa;
+        padding: 25px;
+        border-radius: 16px;
+        border: 1px solid #eeeeee;
+    }
+
+    .ai-advice-premium {
+        background: #f0fff4;
+        border-left: 8px solid var(--spotify-green);
+        padding: 40px;
+        border-radius: 16px;
+    }
+
+    .btn-spotify {
+        background-color: var(--spotify-green);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        font-weight: 700;
+        padding: 15px 30px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .text-spotify { color: var(--spotify-green); }
+    .badge-completed { background-color: var(--spotify-green); color: white; padding: 10px 20px; border-radius: 50px; font-weight: 800; }
+    .badge-pending { background-color: #f0f0f0; color: #000000; padding: 10px 20px; border-radius: 50px; font-weight: 800; }
 </style>
 {% endblock %}

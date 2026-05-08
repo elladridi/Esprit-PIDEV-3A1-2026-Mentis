@@ -2,255 +2,139 @@
 
 namespace App\Service;
 
+use Psr\Log\LoggerInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+
 class SpotifyService
 {
     private string $clientId;
     private string $clientSecret;
-    private string $tokenUrl  = 'https://accounts.spotify.com/api/token';
-    private string $searchUrl = 'https://api.spotify.com/v1/search';
+    private ?string $accessToken = null;
 
-    public function __construct()
-    {
-        $this->clientId     = $_ENV['SPOTIFY_CLIENT_ID']     ?? '';
-        $this->clientSecret = $_ENV['SPOTIFY_CLIENT_SECRET'] ?? '';
+    public function __construct(
+        private HttpClientInterface $httpClient,
+        private LoggerInterface $logger,
+        string $clientId,
+        string $clientSecret
+    ) {
+        $this->clientId = $clientId;
+        $this->clientSecret = $clientSecret;
     }
 
-    // ── Get access token ─────────────────────────────────
     private function getAccessToken(): ?string
     {
-        if (empty($this->clientId) || empty($this->clientSecret)) {
-            return null;
+        if ($this->accessToken) {
+            return $this->accessToken;
         }
 
-        $ch = curl_init($this->tokenUrl);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
-            'grant_type' => 'client_credentials',
-        ]));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Authorization: Basic ' . base64_encode($this->clientId . ':' . $this->clientSecret),
-            'Content-Type: application/x-www-form-urlencoded',
-        ]);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-
-        $result = curl_exec($ch);
-        curl_close($ch);
-
-        if (!is_string($result)) {
-            return null;
-        }
-
-        $data = json_decode($result, true);
-
-        if (!is_array($data)) {
-            return null;
-        }
-
-        return isset($data['access_token']) && is_string($data['access_token']) ? $data['access_token'] : null;
-    }
-
-    // ── Build search queries ─────────────────────────────
-    /**
-     * @return string[]
-     */
-    private function buildQueries(string $assessmentType, string $riskLevel): array
-    {
-        $type   = strtolower($assessmentType);
-        $risk   = strtolower($riskLevel);
-        $isHigh = in_array($risk, ['high', 'severe']);
-
-        return match($type) {
-            'depression' => $isHigh
-                ? ['depression recovery music', 'uplifting therapy playlist', 'healing sad mood']
-                : ['feel good music playlist', 'happy mood boost', 'positive energy music'],
-
-            'anxiety' => $isHigh
-                ? ['anxiety relief calm music', 'panic relief meditation music', '432hz calm anxiety']
-                : ['relaxing background music', 'calm focus music', 'stress relief instrumental'],
-
-            'stress' => [
-                'stress relief music playlist',
-                'relaxation music nature sounds',
-                'calming piano music',
-            ],
-
-            'sleep' => [
-                'sleep music relaxation',
-                'deep sleep meditation music',
-                'sleep sounds white noise',
-            ],
-
-            'wellness' => [
-                'mindfulness meditation music',
-                'positive energy wellness',
-                'morning motivation music',
-            ],
-
-            default => [
-                'mental health relaxation music',
-                'calm mindfulness playlist',
-                'emotional healing music',
-            ],
-        };
-    }
-
-    // ── Fetch playlists from Spotify API ─────────────────
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    public function fetchPlaylists(
-        string $assessmentType,
-        string $riskLevel,
-        int $limit = 6
-    ): array {
-        $token = $this->getAccessToken();
-
-        if (!$token) {
-            return $this->getFallbackPlaylists($assessmentType, $riskLevel);
-        }
-
-        $queries   = $this->buildQueries($assessmentType, $riskLevel);
-        $playlists = [];
-
-        foreach ($queries as $query) {
-            if (count($playlists) >= $limit) break;
-
-            $url = $this->searchUrl
-                . '?q=' . urlencode($query)
-                . '&type=playlist'
-                . '&limit=2'
-                . '&market=US';
-
-            $ch = curl_init($url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                'Authorization: Bearer ' . $token,
-                'Content-Type: application/json',
+        try {
+            $response = $this->httpClient->request('POST', 'https://accounts.spotify.com/api/token', [
+                'body' => [
+                    'grant_type' => 'client_credentials',
+                ],
+                'headers' => [
+                    'Authorization' => 'Basic ' . base64_encode($this->clientId . ':' . $this->clientSecret),
+                ],
             ]);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
 
-            $result = curl_exec($ch);
-            $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
+            $data = $response->toArray();
+            $this->accessToken = $data['access_token'] ?? null;
+            return $this->accessToken;
+        } catch (\Exception $e) {
+            $this->logger->error('Spotify Auth Error: ' . $e->getMessage());
+            return null;
+        }
+    }
 
-            if ($status !== 200) continue;
+    public function getRecommendationForMood(string $mood): array
+    {
+        $query = match ($mood) {
+            'very_happy' => 'upbeat feel good pop hits',
+            'happy' => 'happy chill pop',
+            'neutral' => 'chill focus indie',
+            'sad' => 'comforting acoustic calm',
+            'very_sad' => 'soothing peaceful healing',
+            default => 'chill study music',
+        };
 
-            $data  = json_decode($result, true);
-            $items = $data['playlists']['items'] ?? [];
+        $token = $this->getAccessToken();
+        if (!$token) {
+            return $this->getFallbackRecommendation($mood);
+        }
 
-            foreach ($items as $item) {
-                if (!$item || count($playlists) >= $limit) break;
+        try {
+            $response = $this->httpClient->request('GET', 'https://api.spotify.com/v1/search', [
+                'query' => [
+                    'q' => $query,
+                    'type' => 'track',
+                    'limit' => 1,
+                ],
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $token,
+                ],
+            ]);
 
-                $image = $item['images'][0]['url']
-                    ?? $item['images'][1]['url']
-                    ?? null;
+            $data = $response->toArray();
+            $track = $data['tracks']['items'][0] ?? null;
 
-                $playlists[] = [
-                    'id'          => $item['id']          ?? '',
-                    'name'        => $item['name']         ?? 'Untitled Playlist',
-                    'description' => strip_tags($item['description'] ?? ''),
-                    'owner'       => $item['owner']['display_name'] ?? 'Spotify',
-                    'tracks'      => $item['tracks']['total'] ?? 0,
-                    'image'       => $image,
-                    'url'         => $item['external_urls']['spotify'] ?? '#',
-                    'embedUrl'    => 'https://open.spotify.com/embed/playlist/' . ($item['id'] ?? ''),
+            if ($track && isset($track['external_urls']['spotify']) && str_contains($track['external_urls']['spotify'], '/track/')) {
+                $imageUrl = $track['album']['images'][0]['url'] ?? null;
+                return [
+                    'track_name' => $track['name'],
+                    'artist_name' => $track['artists'][0]['name'] ?? 'Unknown Artist',
+                    'track_url' => $track['external_urls']['spotify'],
+                    'preview_url' => $track['preview_url'] ?? null,
+                    'image_url' => $imageUrl,
                 ];
             }
+        } catch (\Exception $e) {
+            $this->logger->error('Spotify Search Error: ' . $e->getMessage());
         }
 
-        return $playlists ?: $this->getFallbackPlaylists($assessmentType, $riskLevel);
+        return $this->getFallbackRecommendation($mood);
     }
 
-    // ── Fallback playlists if API unavailable ────────────
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    private function getFallbackPlaylists(string $assessmentType, string $riskLevel): array
+    private function getFallbackRecommendation(string $mood): array
     {
-        $type = strtolower($assessmentType);
-
+        // Curated fallbacks using SEARCH URLs to prevent geo-blocking 404s
         $fallbacks = [
-            'anxiety' => [
-                [
-                    'name'        => 'Peaceful Piano',
-                    'description' => 'Relax and indulge with beautiful piano pieces',
-                    'owner'       => 'Spotify',
-                    'tracks'      => 172,
-                    'image'       => null,
-                    'url'         => 'https://open.spotify.com/playlist/37i9dQZF1DX4sWSpwq3LiO',
-                    'embedUrl'    => 'https://open.spotify.com/embed/playlist/37i9dQZF1DX4sWSpwq3LiO',
-                ],
-                [
-                    'name'        => 'Calm Vibes',
-                    'description' => 'Chill out with these serene sounds',
-                    'owner'       => 'Spotify',
-                    'tracks'      => 60,
-                    'image'       => null,
-                    'url'         => 'https://open.spotify.com/playlist/37i9dQZF1DWXe9gFZP0gtP',
-                    'embedUrl'    => 'https://open.spotify.com/embed/playlist/37i9dQZF1DWXe9gFZP0gtP',
-                ],
+            'very_happy' => [
+                'track_name' => 'Happy',
+                'artist_name' => 'Pharrell Williams',
+                'track_url' => 'https://open.spotify.com/search/Happy%20Pharrell%20Williams',
+                'preview_url' => null,
+                'image_url' => 'https://i.scdn.co/image/ab67616d0000b2733989390637f9035f8d5e1657',
             ],
-            'depression' => [
-                [
-                    'name'        => 'Mood Booster',
-                    'description' => 'Get happy with today\'s dose of feel-good songs',
-                    'owner'       => 'Spotify',
-                    'tracks'      => 100,
-                    'image'       => null,
-                    'url'         => 'https://open.spotify.com/playlist/37i9dQZF1DX3rxVfibe1L0',
-                    'embedUrl'    => 'https://open.spotify.com/embed/playlist/37i9dQZF1DX3rxVfibe1L0',
-                ],
-                [
-                    'name'        => 'Life is Good',
-                    'description' => 'Feel the positive energy',
-                    'owner'       => 'Spotify',
-                    'tracks'      => 80,
-                    'image'       => null,
-                    'url'         => 'https://open.spotify.com/playlist/37i9dQZF1DX3rxVfibe1L0',
-                    'embedUrl'    => 'https://open.spotify.com/embed/playlist/37i9dQZF1DX3rxVfibe1L0',
-                ],
+            'happy' => [
+                'track_name' => 'Walking On Sunshine',
+                'artist_name' => 'Katrina & The Waves',
+                'track_url' => 'https://open.spotify.com/search/Walking%20On%20Sunshine%20Katrina',
+                'preview_url' => null,
+                'image_url' => 'https://i.scdn.co/image/ab67616d0000b273e045b410940f81d8975a5c13',
             ],
-            'sleep' => [
-                [
-                    'name'        => 'Sleep',
-                    'description' => 'Gentle sounds for a restful night',
-                    'owner'       => 'Spotify',
-                    'tracks'      => 141,
-                    'image'       => null,
-                    'url'         => 'https://open.spotify.com/playlist/37i9dQZF1DWZd79rJ6a7lp',
-                    'embedUrl'    => 'https://open.spotify.com/embed/playlist/37i9dQZF1DWZd79rJ6a7lp',
-                ],
+            'neutral' => [
+                'track_name' => 'Lo-fi Study',
+                'artist_name' => 'Lofi Girl',
+                'track_url' => 'https://open.spotify.com/search/lofi%20study%20girl',
+                'preview_url' => null,
+                'image_url' => 'https://i.scdn.co/image/ab67616d0000b273c68388484f295e548232c96c',
             ],
-            'stress' => [
-                [
-                    'name'        => 'Stress Relief',
-                    'description' => 'Calming music for stressful moments',
-                    'owner'       => 'Spotify',
-                    'tracks'      => 90,
-                    'image'       => null,
-                    'url'         => 'https://open.spotify.com/playlist/37i9dQZF1DWXe9gFZP0gtP',
-                    'embedUrl'    => 'https://open.spotify.com/embed/playlist/37i9dQZF1DWXe9gFZP0gtP',
-                ],
+            'sad' => [
+                'track_name' => 'Someone Like You',
+                'artist_name' => 'Adele',
+                'track_url' => 'https://open.spotify.com/search/Someone%20Like%20You%20Adele',
+                'preview_url' => null,
+                'image_url' => 'https://i.scdn.co/image/ab67616d0000b273212f6ab30588663806a6c429',
             ],
-            'default' => [
-                [
-                    'name'        => 'Feeling Good',
-                    'description' => 'Songs that make you feel better',
-                    'owner'       => 'Spotify',
-                    'tracks'      => 85,
-                    'image'       => null,
-                    'url'         => 'https://open.spotify.com/playlist/37i9dQZF1DX3rxVfibe1L0',
-                    'embedUrl'    => 'https://open.spotify.com/embed/playlist/37i9dQZF1DX3rxVfibe1L0',
-                ],
+            'very_sad' => [
+                'track_name' => 'Weightless',
+                'artist_name' => 'Marconi Union',
+                'track_url' => 'https://open.spotify.com/search/Weightless%20Marconi%20Union',
+                'preview_url' => null,
+                'image_url' => 'https://i.scdn.co/image/ab67616d0000b27376a26778f3f878939a039757',
             ],
         ];
 
-        return $fallbacks[$type] ?? $fallbacks['default'];
-    }
-
-    public function isConfigured(): bool
-    {
-        return !empty($this->clientId) && !empty($this->clientSecret);
+        return $fallbacks[$mood] ?? $fallbacks['neutral'];
     }
 }

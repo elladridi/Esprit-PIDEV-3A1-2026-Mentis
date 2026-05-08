@@ -1,0 +1,19 @@
+parameters:
+    level: 6
+    paths:
+        - src/Controller/EventController.php
+        - src/Controller/EventRegistrationController.php
+        - src/Entity/Event.php
+        - src/Entity/EventRegistration.php
+        - src/Service/QRCodeService.php
+        - src/Service/PDFTicketService.php
+        - src/Service/EmailNotificationService.php
+        - src/Service/GoogleMapsService.php
+        - src/Repository/EventRepository.php
+        - src/Repository/EventRegistrationRepository.php
+    excludePaths:
+        - src/Service/AIEventService.php
+        - src/Service/BadgeService.php
+        - src/Service/BookRecommendationService.php
+        - src/Service/ContentNodeValidatorTest.php
+        - src/Service/AIChatService.php

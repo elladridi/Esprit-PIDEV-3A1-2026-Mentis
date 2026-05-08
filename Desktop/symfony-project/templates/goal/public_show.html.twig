@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ goal.title }} - Mentis{% endblock %}
+
+{% block body %}
+<div class="container py-5 d-flex justify-content-center align-items-center min-vh-100">
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden" style="max-width: 600px; width: 100%;">
+        <div class="card-header bg-success text-white py-4 text-center border-0">
+            <h2 class="fw-bold mb-0">{{ goal.title }}</h2>
+            <p class="mb-0 text-white-50 small mt-2">Mentis Wellness Goal</p>
+        </div>
+        
+        <div class="card-body p-4 p-md-5 bg-white">
+            <div class="mb-4">
+                <h6 class="text-uppercase text-muted fw-bold small mb-2">Description</h6>
+                <p class="fs-5 text-dark">{{ goal.description }}</p>
+            </div>
+            
+            <div class="row g-4 mb-4">
+                <div class="col-sm-6">
+                    <div class="p-3 bg-light rounded-3 h-100">
+                        <h6 class="text-uppercase text-muted fw-bold small mb-1"><i class="fas fa-flag-checkered me-2 text-primary"></i>Deadline</h6>
+                        <div class="fw-bold text-dark fs-5">{{ goal.targetDeadline ? goal.targetDeadline|date('M d, Y') : 'No deadline' }}</div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="p-3 bg-light rounded-3 h-100">
+                        <h6 class="text-uppercase text-muted fw-bold small mb-1"><i class="fas fa-info-circle me-2 text-info"></i>Status</h6>
+                        {% if goal.isCompleted %}
+                            <span class="badge bg-success fs-6 rounded-pill px-3 py-2">Completed</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark fs-6 rounded-pill px-3 py-2">In Progress</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <hr class="text-muted my-4">
+            
+            <div class="d-flex justify-content-between align-items-center text-muted small">
+                <div>
+                    <i class="fas fa-clock me-1"></i> Created {{ goal.createdAt|time_ago }}
+                </div>
+                <div class="fw-bold text-success">
+                    <i class="fas fa-brain me-1"></i> Mentis
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

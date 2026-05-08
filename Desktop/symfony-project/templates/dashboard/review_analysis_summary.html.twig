@@ -1,0 +1,41 @@
+<div class="card shadow-lg border-0 rounded-4 mt-4">
+    <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, #9C27B0, #7B1FA2);">
+        <h5 class="mb-0 fw-bold">
+            <i class="fas fa-brain me-2"></i>AI Review Insights
+        </h5>
+    </div>
+    <div class="card-body">
+        {% set total = positive + negative + neutral %}
+        {% if total > 0 %}
+            <div class="mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <span>😊 Positive Reviews</span>
+                    <span>{{ positive }} ({{ (positive / total * 100)|round }}%)</span>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar bg-success" style="width: {{ (positive / total * 100)|round }}%"></div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <span>😐 Neutral Reviews</span>
+                    <span>{{ neutral }} ({{ (neutral / total * 100)|round }}%)</span>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar bg-warning" style="width: {{ (neutral / total * 100)|round }}%"></div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <span>😞 Needs Improvement</span>
+                    <span>{{ negative }} ({{ (negative / total * 100)|round }}%)</span>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar bg-danger" style="width: {{ (negative / total * 100)|round }}%"></div>
+                </div>
+            </div>
+        {% else %}
+            <p class="text-muted text-center mb-0">No reviews yet for analysis</p>
+        {% endif %}
+    </div>
+</div>
